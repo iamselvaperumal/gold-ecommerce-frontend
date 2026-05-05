@@ -715,10 +715,21 @@ export default function SuperAdminDashboard() {
   const [repliedIds, setRepliedIds] = useState(new Set())
   const [annReplies, setAnnReplies] = useState({})
   const [replyPopupAnnId, setReplyPopupAnnId] = useState(null)
-  // 👇 ADD THESE 2 LINES
-  const [metalPrices, setMetalPrices] = useState({ gold24k: null, gold22k: null, silver: null })
-  const [metalLoading, setMetalLoading] = useState(false)
-  const [usdToInr, setUsdToInr] = useState(null)
+const [metalPrices, setMetalPrices] = useState({ gold24k: null, gold22k: null, silver: null })
+const [metalLoading, setMetalLoading] = useState(false)
+const [usdToInr, setUsdToInr] = useState(null)
+
+// NEW — Rate entry popup
+const [showRatePopup, setShowRatePopup] = useState(false)
+const [rateForm, setRateForm] = useState({
+  date: new Date().toISOString().split('T')[0],
+  gold_22k: '',
+  gold_24k: '',
+  silver_999: '',
+})
+const [rateMsg, setRateMsg] = useState('')
+const [rateSaving, setRateSaving] = useState(false)
+const [dbRateDate, setDbRateDate] = useState(null)   // shows which date's rate is displayed
 
   const canvasRef = useRef(null)
 
@@ -979,34 +990,24 @@ export default function SuperAdminDashboard() {
     setHierarchyLoading(false)
   }
 
-  const fetchMetalPrices = async () => {
-    setMetalLoading(true)
-    try {
-      const [goldRes, silverRes, inrRes] = await Promise.allSettled([
-        fetch('https://api.gold-api.com/price/XAU'),
-        fetch('https://api.gold-api.com/price/XAG'),
-        fetch('https://api.exchangerate-api.com/v4/latest/USD'),  // 👈 ADD
-      ])
-      const goldData = goldRes.status === 'fulfilled' ? await goldRes.value.json() : null
-      const silverData = silverRes.status === 'fulfilled' ? await silverRes.value.json() : null
-      const inrData = inrRes.status === 'fulfilled' ? await inrRes.value.json() : null  // 👈 ADD
-
-      const rate = inrData?.rates?.INR || 84   // 👈 ADD (fallback 84 if API fail)
-      setUsdToInr(rate)                         // 👈 ADD
-
-      // 1 troy ounce = 31.1035 grams
-     const gold24kPerGram = goldData?.price ? (goldData.price / 31.1035) * rate : null
-const gold22kPerGram = gold24kPerGram ? gold24kPerGram * (22 / 24) : null 
-const silverPerGram = silverData?.price ? (silverData.price / 31.1035) * rate : null
-
-
-
-      setMetalPrices({ gold24k: gold24kPerGram, gold22k: gold22kPerGram, silver: silverPerGram })  // 👈 updated
-    } catch (e) {
-      console.error('Metal price fetch error:', e)
-    }
-    setMetalLoading(false)
+const fetchMetalPrices = async () => {
+  setMetalLoading(true)
+  try {
+    const res = await api.get('/metal-rates/')
+    const d = res.data
+    setMetalPrices({
+      gold22k: parseFloat(d.gold_22k),
+      gold24k: parseFloat(d.gold_24k),
+      silver:  parseFloat(d.silver_999),
+    })
+    setDbRateDate(d.date)
+  } catch (e) {
+    // No rate entered yet — leave as null
+    setMetalPrices({ gold22k: null, gold24k: null, silver: null })
+    setDbRateDate(null)
   }
+  setMetalLoading(false)
+}
 
   useEffect(() => {
     fetchAdmins()
@@ -1014,14 +1015,12 @@ const silverPerGram = silverData?.price ? (silverData.price / 31.1035) * rate : 
     fetchMyAnnouncements()
     fetchProfileRequests()
     fetchAllMembers()
-    fetchMetalPrices()          // 👈 ADD
     const interval = setInterval(() => {
       fetchAdmins()
       fetchAnnouncementCount()
       fetchMyAnnouncements()
       fetchProfileRequests()
       fetchAllMembers()
-      fetchMetalPrices()        // 👈 ADD
     }, 30000)
     return () => clearInterval(interval)
   }, [])
@@ -1115,6 +1114,43 @@ const silverPerGram = silverData?.price ? (silverData.price / 31.1035) * rate : 
           <span style={{ color: '#a5f3fc', fontWeight: 700, fontSize: '14px' }}>🛡️ Super Admin</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+
+          {/* 💰 Rate Entry Button */}
+<div
+  onClick={() => {
+    setShowRatePopup(true)
+    setRateMsg('')
+    // Pre-fill form with today's date
+    setRateForm(prev => ({
+      ...prev,
+      date: new Date().toISOString().split('T')[0],
+    }))
+  }}
+  title="Enter Today's Metal Rates"
+  style={{
+    cursor: 'pointer',
+    padding: '6px 12px',
+    borderRadius: '10px',
+    border: '1px solid rgba(255,215,0,0.45)',
+    background: 'rgba(255,215,0,0.1)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    transition: 'all 0.25s ease',
+  }}
+  onMouseEnter={e => {
+    e.currentTarget.style.background = 'rgba(255,215,0,0.25)'
+    e.currentTarget.style.transform = 'translateY(-1px)'
+  }}
+  onMouseLeave={e => {
+    e.currentTarget.style.background = 'rgba(255,215,0,0.1)'
+    e.currentTarget.style.transform = 'translateY(0)'
+  }}
+>
+  <span style={{ fontSize: '16px', lineHeight: 1 }}>💰</span>
+  <span style={{ fontSize: '11px', fontWeight: 700, color: '#ffd700' }}>Rate</span>
+</div>
+
 
           <div
             onClick={() => { setShowRequests(true); setRequestMsg('') }}
@@ -1302,13 +1338,19 @@ const silverPerGram = silverData?.price ? (silverData.price / 31.1035) * rate : 
                     <div style={{ color: '#a5f3fc', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                       Today's Gold & Silver Rates
                     </div>
-                    <div style={{ color: subtext, fontSize: '11px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span>📍 Chennai, India</span>
-                      <span style={{ opacity: 0.4 }}>•</span>
-                      <span>Live price • ₹ per gram</span>
-                      <span style={{ opacity: 0.4 }}>•</span>
-                      <span style={{ color: '#f59e0b', fontSize: '10px', fontWeight: 700 }}>Base Rate Only</span>
-                    </div>
+                   <div style={{ color: subtext, fontSize: '11px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+  <span>📍 Chennai, India</span>
+  <span style={{ opacity: 0.4 }}>•</span>
+  <span>₹ per gram</span>
+  <span style={{ opacity: 0.4 }}>•</span>
+  {dbRateDate ? (
+    <span style={{ color: '#4ade80', fontSize: '10px', fontWeight: 700 }}>
+      📅 {new Date(dbRateDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
+    </span>
+  ) : (
+    <span style={{ color: '#f87171', fontSize: '10px', fontWeight: 700 }}>No rate entered yet</span>
+  )}
+</div>
                   </div>
                 </div>
                 <button
@@ -1430,7 +1472,181 @@ const silverPerGram = silverData?.price ? (silverData.price / 31.1035) * rate : 
           </div>
         </div>
 
+{/* ── RATE ENTRY POPUP ── */}
+{showRatePopup && (
+  <div
+    onClick={() => setShowRatePopup(false)}
+    style={{
+      position: 'fixed', inset: 0,
+      background: 'rgba(0,0,0,0.85)',
+      backdropFilter: 'blur(12px)',
+      zIndex: 1300,
+      display: 'flex', alignItems: 'center', justifyContent: 'center'
+    }}
+  >
+    <div
+      onClick={e => e.stopPropagation()}
+      style={{
+        background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc',
+        border: '1px solid rgba(255,215,0,0.35)',
+        borderRadius: '24px',
+        width: '95%', maxWidth: '460px',
+        padding: '32px',
+        boxShadow: '0 32px 80px rgba(0,0,0,0.7)',
+        animation: 'fadeIn 0.3s cubic-bezier(0.22,1,0.36,1)',
+      }}
+    >
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            width: '42px', height: '42px', borderRadius: '12px',
+            background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.4)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px'
+          }}>💰</div>
+          <div>
+            <div style={{ color: '#ffd700', fontWeight: 800, fontSize: '15px' }}>ENTER METAL RATES</div>
+            <div style={{ color: subtext, fontSize: '11px', marginTop: '2px' }}>
+              {dbRateDate ? `Current: ${dbRateDate}` : 'No rate entered yet'}
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={() => setShowRatePopup(false)}
+          style={{
+            background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
+            color: '#f87171', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px'
+          }}
+        >✕ Close</button>
+      </div>
 
+      {rateMsg && (
+        <div style={{
+          background: rateMsg.includes('✅') ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)',
+          border: `1px solid ${rateMsg.includes('✅') ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.3)'}`,
+          color: rateMsg.includes('✅') ? '#4ade80' : '#f87171',
+          borderRadius: '10px', padding: '12px 16px', fontSize: '13px', marginBottom: '18px'
+        }}>
+          {rateMsg}
+        </div>
+      )}
+
+      {/* Date */}
+      <div style={{ marginBottom: '16px' }}>
+        <label style={{ display: 'block', color: subtext, fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+          📅 Date *
+        </label>
+        <input
+          type="date"
+          value={rateForm.date}
+          onChange={e => setRateForm({ ...rateForm, date: e.target.value })}
+          style={{ width: '100%', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '10px', padding: '12px 16px', color: text, fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+          onFocus={e => e.target.style.borderColor = '#ffd700'}
+          onBlur={e => e.target.style.borderColor = inpBorder}
+        />
+      </div>
+
+      {/* 22K */}
+      <div style={{ marginBottom: '16px' }}>
+        <label style={{ display: 'block', color: '#fbbf24', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+          🏅 Gold 22K — Rate per gram (₹) *
+        </label>
+        <input
+          type="number"
+          placeholder="e.g. 12800"
+          value={rateForm.gold_22k}
+          onChange={e => setRateForm({ ...rateForm, gold_22k: e.target.value })}
+          style={{ width: '100%', background: inpBg, border: `1px solid rgba(251,191,36,0.4)`, borderRadius: '10px', padding: '12px 16px', color: '#fbbf24', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
+          onFocus={e => e.target.style.borderColor = '#fbbf24'}
+          onBlur={e => e.target.style.borderColor = 'rgba(251,191,36,0.4)'}
+        />
+        {rateForm.gold_22k && (
+          <div style={{ color: '#fbbf24', fontSize: '11px', marginTop: '5px', opacity: 0.7 }}>
+            Preview 1gm = ₹{parseFloat(rateForm.gold_22k).toFixed(2)}
+          </div>
+        )}
+      </div>
+
+      {/* 24K */}
+      <div style={{ marginBottom: '16px' }}>
+        <label style={{ display: 'block', color: '#ffd700', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+          🥇 Gold 24K — Rate per gram (₹) *
+        </label>
+        <input
+          type="number"
+          placeholder="e.g. 13900"
+          value={rateForm.gold_24k}
+          onChange={e => setRateForm({ ...rateForm, gold_24k: e.target.value })}
+          style={{ width: '100%', background: inpBg, border: `1px solid rgba(255,215,0,0.4)`, borderRadius: '10px', padding: '12px 16px', color: '#ffd700', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
+          onFocus={e => e.target.style.borderColor = '#ffd700'}
+          onBlur={e => e.target.style.borderColor = 'rgba(255,215,0,0.4)'}
+        />
+        {rateForm.gold_24k && (
+          <div style={{ color: '#ffd700', fontSize: '11px', marginTop: '5px', opacity: 0.7 }}>
+            Preview 1gm = ₹{parseFloat(rateForm.gold_24k).toFixed(2)}
+          </div>
+        )}
+      </div>
+
+      {/* Silver */}
+      <div style={{ marginBottom: '24px' }}>
+        <label style={{ display: 'block', color: '#c0c0c0', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+          🥈 Silver 999 — Rate per gram (₹) *
+        </label>
+        <input
+          type="number"
+          placeholder="e.g. 225"
+          value={rateForm.silver_999}
+          onChange={e => setRateForm({ ...rateForm, silver_999: e.target.value })}
+          style={{ width: '100%', background: inpBg, border: `1px solid rgba(192,192,192,0.4)`, borderRadius: '10px', padding: '12px 16px', color: '#c0c0c0', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
+          onFocus={e => e.target.style.borderColor = '#c0c0c0'}
+          onBlur={e => e.target.style.borderColor = 'rgba(192,192,192,0.4)'}
+        />
+        {rateForm.silver_999 && (
+          <div style={{ color: '#c0c0c0', fontSize: '11px', marginTop: '5px', opacity: 0.7 }}>
+            Preview 1gm = ₹{parseFloat(rateForm.silver_999).toFixed(2)}
+          </div>
+        )}
+      </div>
+
+      {/* Save Button */}
+      <button
+        disabled={rateSaving}
+        onClick={async () => {
+          if (!rateForm.date || !rateForm.gold_22k || !rateForm.gold_24k || !rateForm.silver_999) {
+            setRateMsg('❌ All fields are required.')
+            return
+          }
+          setRateSaving(true)
+          try {
+            await api.post('/metal-rates/', {
+              date: rateForm.date,
+              gold_22k: rateForm.gold_22k,
+              gold_24k: rateForm.gold_24k,
+              silver_999: rateForm.silver_999,
+            })
+            setRateMsg('✅ Rate saved successfully!')
+            fetchMetalPrices()   // refresh the table
+            setTimeout(() => setShowRatePopup(false), 1400)
+          } catch (err) {
+            setRateMsg('❌ Failed: ' + JSON.stringify(err.response?.data))
+          }
+          setRateSaving(false)
+        }}
+        style={{
+          width: '100%', padding: '14px',
+          background: rateSaving ? 'rgba(255,215,0,0.3)' : 'linear-gradient(90deg,#fbbf24,#ffd700)',
+          border: 'none', borderRadius: '12px',
+          fontWeight: 800, color: rateSaving ? '#ffd700' : '#431407',
+          fontSize: '15px', cursor: rateSaving ? 'not-allowed' : 'pointer',
+          letterSpacing: '0.5px', transition: 'all 0.3s ease'
+        }}
+      >
+        {rateSaving ? '⏳ Saving...' : '💾 Save Rate'}
+      </button>
+    </div>
+  </div>
+)}
 
         {/* ── BIRTHDAY LIST MODAL ── */}
         {showBirthdayList && (

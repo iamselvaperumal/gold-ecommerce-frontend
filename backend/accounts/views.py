@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
-from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest
+from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate
 from .serializers import *
 
 
@@ -579,6 +579,46 @@ class ProfileUpdateApproveView(APIView):
         return Response({'message': 'Request approved and profile updated'})
 
 
+class MetalRateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """Return today's rate; if not entered yet, return latest available."""
+        from django.utils import timezone
+        today = timezone.now().date()
+
+        rate = MetalRate.objects.filter(date=today).first()
+        if not rate:
+            rate = MetalRate.objects.order_by('-date').first()
+
+        if not rate:
+            return Response({'error': 'No rates entered yet'}, status=404)
+
+        serializer = MetalRateSerializer(rate)
+        return Response(serializer.data)
+
+    def post(self, request):
+        """Super admin sets/updates rate for a given date."""
+        if request.user.role != 'super_admin':
+            return Response({'error': 'Permission denied'}, status=403)
+
+        date = request.data.get('date')
+        if not date:
+            return Response({'error': 'date is required'}, status=400)
+
+        existing = MetalRate.objects.filter(date=date).first()
+        if existing:
+            serializer = MetalRateSerializer(existing, data=request.data, partial=True)
+        else:
+            serializer = MetalRateSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save(created_by=request.user)
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+    
+
+    
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def ping(request):

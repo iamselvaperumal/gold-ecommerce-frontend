@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest
+from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -392,3 +392,9 @@ class ProfileUpdateRequestSerializer(serializers.ModelSerializer):
             'status', 'created_at'
         ]
         read_only_fields = ['user', 'status', 'created_at']
+
+class MetalRateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MetalRate
+        fields = ['id', 'date', 'gold_22k', 'gold_24k', 'silver_999', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']        

@@ -436,3 +436,18 @@ class ProfileUpdateRequest(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.status}"
+
+class MetalRate(models.Model):
+    date = models.DateField(unique=True)
+    gold_22k = models.DecimalField(max_digits=10, decimal_places=2)   # per gram in ₹
+    gold_24k = models.DecimalField(max_digits=10, decimal_places=2)   # per gram in ₹
+    silver_999 = models.DecimalField(max_digits=10, decimal_places=2) # per gram in ₹
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.date} | 22K={self.gold_22k} | 24K={self.gold_24k} | Ag={self.silver_999}"        
