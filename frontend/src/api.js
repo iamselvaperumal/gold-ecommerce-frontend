@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'https://bitbyte-e-commerce.onrender.com/api',
+  baseURL: 'https://bitbyte-backend-f66f.onrender.com/api',
 })
 
 api.interceptors.request.use((config) => {
@@ -20,9 +20,9 @@ api.interceptors.response.use(
         const refresh = localStorage.getItem('refresh')
         if (refresh) {
           const res = await axios.post(
-            'https://bitbyte-e-commerce.onrender.com/api/login/refresh/',
+            'https://bitbyte-backend-f66f.onrender.com/api/login/refresh/',
             { refresh }
-          )
+            )
           localStorage.setItem('token', res.data.access)
           original.headers.Authorization = `Bearer ${res.data.access}`
           return api(original)
