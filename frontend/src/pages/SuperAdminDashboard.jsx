@@ -897,7 +897,6 @@ const [dbRateDate, setDbRateDate] = useState(null)   // shows which date's rate 
       ])
       const admins = adminRes.status === 'fulfilled' ? adminRes.value.data : []
       const dealers = dealerRes.status === 'fulfilled' ? dealerRes.value.data : []
-      console.log('ALL DEALERS:', dealers)
       const sds = sdRes.status === 'fulfilled' ? sdRes.value.data : []
       const pros = proRes.status === 'fulfilled' ? proRes.value.data : []
       const cuss = cusRes.status === 'fulfilled' ? cusRes.value.data : []
@@ -1042,17 +1041,29 @@ const fetchMetalPrices = async () => {
     setForm({ ...form, [name]: value })
   }
 
-  const handleSubmit = async e => {
-    e.preventDefault()
-    try {
-      await api.post('/admins/', form)
-      setMsg('✅ Admin created successfully!')
-      setShowForm(false)
-      fetchAdmins()
-    } catch (err) {
-      setMsg('❌ Error: ' + JSON.stringify(err.response?.data))
+const handleSubmit = async e => {
+  e.preventDefault()
+  try {
+    const cleanedForm = {
+      ...form,
+      dob: form.dob || null,
+      anniversary_date: form.anniversary_date || null,
+      admin_name: undefined,
+      admin_id: undefined,
+      admin_contact_no: undefined,
     }
+
+    console.log('📤 SENDING:', JSON.stringify(cleanedForm, null, 2))  // ← ADD
+
+    await api.post('/admins/', cleanedForm)
+    setMsg('✅ Admin created successfully!')
+    setShowForm(false)
+    fetchAdmins()
+  } catch (err) {
+    console.log('❌ ERROR RESPONSE:', err.response?.data)  // ← ADD
+    setMsg('❌ Error: ' + JSON.stringify(err.response?.data))
   }
+}
 
   const s = {
     card: { background: cardBg, border: cardBorder, borderRadius: '20px', padding: '32px 36px', marginBottom: '24px' },
@@ -1314,149 +1325,239 @@ const fetchMetalPrices = async () => {
           </div>
         )}
 
-        {/* ── GOLD & SILVER PRICE TABLE ── */}
-        {(() => {
-          const WEIGHTS = [
-            { label: '50 mg', grams: 0.05 },
-            { label: '100 mg', grams: 0.10 },
-            { label: '150 mg', grams: 0.15 },
-            { label: '200 mg', grams: 0.20 },
-            { label: '500 mg', grams: 0.50 },
-            { label: '1 gm', grams: 1 },
-            { label: '2 gm', grams: 2 },
-            { label: '4 gm', grams: 4 },
-            { label: '8 gm', grams: 8 },
-          ]
-          const fmt = (val) => val != null ? `₹${val.toFixed(2)}` : '—'
-          return (
-            <div style={{ background: cardBg, border: cardBorder, borderRadius: '20px', padding: '28px 32px', marginBottom: '24px' }}>
-              {/* Header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '22px' }}>⚖️</span>
-                  <div>
-                    <div style={{ color: '#a5f3fc', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                      Today's Gold & Silver Rates
-                    </div>
-                   <div style={{ color: subtext, fontSize: '11px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-  <span>📍 Chennai, India</span>
-  <span style={{ opacity: 0.4 }}>•</span>
-  <span>₹ per gram</span>
-  <span style={{ opacity: 0.4 }}>•</span>
-  {dbRateDate ? (
-    <span style={{ color: '#4ade80', fontSize: '10px', fontWeight: 700 }}>
-      📅 {new Date(dbRateDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
-    </span>
-  ) : (
-    <span style={{ color: '#f87171', fontSize: '10px', fontWeight: 700 }}>No rate entered yet</span>
-  )}
-</div>
+{/* ── GOLD & SILVER PRICE TABLE — HORIZONTAL LAYOUT ── */}
+<div style={{
+  display: 'flex',
+  gap: '0',
+  background: cardBg,
+  border: cardBorder,
+  borderRadius: '20px',
+  marginBottom: '24px',
+  overflow: 'hidden',
+  minHeight: '420px',
+  }}>
+
+  {/* ── LEFT 20% : Sales Summary ── */}
+  <div style={{
+    width: '20%',
+    minWidth: '160px',
+    borderRight: `1px solid ${border}`,
+    padding: '20px 14px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  }}>
+    <div style={{
+      color: '#a5f3fc', fontSize: '10px', fontWeight: 800,
+      letterSpacing: '1.5px', textTransform: 'uppercase',
+      paddingBottom: '10px', borderBottom: `1px solid ${border}`,
+    }}>
+      📊 Sales Summary
+    </div>
+
+    {[
+      { label: 'Today Income', val: '₹0', sub: '0 sales', color: '#22d3ee' },
+      { label: 'This Week', val: '₹0', sub: '0 sales', color: '#4ade80' },
+      { label: 'This Month', val: '₹0', sub: '0 sales', color: '#a78bfa' },
+    ].map(s => (
+      <div key={s.label} style={{
+        background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+        border: cardBorder, borderRadius: '10px', padding: '12px 10px',
+      }}>
+        <div style={{ fontSize: '9px', color: subtext, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '6px' }}>
+          {s.label}
+        </div>
+        <div style={{ fontSize: '15px', fontWeight: 800, fontFamily: 'monospace', color: s.color }}>
+          {s.val}
+        </div>
+        <div style={{ fontSize: '9px', color: subtext, marginTop: '3px' }}>{s.sub}</div>
+      </div>
+    ))}
+
+    <div style={{ marginTop: 'auto', paddingTop: '8px', borderTop: `1px solid ${border}`, textAlign: 'center' }}>
+      <div style={{ fontSize: '9px', color: '#334155' }}>Live • Auto refresh</div>
+      <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4ade80', margin: '6px auto 0', boxShadow: '0 0 8px rgba(74,222,128,0.8)' }} />
+    </div>
+  </div>
+
+  {/* ── CENTER 60% : Gold & Silver Table ── */}
+  <div style={{ width: '60%', padding: '20px 18px', overflowX: 'auto' }}>
+    {/* Header */}
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <span style={{ fontSize: '20px' }}>⚖️</span>
+        <div>
+          <div style={{ color: '#a5f3fc', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            Today's Gold & Silver Rates
+          </div>
+          <div style={{ color: subtext, fontSize: '10px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span>📍 Chennai, India</span>
+            <span style={{ opacity: 0.4 }}>•</span>
+            <span>₹ per gram</span>
+            <span style={{ opacity: 0.4 }}>•</span>
+            {dbRateDate ? (
+              <span style={{ color: '#4ade80', fontSize: '9px', fontWeight: 700 }}>
+                📅 {new Date(dbRateDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
+              </span>
+            ) : (
+              <span style={{ color: '#f87171', fontSize: '9px', fontWeight: 700 }}>No rate entered yet</span>
+            )}
+          </div>
+        </div>
+      </div>
+      <button
+        onClick={fetchMetalPrices}
+        style={{ padding: '6px 14px', background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.3)', borderRadius: '8px', color: '#22d3ee', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+      >
+        🔄 Refresh
+      </button>
+    </div>
+
+    {metalLoading ? (
+      <div style={{ textAlign: 'center', padding: '30px', color: subtext }}>Loading prices...</div>
+    ) : (() => {
+      const WEIGHTS = [
+        { label: '50 mg', grams: 0.05 },
+        { label: '100 mg', grams: 0.10 },
+        { label: '150 mg', grams: 0.15 },
+        { label: '200 mg', grams: 0.20 },
+        { label: '500 mg', grams: 0.50 },
+        { label: '1 gm', grams: 1 },
+        { label: '2 gm', grams: 2 },
+        { label: '4 gm', grams: 4 },
+        { label: '8 gm', grams: 8 },
+      ]
+      return (
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+          <thead>
+            <tr style={{ borderBottom: `1px solid ${inpBorder}` }}>
+              <th style={{ padding: '10px 12px', textAlign: 'left', color: subtext, fontSize: '11px', fontWeight: 600 }}>Weight</th>
+              <th style={{ padding: '10px 12px', textAlign: 'center' }}>
+                <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '2px', background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.5)', borderRadius: '10px', padding: '5px 12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <span style={{ fontSize: '13px' }}>🏅</span>
+                    <span style={{ color: '#fbbf24', fontWeight: 800, fontSize: '11px' }}>GOLD 22K</span>
                   </div>
+                  {metalPrices.gold22k && <span style={{ color: '#fbbf24', fontSize: '9px', opacity: 0.8 }}>₹{metalPrices.gold22k.toFixed(2)}/gm</span>}
                 </div>
-                <button
-                  onClick={fetchMetalPrices}
-                  style={{ padding: '7px 16px', background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.3)', borderRadius: '10px', color: '#22d3ee', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
-                >
-                  🔄 Refresh
-                </button>
-              </div>
-
-              {metalLoading ? (
-                <div style={{ textAlign: 'center', padding: '30px', color: subtext }}>Loading prices...</div>
-              ) : (
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                   <thead>
-  <tr style={{ borderBottom: `1px solid ${inpBorder}` }}>
-
-    {/* Weight */}
-    <th style={{ padding: '12px 16px', textAlign: 'left', color: subtext, fontSize: '12px', fontWeight: 600 }}>
-      Weight
-    </th>
-
-    {/* 22K GOLD */}
-    <th style={{ padding: '12px 16px', textAlign: 'center' }}>
-      <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.5)', borderRadius: '12px', padding: '6px 14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '14px' }}>🏅</span>
-          <span style={{ color: '#fbbf24', fontWeight: 800, fontSize: '12px' }}>GOLD 22K</span>
-        </div>
-        {metalPrices.gold22k && (
-          <span style={{ color: '#fbbf24', fontSize: '10px', opacity: 0.8 }}>
-            ₹{metalPrices.gold22k.toFixed(2)}/gm
-          </span>
-        )}
-      </div>
-    </th>
-
-    {/* 24K GOLD */}
-    <th style={{ padding: '12px 16px', textAlign: 'center' }}>
-      <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'rgba(255,215,0,0.12)', border: '1px solid rgba(255,215,0,0.5)', borderRadius: '12px', padding: '6px 14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '14px' }}>🥇</span>
-          <span style={{ color: '#ffd700', fontWeight: 800, fontSize: '12px' }}>GOLD 24K</span>
-        </div>
-        {metalPrices.gold24k && (
-          <span style={{ color: '#ffd700', fontSize: '10px', opacity: 0.8 }}>
-            ₹{metalPrices.gold24k.toFixed(2)}/gm
-          </span>
-        )}
-      </div>
-    </th>
-
-    {/* SILVER 999 */}
-    <th style={{ padding: '12px 16px', textAlign: 'center' }}>
-      <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'rgba(192,192,192,0.1)', border: '1px solid rgba(192,192,192,0.4)', borderRadius: '12px', padding: '6px 14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '14px' }}>🥈</span>
-          <span style={{ color: '#c0c0c0', fontWeight: 800, fontSize: '12px' }}>SILVER 999</span>
-        </div>
-        {metalPrices.silver && (
-          <span style={{ color: '#c0c0c0', fontSize: '10px', opacity: 0.8 }}>
-            999 • ₹{metalPrices.silver.toFixed(2)}/gm
-          </span>
-        )}
-      </div>
-    </th>
-
-  </tr>
-</thead>
-                    <tbody>
-                      {WEIGHTS.map((w, i) => (
-                        <tr key={w.label} style={{ borderBottom: `1px solid ${border}`, background: i % 2 === 0 ? 'transparent' : (dark ? 'rgba(255,255,255,0.01)' : 'rgba(0,0,0,0.01)') }}>
-                          {/* Weight label */}
-                          <td style={{ padding: '12px 16px' }}>
-                            <span style={{ background: dark ? 'rgba(165,243,252,0.08)' : 'rgba(37,99,235,0.07)', border: `1px solid ${dark ? 'rgba(165,243,252,0.2)' : 'rgba(37,99,235,0.2)'}`, borderRadius: '8px', padding: '3px 10px', color: dark ? '#a5f3fc' : '#2563eb', fontWeight: 700, fontSize: '13px' }}>
-                              {w.label}
-                            </span>
-                          </td>
-                          {/* 22K Gold amount — முதல் */}
-                          <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                            <span style={{ color: '#fbbf24', fontWeight: 700, fontSize: '14px', fontFamily: 'monospace' }}>
-                              {metalPrices.gold22k != null ? `₹${(w.grams * metalPrices.gold22k).toFixed(2)}` : '—'}
-                            </span>
-                          </td>
-                          {/* 24K Gold amount — இரண்டாவது */}
-                          <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                            <span style={{ color: '#ffd700', fontWeight: 700, fontSize: '14px', fontFamily: 'monospace' }}>
-                              {metalPrices.gold24k != null ? `₹${(w.grams * metalPrices.gold24k).toFixed(2)}` : '—'}
-                            </span>
-                          </td>
-                          {/* Silver 999 amount — கடைசி */}
-                          <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                            <span style={{ color: '#c0c0c0', fontWeight: 700, fontSize: '14px', fontFamily: 'monospace' }}>
-                              {metalPrices.silver != null ? `₹${(w.grams * metalPrices.silver).toFixed(2)}` : '—'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              </th>
+              <th style={{ padding: '10px 12px', textAlign: 'center' }}>
+                <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '2px', background: 'rgba(255,215,0,0.12)', border: '1px solid rgba(255,215,0,0.5)', borderRadius: '10px', padding: '5px 12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <span style={{ fontSize: '13px' }}>🥇</span>
+                    <span style={{ color: '#ffd700', fontWeight: 800, fontSize: '11px' }}>GOLD 24K</span>
+                  </div>
+                  {metalPrices.gold24k && <span style={{ color: '#ffd700', fontSize: '9px', opacity: 0.8 }}>₹{metalPrices.gold24k.toFixed(2)}/gm</span>}
                 </div>
-              )}
-            </div>
-          )
-        })()}
+              </th>
+              <th style={{ padding: '10px 12px', textAlign: 'center' }}>
+                <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '2px', background: 'rgba(192,192,192,0.1)', border: '1px solid rgba(192,192,192,0.4)', borderRadius: '10px', padding: '5px 12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <span style={{ fontSize: '13px' }}>🥈</span>
+                    <span style={{ color: '#c0c0c0', fontWeight: 800, fontSize: '11px' }}>SILVER 999</span>
+                  </div>
+                  {metalPrices.silver && <span style={{ color: '#c0c0c0', fontSize: '9px', opacity: 0.8 }}>₹{metalPrices.silver.toFixed(2)}/gm</span>}
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {WEIGHTS.map((w, i) => (
+              <tr key={w.label} style={{ borderBottom: `1px solid ${border}`, background: i % 2 === 0 ? 'transparent' : (dark ? 'rgba(255,255,255,0.01)' : 'rgba(0,0,0,0.01)') }}>
+                <td style={{ padding: '10px 12px' }}>
+                  <span style={{ background: dark ? 'rgba(165,243,252,0.08)' : 'rgba(37,99,235,0.07)', border: `1px solid ${dark ? 'rgba(165,243,252,0.2)' : 'rgba(37,99,235,0.2)'}`, borderRadius: '6px', padding: '3px 8px', color: dark ? '#a5f3fc' : '#2563eb', fontWeight: 700, fontSize: '12px' }}>
+                    {w.label}
+                  </span>
+                </td>
+                <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                  <span style={{ color: '#fbbf24', fontWeight: 700, fontSize: '13px', fontFamily: 'monospace' }}>
+                    {metalPrices.gold22k != null ? `₹${(w.grams * metalPrices.gold22k).toFixed(2)}` : '—'}
+                  </span>
+                </td>
+                <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                  <span style={{ color: '#ffd700', fontWeight: 700, fontSize: '13px', fontFamily: 'monospace' }}>
+                    {metalPrices.gold24k != null ? `₹${(w.grams * metalPrices.gold24k).toFixed(2)}` : '—'}
+                  </span>
+                </td>
+                <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                  <span style={{ color: '#c0c0c0', fontWeight: 700, fontSize: '13px', fontFamily: 'monospace' }}>
+                    {metalPrices.silver != null ? `₹${(w.grams * metalPrices.silver).toFixed(2)}` : '—'}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )
+    })()}
+  </div>
+
+  {/* ── RIGHT 20% : Today's Sales Breakdown ── */}
+  <div style={{
+    width: '20%',
+    minWidth: '160px',
+    borderLeft: `1px solid ${border}`,
+    padding: '20px 14px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  }}>
+    <div style={{
+      color: '#a5f3fc', fontSize: '10px', fontWeight: 800,
+      letterSpacing: '1.5px', textTransform: 'uppercase',
+      paddingBottom: '10px', borderBottom: `1px solid ${border}`,
+    }}>
+      🏆 Today Sales
+    </div>
+
+    {[
+      {
+        icon: '🏅', label: 'Gold 22K', color: '#fbbf24',
+        bg: 'rgba(251,191,36,0.06)', bd: 'rgba(251,191,36,0.25)',
+        count: '0', grams: '0 gm', income: '₹0',
+      },
+      {
+        icon: '🥇', label: 'Gold 24K', color: '#ffd700',
+        bg: 'rgba(255,215,0,0.06)', bd: 'rgba(255,215,0,0.25)',
+        count: '0', grams: '0 gm', income: '₹0',
+      },
+      {
+        icon: '🥈', label: 'Silver 999', color: '#c0c0c0',
+        bg: 'rgba(192,192,192,0.05)', bd: 'rgba(192,192,192,0.2)',
+        count: '0', grams: '0 gm', income: '₹0',
+      },
+    ].map(s => (
+      <div key={s.label} style={{
+        background: s.bg, border: `1px solid ${s.bd}`,
+        borderRadius: '10px', padding: '12px 10px',
+      }}>
+        <div style={{ fontSize: '14px', marginBottom: '5px' }}>{s.icon}</div>
+        <div style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase', color: s.color, marginBottom: '8px' }}>
+          {s.label}
+        </div>
+        {[
+          { key: 'Sales', val: s.count },
+          { key: 'Grams', val: s.grams },
+        ].map(r => (
+          <div key={r.key} style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+            <span style={{ fontSize: '9px', color: subtext }}>{r.key}</span>
+            <span style={{ fontSize: '11px', fontWeight: 700, fontFamily: 'monospace', color: s.color }}>{r.val}</span>
+          </div>
+        ))}
+        <div style={{ height: '1px', background: `rgba(255,255,255,0.05)`, margin: '6px 0' }} />
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '9px', color: subtext }}>Income</span>
+          <span style={{ fontSize: '12px', fontWeight: 800, fontFamily: 'monospace', color: s.color }}>{s.income}</span>
+        </div>
+      </div>
+    ))}
+
+    <div style={{ marginTop: 'auto', paddingTop: '8px', borderTop: `1px solid ${border}`, textAlign: 'center' }}>
+      <div style={{ fontSize: '9px', color: '#334155' }}>BitByte Network</div>
+    </div>
+  </div>
+
+</div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0 }}>Admin Management</h2>

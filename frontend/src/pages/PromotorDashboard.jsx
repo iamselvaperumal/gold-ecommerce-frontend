@@ -352,6 +352,8 @@ const [updateForm, setUpdateForm] = useState({})
 const [metalPrices, setMetalPrices] = useState({ gold24k: null, gold22k: null, silver: null })
 const [metalLoading, setMetalLoading] = useState(false)
 const [usdToInr, setUsdToInr] = useState(null)
+const [dbRateDate, setDbRateDate] = useState(null)
+
 
 const [replyAnn,        setReplyAnn]        = useState(null)
   const [replyText,       setReplyText]       = useState('')
@@ -579,21 +581,18 @@ const submitProfileUpdate = async e => {
 const fetchMetalPrices = async () => {
   setMetalLoading(true)
   try {
-    const [goldRes, silverRes, inrRes] = await Promise.allSettled([
-      fetch('https://api.gold-api.com/price/XAU'),
-      fetch('https://api.gold-api.com/price/XAG'),
-      fetch('https://api.exchangerate-api.com/v4/latest/USD'),
-    ])
-    const goldData = goldRes.status === 'fulfilled' ? await goldRes.value.json() : null
-    const silverData = silverRes.status === 'fulfilled' ? await silverRes.value.json() : null
-    const inrData = inrRes.status === 'fulfilled' ? await inrRes.value.json() : null
-    const rate = inrData?.rates?.INR || 84
-    setUsdToInr(rate)
-    const gold24kPerGram = goldData?.price ? (goldData.price / 31.1035) * rate : null
-    const gold22kPerGram = gold24kPerGram ? gold24kPerGram * (22 / 24) : null
-    const silverPerGram = silverData?.price ? (silverData.price / 31.1035) * rate : null
-    setMetalPrices({ gold24k: gold24kPerGram, gold22k: gold22kPerGram, silver: silverPerGram })
-  } catch (e) { console.error('Metal price fetch error:', e) }
+    const res = await api.get('/metal-rates/')
+    const d = res.data
+    setMetalPrices({
+      gold22k: parseFloat(d.gold_22k),
+      gold24k: parseFloat(d.gold_24k),
+      silver:  parseFloat(d.silver_999),
+    })
+    setDbRateDate(d.date)
+  } catch (e) {
+    setMetalPrices({ gold22k: null, gold24k: null, silver: null })
+    setDbRateDate(null)
+  }
   setMetalLoading(false)
 }
 
@@ -662,16 +661,28 @@ const handleChange = e => {
 
   setForm({ ...form, [name]: value })
 }
-  const handleSubmit = async e => {
-    e.preventDefault()
-    try {
-      await api.post('/customers/', form)
-      setMsg('✅ Customer created successfully!'); setMsgType('success')
-      setShowForm(false); fetchAll(); setForm(emptyForm)
-    } catch(err) {
-      setMsg('❌ Error: ' + JSON.stringify(err.response?.data)); setMsgType('error')
-    }
+const handleSubmit = async e => {
+  e.preventDefault()
+  try {
+    const payload = { ...form }
+    
+    // Send null for empty optional date fields, not empty string
+    if (!payload.dob) payload.dob = null
+    if (payload.married_status !== 'married') payload.anniversary_date = null
+    if (!payload.anniversary_date) payload.anniversary_date = null
+    
+    // Ensure annual_salary is a number
+    if (payload.annual_salary) payload.annual_salary = Number(payload.annual_salary)
+    
+    
+    await api.post('/customers/', payload)
+    setMsg('✅ Customer created successfully!'); setMsgType('success')
+    setShowForm(false); fetchAll(); setForm(emptyForm)
+  } catch(err) {
+    console.log('ERROR:', JSON.stringify(err.response?.data, null, 2))
+    setMsg('❌ Error: ' + JSON.stringify(err.response?.data)); setMsgType('error')
   }
+}
 
   const card     = { background: cardBg, border: cardBorder, borderRadius:'20px', padding:'32px 36px', marginBottom:'24px' }
   const secHead  = (col='#fbcfe8') => ({ color:col, fontSize:'13px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', margin:'0 0 20px', paddingBottom:'14px', borderBottom: cardBorder })
@@ -784,7 +795,17 @@ const handleChange = e => {
               <span style={{ opacity: 0.4 }}>•</span>
               <span>Live price • ₹ per gram</span>
               <span style={{ opacity: 0.4 }}>•</span>
-              <span style={{ color: '#f59e0b', fontSize: '10px', fontWeight: 700 }}>Base Rate Only</span>
+{dbRateDate ? (
+  <span style={{ color: '#4ade80', fontSize: '10px', fontWeight: 700 }}>
+    📅 {new Date(dbRateDate).toLocaleDateString('en-IN', {
+      day: '2-digit', month: 'long', year: 'numeric'
+    })}
+  </span>
+) : (
+  <span style={{ color: '#f87171', fontSize: '9px', fontWeight: 700 }}>
+    No rate entered yet
+  </span>
+)}
             </div>
           </div>
         </div>
@@ -1422,102 +1443,120 @@ const handleChange = e => {
        
 
         {/* ── CREATE FORM ── */}
-        {showForm && (
-          <div style={card}>
-            <p style={secHead('#fbcfe8')}>Create New Customer</p>
-            <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:'18px' }}>
+{/* ── CREATE FORM ── */}
+{showForm && (
+  <div style={card}>
+    <p style={secHead('#fbcfe8')}>Create New Customer</p>
+    <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:'18px' }}>
 
-              <p style={secLabel('#fbcfe8')}>👤 Personal Info</p>
-              <div style={{ display:'grid', gridTemplateColumns:'0.4fr 1fr 1fr', gap:'14px' }}>
-                <div><label style={lbl}>Initial</label><input name="initial" value={form.initial} onChange={handleChange} maxLength={5} className="pr-inp" style={inp}/></div>
-                <div><label style={lbl}>First Name *</label><input name="first_name" value={form.first_name} onChange={handleChange} required maxLength={100} className="pr-inp" style={inp}/></div>
-                <div><label style={lbl}>Last Name *</label><input name="last_name" value={form.last_name} onChange={handleChange} required maxLength={100} className="pr-inp" style={inp}/></div>
-              </div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'14px' }}>
-                <div><label style={lbl}>Mobile *</label><input name="mobile_number" maxLength={10} value={form.mobile_number} onChange={handleChange} required className="pr-inp" style={inp}/></div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', marginTop: '10px' }}>
-  <div>
-    <label style={lbl}>Gender</label>
-    <select name="gender" value={form.gender} onChange={handleChange} className="sa-inp" style={selectInput}>
-      <option value="male" style={{ background: optionBg, color: text }}>Male</option>
-      <option value="female" style={{ background: optionBg, color: text }}>Female</option>
-      <option value="other" style={{ background: optionBg, color: text }}>Other</option>
-    </select>
-  </div>
+      <p style={secLabel('#fbcfe8')}>👤 Personal Info</p>
 
-  <div>
-    <label style={lbl}>DOB</label>
-    <input type="date" name="dob" value={form.dob} onChange={handleChange} className="sa-inp" style={inp} />
-  </div>
+      {/* Initial, First, Last */}
+      <div style={{ display:'grid', gridTemplateColumns:'0.4fr 1fr 1fr', gap:'14px' }}>
+        <div><label style={lbl}>Initial</label>
+          <input name="initial" value={form.initial} onChange={handleChange} maxLength={5} className="pr-inp" style={inp}/>
+        </div>
+        <div><label style={lbl}>First Name *</label>
+          <input name="first_name" value={form.first_name} onChange={handleChange} required maxLength={100} className="pr-inp" style={inp}/>
+        </div>
+        <div><label style={lbl}>Last Name *</label>
+          <input name="last_name" value={form.last_name} onChange={handleChange} required maxLength={100} className="pr-inp" style={inp}/>
+        </div>
+      </div>
 
-  <div>
-    <label style={lbl}>Married Status</label>
-    <select name="married_status" value={form.married_status} onChange={handleChange} className="sa-inp" style={selectInput}>
-      <option value="single" style={{ background: optionBg, color: text }}>Single</option>
-      <option value="married" style={{ background: optionBg, color: text }}>Married</option>
-      <option value="other" style={{ background: optionBg, color: text }}>Other</option>
-    </select>
-  </div>
-</div>
+      {/* Mobile, Email, Password */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'14px' }}>
+        <div><label style={lbl}>Mobile *</label>
+          <input name="mobile_number" maxLength={10} value={form.mobile_number} onChange={handleChange} required className="pr-inp" style={inp}/>
+        </div>
+        <div><label style={lbl}>Email *</label>
+          <input type="email" name="email" value={form.email} onChange={handleChange} required className="pr-inp" style={inp}/>
+        </div>
+        <div><label style={lbl}>Password *</label>
+          <input type="password" name="password" value={form.password} onChange={handleChange} required className="pr-inp" style={inp}/>
+        </div>
+      </div>
 
-{form.married_status === 'married' && (
-  <div style={{ marginTop: '10px' }}>
-    <label style={lbl}>Anniversary Date</label>
-    <input
-      type="date"
-      name="anniversary_date"
-      value={form.anniversary_date}
-      onChange={handleChange}
-      className="sa-inp"
-      style={inp}
-    />
+      {/* Gender, DOB, Married Status */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'14px' }}>
+        <div>
+          <label style={lbl}>Gender</label>
+          <select name="gender" value={form.gender} onChange={handleChange} className="pr-inp" style={selectInput}>
+            <option value="male"   style={{ background: optionBg, color: text }}>Male</option>
+            <option value="female" style={{ background: optionBg, color: text }}>Female</option>
+            <option value="other"  style={{ background: optionBg, color: text }}>Other</option>
+          </select>
+        </div>
+        <div>
+          <label style={lbl}>DOB</label>
+          <input type="date" name="dob" value={form.dob} onChange={handleChange} className="pr-inp" style={inp}/>
+        </div>
+        <div>
+          <label style={lbl}>Married Status</label>
+          <select name="married_status" value={form.married_status} onChange={handleChange} className="pr-inp" style={selectInput}>
+            <option value="single"  style={{ background: optionBg, color: text }}>Single</option>
+            <option value="married" style={{ background: optionBg, color: text }}>Married</option>
+            <option value="other"   style={{ background: optionBg, color: text }}>Other</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Anniversary — only if married */}
+      {form.married_status === 'married' && (
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'14px' }}>
+          <div>
+            <label style={lbl}>Anniversary Date</label>
+            <input type="date" name="anniversary_date" value={form.anniversary_date} onChange={handleChange} className="pr-inp" style={inp}/>
+          </div>
+        </div>
+      )}
+
+      <p style={secLabel('#fbcfe8')}>📍 Address</p>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'14px' }}>
+        <div><label style={lbl}>Door No *</label><input name="door_no" value={form.door_no} onChange={handleChange} required className="pr-inp" style={inp}/></div>
+        <div><label style={lbl}>Street Name *</label><input name="street_name" value={form.street_name} onChange={handleChange} required className="pr-inp" style={inp}/></div>
+        <div><label style={lbl}>Town *</label><input name="town_name" value={form.town_name} onChange={handleChange} required className="pr-inp" style={inp}/></div>
+        <div><label style={lbl}>City *</label><input name="city_name" value={form.city_name} onChange={handleChange} required className="pr-inp" style={inp}/></div>
+        <div><label style={lbl}>District *</label><input name="district" value={form.district} onChange={handleChange} required className="pr-inp" style={inp}/></div>
+        <div><label style={lbl}>State *</label><input name="state" value={form.state} onChange={handleChange} required className="pr-inp" style={inp}/></div>
+      </div>
+
+      <p style={secLabel('#fbcfe8')}>🪪 Identity</p>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'14px' }}>
+        <div><label style={lbl}>Aadhaar No *</label><input name="aadhaar_no" value={form.aadhaar_no} onChange={handleChange} required maxLength={12} className="pr-inp" style={inp}/></div>
+        <div><label style={lbl}>PAN No *</label><input name="pan_no" value={form.pan_no} onChange={handleChange} required maxLength={10} className="pr-inp" style={inp}/></div>
+      </div>
+
+      <p style={secLabel('#fbcfe8')}>💼 Occupation</p>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'14px' }}>
+        <div><label style={lbl}>Occupation *</label>
+          <select name="occupation" value={form.occupation} onChange={handleChange} required className="pr-inp" style={{ ...inp, cursor:'pointer' }}>
+            <option value="" style={{ background:'#1a1f26' }}>Select</option>
+            {OCCUPATIONS.map(o => <option key={o} value={o} style={{ background:'#1a1f26' }}>{o.charAt(0).toUpperCase()+o.slice(1)}</option>)}
+          </select>
+        </div>
+        <div><label style={lbl}>Detail</label>
+          <input name="occupation_detail" value={form.occupation_detail} onChange={handleChange} className="pr-inp" style={inp}/>
+        </div>
+        <div><label style={lbl}>Annual Salary *</label>
+          <input name="annual_salary" value={form.annual_salary} onChange={handleChange} required className="pr-inp" style={inp}/>
+        </div>
+      </div>
+
+      <div style={{ display:'flex', gap:'12px', marginTop:'6px' }}>
+        <button type="submit" className="pr-grad-btn"
+          style={{ padding:'12px 28px', background:'linear-gradient(90deg,#f472b6,#a78bfa)', border:'none', borderRadius:'12px', fontWeight:800, color:'#3b0024', fontSize:'14px', cursor:'pointer' }}>
+          Create Customer
+        </button>
+        <button type="button" onClick={() => setShowForm(false)}
+          style={{ padding:'12px 24px', background: inpBg, border:`1px solid ${border}`, borderRadius:'12px', color: subtext, fontSize:'14px', cursor:'pointer' }}>
+          Cancel
+        </button>
+      </div>
+
+    </form>
   </div>
 )}
-                <div><label style={lbl}>Email *</label><input type="email" name="email" value={form.email} onChange={handleChange} required className="pr-inp" style={inp}/></div>
-                <div><label style={lbl}>Password *</label><input type="password" name="password" value={form.password} onChange={handleChange} required className="pr-inp" style={inp}/></div>
-              </div>
-
-              <p style={secLabel('#fbcfe8')}>📍 Address</p>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'14px' }}>
-                <div><label style={lbl}>Door No *</label><input name="door_no" value={form.door_no} onChange={handleChange} required className="pr-inp" style={inp}/></div>
-                <div><label style={lbl}>Street Name *</label><input name="street_name" value={form.street_name} onChange={handleChange} required className="pr-inp" style={inp}/></div>
-                <div><label style={lbl}>Town *</label><input name="town_name" value={form.town_name} onChange={handleChange} required className="pr-inp" style={inp}/></div>
-                <div><label style={lbl}>City *</label><input name="city_name" value={form.city_name} onChange={handleChange} required className="pr-inp" style={inp}/></div>
-                <div><label style={lbl}>District *</label><input name="district" value={form.district} onChange={handleChange} required className="pr-inp" style={inp}/></div>
-                <div><label style={lbl}>State *</label><input name="state" value={form.state} onChange={handleChange} required className="pr-inp" style={inp}/></div>
-              </div>
-
-              <p style={secLabel('#fbcfe8')}>🪪 Identity</p>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'14px' }}>
-                <div><label style={lbl}>Aadhaar No *</label><input name="aadhaar_no" value={form.aadhaar_no} onChange={handleChange} required maxLength={12} className="pr-inp" style={inp}/></div>
-                <div><label style={lbl}>PAN No *</label><input name="pan_no" value={form.pan_no} onChange={handleChange} required maxLength={10} className="pr-inp" style={inp}/></div>
-              </div>
-
-              <p style={secLabel('#fbcfe8')}>💼 Occupation</p>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'14px' }}>
-                <div><label style={lbl}>Occupation *</label>
-                  <select name="occupation" value={form.occupation} onChange={handleChange} required className="pr-inp" style={{ ...inp, cursor:'pointer' }}>
-                    <option value="" style={{ background:'#1a1f26' }}>Select</option>
-                    {OCCUPATIONS.map(o => <option key={o} value={o} style={{ background:'#1a1f26' }}>{o.charAt(0).toUpperCase()+o.slice(1)}</option>)}
-                  </select>
-                </div>
-                <div><label style={lbl}>Detail</label><input name="occupation_detail" value={form.occupation_detail} onChange={handleChange} className="pr-inp" style={inp}/></div>
-                <div><label style={lbl}>Annual Salary *</label><input name="annual_salary" value={form.annual_salary} onChange={handleChange} required className="pr-inp" style={inp}/></div>
-              </div>
-
-              <div style={{ display:'flex', gap:'12px', marginTop:'6px' }}>
-                <button type="submit" className="pr-grad-btn"
-                  style={{ padding:'12px 28px', background:'linear-gradient(90deg,#f472b6,#a78bfa)', border:'none', borderRadius:'12px', fontWeight:800, color:'#3b0024', fontSize:'14px', cursor:'pointer' }}>
-                  Create Customer
-                </button>
-                <button type="button" onClick={() => setShowForm(false)}
-                  style={{ padding:'12px 24px', background: inpBg, border:`1px solid ${border}`, borderRadius:'12px', color: subtext, fontSize:'14px', cursor:'pointer' }}>
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
 
         {/* ── CUSTOMERS TABLE ── */}
         <div style={card}>

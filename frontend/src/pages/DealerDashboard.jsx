@@ -556,6 +556,7 @@ const [updateMessage, setUpdateMessage] = useState('')
 const [metalPrices, setMetalPrices] = useState({ gold24k: null, gold22k: null, silver: null })
 const [metalLoading, setMetalLoading] = useState(false)
 const [usdToInr, setUsdToInr] = useState(null)
+const [dbRateDate, setDbRateDate] = useState(null)
 // ── ADD after existing useState ──
   const [replyAnn,        setReplyAnn]        = useState(null)
   const [replyText,       setReplyText]       = useState('')
@@ -818,26 +819,24 @@ const submitProfileUpdate = async e => {
   }
 
 
-  const fetchMetalPrices = async () => {
+const fetchMetalPrices = async () => {
   setMetalLoading(true)
   try {
-    const [goldRes, silverRes, inrRes] = await Promise.allSettled([
-      fetch('https://api.gold-api.com/price/XAU'),
-      fetch('https://api.gold-api.com/price/XAG'),
-      fetch('https://api.exchangerate-api.com/v4/latest/USD'),
-    ])
-    const goldData = goldRes.status === 'fulfilled' ? await goldRes.value.json() : null
-    const silverData = silverRes.status === 'fulfilled' ? await silverRes.value.json() : null
-    const inrData = inrRes.status === 'fulfilled' ? await inrRes.value.json() : null
-    const rate = inrData?.rates?.INR || 84
-    setUsdToInr(rate)
-    const gold24kPerGram = goldData?.price ? (goldData.price / 31.1035) * rate : null
-    const gold22kPerGram = gold24kPerGram ? gold24kPerGram * (22 / 24) : null
-    const silverPerGram = silverData?.price ? (silverData.price / 31.1035) * rate : null
-    setMetalPrices({ gold24k: gold24kPerGram, gold22k: gold22kPerGram, silver: silverPerGram })
-  } catch (e) { console.error('Metal price fetch error:', e) }
+    const res = await api.get('/metal-rates/')
+    const d = res.data
+    setMetalPrices({
+      gold22k: parseFloat(d.gold_22k),
+      gold24k: parseFloat(d.gold_24k),
+      silver:  parseFloat(d.silver_999),
+    })
+    setDbRateDate(d.date)
+  } catch (e) {
+    setMetalPrices({ gold22k: null, gold24k: null, silver: null })
+    setDbRateDate(null)
+  }
   setMetalLoading(false)
 }
+
 
   const fetchAnnouncements = async () => {
   try {
@@ -1042,7 +1041,17 @@ const handleChange = e => {
               <span style={{ opacity: 0.4 }}>•</span>
               <span>Live price • ₹ per gram</span>
               <span style={{ opacity: 0.4 }}>•</span>
-              <span style={{ color: '#f59e0b', fontSize: '10px', fontWeight: 700 }}>Base Rate Only</span>
+{dbRateDate ? (
+  <span style={{ color: '#4ade80', fontSize: '10px', fontWeight: 700 }}>
+    📅 {new Date(dbRateDate).toLocaleDateString('en-IN', {
+      day: '2-digit', month: 'long', year: 'numeric'
+    })}
+  </span>
+) : (
+  <span style={{ color: '#f87171', fontSize: '9px', fontWeight: 700 }}>
+    No rate entered yet
+  </span>
+)}
             </div>
           </div>
         </div>

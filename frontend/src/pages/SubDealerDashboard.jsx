@@ -13,7 +13,8 @@ const emptyForm = {
   email: '', password: '',
   door_no: '', street_name: '', town_name: '', city_name: '',
   district: '', state: '', aadhaar_no: '', pan_no: '',
-  occupation: '', occupation_detail: '', annual_salary: ''
+  occupation: '', occupation_detail: '', annual_salary: '',
+  assigned_sub_dealer_id: null
 }
 
 const PARTICLES = Array.from({ length: 15 }, (_, i) => ({
@@ -571,7 +572,7 @@ function SDTreeNode({ node, role, depth = 0, dark, text, subtext, colorIdx = 0, 
             )}
             <div style={{ display: 'flex', justifyContent: children.length === 1 ? 'center' : 'space-between', alignItems: 'flex-start', gap: '8px' }}>
               {children.map((child, ci) => (
-                <div key={child.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: children.length === 1 ? '0 0 auto' : 1 }}>
+              <div key={child[SD_ROLE_CFG[childRole]?.idKey] || child.id || `${role}-${ci}`}>
                   <div style={{ width: 2, height: 20, background: `rgba(${hexToRgbSD(c)},0.5)` }} />
                   <SDTreeNode
                     node={child}
@@ -601,6 +602,7 @@ export default function SubDealerDashboard() {
   const [dark, setDark] = useState(true)
   const [promotors, setPromotors] = useState([])
   const [subDealers, setSubDealers] = useState([])
+  const [allSubDealers, setAllSubDealers] = useState([])
   const [dealers, setDealers] = useState([])
   const [admins, setAdmins] = useState([])
   const [selectedSubDealer, setSelectedSubDealer] = useState(null)
@@ -624,6 +626,7 @@ export default function SubDealerDashboard() {
   const [metalPrices, setMetalPrices] = useState({ gold24k: null, gold22k: null, silver: null })
   const [metalLoading, setMetalLoading] = useState(false)
   const [usdToInr, setUsdToInr] = useState(null)
+  const [dbRateDate, setDbRateDate] = useState(null)
   const [replyAnn, setReplyAnn] = useState(null)
   const [replyText, setReplyText] = useState('')
   const [replyLoading, setReplyLoading] = useState(false)
@@ -728,15 +731,17 @@ const wishTimerRef = useRef(null)
   const [myDashData, setMyDashData] = useState(null)
   const fetchAll = async () => {
     try {
-      const [promotorRes, customerRes, dashRes] = await Promise.allSettled([
-        api.get('/promotors/'),
-        api.get('/customers/'),   // ✅ customers also fetch
-        api.get('/dashboard/'),
-      ])
+      const [promotorRes, customerRes, dashRes, allSDRes] = await Promise.allSettled([
+  api.get('/promotors/'),
+  api.get('/customers/'),
+  api.get('/dashboard/'),
+  api.get('/sub-dealers/list/'),
+])
 
-      const promotorList = promotorRes.status === 'fulfilled' ? promotorRes.value.data : []
-      const customerList = customerRes.status === 'fulfilled' ? customerRes.value.data : []
-      const dashData = dashRes.status === 'fulfilled' ? dashRes.value.data : {}
+const promotorList = promotorRes.status === 'fulfilled' ? promotorRes.value.data : []
+const customerList = customerRes.status === 'fulfilled' ? customerRes.value.data : []
+const dashData = dashRes.status === 'fulfilled' ? dashRes.value.data : {}
+const allSDList = allSDRes.status === 'fulfilled' ? allSDRes.value.data : []
       if (dashRes.status === 'fulfilled') setMyDashData(dashRes.value.data)
 
       // superAdminEmail fetch
@@ -773,12 +778,21 @@ const wishTimerRef = useRef(null)
       }
 
       setSubDealers([mySelf])
+      setAllSubDealers(allSDList)
       setPromotors(promotorList)
 
     } catch (err) {
       console.error('fetchAll error:', err)
     }
   }
+
+   useEffect(() => {
+    if (showForm && subDealers.length > 0) {
+      const sd = subDealers[0]
+      setSelectedSubDealer(sd)
+      setForm(prev => ({ ...prev, assigned_sub_dealer_id: sd.id }))
+    }
+  }, [showForm, subDealers])
 
   const PROFILE_FIELDS = [
     ['initial', 'Initial'],
@@ -888,24 +902,21 @@ const wishTimerRef = useRef(null)
     }
   }
 
-  const fetchMetalPrices = async () => {
+const fetchMetalPrices = async () => {
   setMetalLoading(true)
   try {
-    const [goldRes, silverRes, inrRes] = await Promise.allSettled([
-      fetch('https://api.gold-api.com/price/XAU'),
-      fetch('https://api.gold-api.com/price/XAG'),
-      fetch('https://api.exchangerate-api.com/v4/latest/USD'),
-    ])
-    const goldData = goldRes.status === 'fulfilled' ? await goldRes.value.json() : null
-    const silverData = silverRes.status === 'fulfilled' ? await silverRes.value.json() : null
-    const inrData = inrRes.status === 'fulfilled' ? await inrRes.value.json() : null
-    const rate = inrData?.rates?.INR || 84
-    setUsdToInr(rate)
-    const gold24kPerGram = goldData?.price ? (goldData.price / 31.1035) * rate : null
-    const gold22kPerGram = gold24kPerGram ? gold24kPerGram * (22 / 24) : null
-    const silverPerGram = silverData?.price ? (silverData.price / 31.1035) * rate : null
-    setMetalPrices({ gold24k: gold24kPerGram, gold22k: gold22kPerGram, silver: silverPerGram })
-  } catch (e) { console.error('Metal price fetch error:', e) }
+    const res = await api.get('/metal-rates/')
+    const d = res.data
+    setMetalPrices({
+      gold22k: parseFloat(d.gold_22k),
+      gold24k: parseFloat(d.gold_24k),
+      silver:  parseFloat(d.silver_999),
+    })
+    setDbRateDate(d.date)
+  } catch (e) {
+    setMetalPrices({ gold22k: null, gold24k: null, silver: null })
+    setDbRateDate(null)
+  }
   setMetalLoading(false)
 }
 
@@ -976,20 +987,28 @@ useEffect(() => {
   }
   const handleSubDealerChange = (e) => {
     const id = parseInt(e.target.value)
-    const sd = subDealers.find(s => s.id === id)
+    const sd = allSubDealers.find(s => s.id === id)
     setSelectedSubDealer(sd || null)
     setForm({ ...form, assigned_sub_dealer_id: id })
   }
-  const handleSubmit = async e => {
-    e.preventDefault()
-    try {
-      await api.post('/promotors/', form)
-      setMsg('✅ Promotor created successfully!'); setMsgType('success')
-      setShowForm(false); fetchAll(); setForm(emptyForm); setSelectedSubDealer(null)
-    } catch (err) {
-      setMsg('❌ Error: ' + JSON.stringify(err.response?.data)); setMsgType('error')
-    }
+const handleSubmit = async e => {
+  e.preventDefault()
+  
+  // ✅ Submit பண்ணும்போது latest subDealer id ensure பண்ணு
+  const finalForm = {
+    ...form,
+    assigned_sub_dealer_id: form.assigned_sub_dealer_id ?? subDealers[0]?.id ?? null
   }
+  
+  try {
+    await api.post('/promotors/', finalForm)
+    setMsg('✅ Promotor created successfully!'); setMsgType('success')
+    setShowForm(false); fetchAll(); setForm(emptyForm); setSelectedSubDealer(null)
+  } catch (err) {
+    console.error('Promotor create error:', err.response?.data)
+    setMsg('❌ Error: ' + JSON.stringify(err.response?.data)); setMsgType('error')
+  }
+}
 
   const card = { background: cardBg, border: cardBorder, borderRadius: '20px', padding: '32px 36px', marginBottom: '24px' }
   const secHead = (color = '#c4b5fd') => ({ color, fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 20px', paddingBottom: '14px', borderBottom: cardBorder })
@@ -1098,7 +1117,17 @@ useEffect(() => {
               <span style={{ opacity: 0.4 }}>•</span>
               <span>Live price • ₹ per gram</span>
               <span style={{ opacity: 0.4 }}>•</span>
-              <span style={{ color: '#f59e0b', fontSize: '10px', fontWeight: 700 }}>Base Rate Only</span>
+{dbRateDate ? (
+  <span style={{ color: '#4ade80', fontSize: '10px', fontWeight: 700 }}>
+    📅 {new Date(dbRateDate).toLocaleDateString('en-IN', {
+      day: '2-digit', month: 'long', year: 'numeric'
+    })}
+  </span>
+) : (
+  <span style={{ color: '#f87171', fontSize: '9px', fontWeight: 700 }}>
+    No rate entered yet
+  </span>
+)}
             </div>
           </div>
         </div>
@@ -1185,7 +1214,14 @@ useEffect(() => {
               style={{ padding: '11px 28px', background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.3)', borderRadius: '12px', fontWeight: 700, color: '#c4b5fd', fontSize: '14px', cursor: 'pointer' }}>
               🏢 Promotor Hierarchy
             </button>
-            <button onClick={() => setShowForm(!showForm)} className="sd-grad-btn"
+<button onClick={() => {
+  if (!showForm && subDealers.length > 0) {
+    const sd = subDealers[0]
+    setSelectedSubDealer(sd)
+    setForm(prev => ({ ...prev, assigned_sub_dealer_id: sd.id }))
+  }
+  setShowForm(prev => !prev)
+}} className="sd-grad-btn"
               style={{ padding: '11px 28px', background: 'linear-gradient(90deg,#a78bfa,#22d3ee)', border: 'none', borderRadius: '12px', fontWeight: 800, color: '#1e003b', fontSize: '14px', cursor: 'pointer' }}>
               {showForm ? 'Cancel' : '+ Create Promotor'}
             </button>
@@ -1523,7 +1559,7 @@ useEffect(() => {
                       <div style={{ height: 2, background: 'linear-gradient(90deg,transparent,rgba(167,139,250,0.5),transparent)', width: '80%' }} />
                       <div style={{ display: 'flex', gap: '32px', justifyContent: 'center', alignItems: 'flex-start' }}>
                         {subDealers.map((sd, si) => (
-                          <div key={sd.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+  <div key={sd.sub_dealer_id || sd.id || si} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <div style={{ width: 2, height: 24, background: 'rgba(167,139,250,0.5)' }} />
                             <SDTreeNode
                               node={sd}
@@ -1857,21 +1893,30 @@ useEffect(() => {
                 <div><label style={lbl}>Annual Salary *</label><input name="annual_salary" value={form.annual_salary} onChange={handleChange} required maxLength={10} className="sd-inp" style={inp} /></div>
               </div>
 
-              <p style={secLabel('#c4b5fd')}>Sub Dealer Info</p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
-                <div><label style={lbl}>Sub Dealer ID *</label>
-                  <select onChange={handleSubDealerChange} className="sd-inp" style={{ ...inp, cursor: 'pointer' }}>
-                    <option value="" style={{ background: '#1a1f26' }}>Select Sub Dealer ID</option>
-                    {subDealers.map(s => <option key={s.id} value={s.id} style={{ background: '#1a1f26' }}>{s.sub_dealer_id}</option>)}
-                  </select>
-                </div>
-                <div><label style={lbl}>Sub Dealer Name</label>
-                  <input value={selectedSubDealer?.first_name || ''} readOnly placeholder="Auto fetch" style={{ ...inp, opacity: 0.5, cursor: 'not-allowed' }} />
-                </div>
-                <div><label style={lbl}>Sub Dealer Contact</label>
-                  <input value={selectedSubDealer?.mobile_number || ''} readOnly placeholder="Auto fetch" style={{ ...inp, opacity: 0.5, cursor: 'not-allowed' }} />
-                </div>
-              </div>
+<p style={secLabel('#c4b5fd')}>Sub Dealer Info</p>
+<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+  <div><label style={lbl}>Sub Dealer ID *</label>
+<select
+  value={form.assigned_sub_dealer_id || ''}
+  onChange={handleSubDealerChange}
+  className="sd-inp"
+  style={{ ...inp, cursor: 'pointer' }}
+>
+  <option value="" style={{ background: '#1a1f26' }}>Select Sub Dealer ID</option>
+  {allSubDealers.map((s, idx) => (
+    <option key={s.sub_dealer_id || s.id || idx} value={s.id} style={{ background: '#1a1f26' }}>
+      {s.sub_dealer_id}
+    </option>
+  ))}
+</select>
+  </div>
+  <div><label style={lbl}>Sub Dealer Name</label>
+    <input value={selectedSubDealer?.first_name || ''} readOnly placeholder="Auto fetch" style={{ ...inp, opacity: 0.5, cursor: 'not-allowed' }} />
+  </div>
+  <div><label style={lbl}>Sub Dealer Contact</label>
+    <input value={selectedSubDealer?.mobile_number || ''} readOnly placeholder="Auto fetch" style={{ ...inp, opacity: 0.5, cursor: 'not-allowed' }} />
+  </div>
+</div>
 
               <div style={{ display: 'flex', gap: '12px', marginTop: '6px' }}>
                 <button type="submit" className="sd-grad-btn"
