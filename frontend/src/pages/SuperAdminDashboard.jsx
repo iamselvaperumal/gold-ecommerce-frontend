@@ -395,119 +395,6 @@ function printPersonCard(node, role, cfg, color, ancestors, superAdminEmail) {
   printWindow.document.close()
 }
 
-
-let _orderPopupEl = null
-let _orderPopupTimer = null
-
-function removeOrderHierarchyPopup() {
-  document.querySelectorAll('#order-hierarchy-popup').forEach(el => el.remove())
-  _orderPopupEl = null
-}
-
-function showOrderHierarchyPopup(anchorEl, orders, dark) {
-  clearTimeout(_orderPopupTimer)
-  removeOrderHierarchyPopup()
-
-  const el = document.createElement('div')
-  el.id = 'order-hierarchy-popup'
-
-  el.style.cssText = `
-    position:fixed;
-    z-index:99999;
-    width:300px;
-    max-height:82vh;
-    overflow-y:auto;
-    background:${dark ? 'rgba(5,10,20,0.98)' : '#ffffff'};
-    border:1px solid rgba(34,211,238,0.35);
-    border-radius:20px;
-    padding:18px;
-    box-shadow:0 32px 80px rgba(0,0,0,0.75);
-    font-family:Inter,system-ui,sans-serif;
-  `
-
-  el.innerHTML = `
-    <div style="color:#22d3ee;font-size:12px;font-weight:900;margin-bottom:14px;">
-      🔗 HIERARCHY CHAIN
-    </div>
-
-    ${orders.length === 0 ? `
-      <div style="color:#94a3b8;font-size:12px;">No orders</div>
-    ` : orders.map(order => `
-      <div style="margin-bottom:18px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:14px;">
-        <div style="color:#fbbf24;font-size:11px;font-weight:900;margin-bottom:10px;">
-          ORDER #${order.id} • Qty ${order.count} • ₹${order.total_amount}
-        </div>
-
-        ${(order.hierarchy_chain || []).map((item, idx) => `
-          ${idx > 0 ? `
-            <div style="display:flex;justify-content:center;padding:6px 0;color:#22d3ee;font-weight:900;">↓</div>
-          ` : ''}
-
-          <div style="
-            border:1px solid ${
-              item.role === 'super_admin' ? 'rgba(255,215,0,0.35)' :
-              item.role === 'admin' ? 'rgba(34,211,238,0.35)' :
-              item.role === 'dealer' ? 'rgba(74,222,128,0.35)' :
-              item.role === 'sub_dealer' ? 'rgba(244,114,182,0.35)' :
-              item.role === 'promotor' ? 'rgba(245,158,11,0.35)' :
-              'rgba(244,114,182,0.35)'
-            };
-            border-radius:14px;
-            padding:12px;
-            background:rgba(255,255,255,0.04);
-          ">
-            <div style="font-size:9px;font-weight:900;color:#fbbf24;letter-spacing:1px;">
-              ${
-                item.role === 'super_admin' ? '🛡️ SUPER ADMIN' :
-                item.role === 'admin' ? '🛡️ ADMIN' :
-                item.role === 'dealer' ? '🏪 DEALER' :
-                item.role === 'sub_dealer' ? '🔗 SUB DEALER' :
-                item.role === 'promotor' ? '⭐ PROMOTOR' :
-                '👤 CUSTOMER'
-              }
-            </div>
-
-            <div style="font-size:10px;color:#22d3ee;font-family:monospace;margin-top:4px;">
-              ${item.id || item.email || ''}
-            </div>
-
-            <div style="font-size:13px;color:#f8fafc;font-weight:800;margin-top:6px;">
-              ${item.name || item.email || ''}
-            </div>
-
-            ${item.mobile_number ? `
-              <div style="font-size:11px;color:#94a3b8;margin-top:5px;">📞 ${item.mobile_number}</div>
-            ` : ''}
-
-            ${item.city_name ? `
-              <div style="font-size:11px;color:#94a3b8;margin-top:3px;">📍 ${item.city_name}</div>
-            ` : ''}
-          </div>
-        `).join('')}
-      </div>
-    `).join('')}
-  `
-
-  document.body.appendChild(el)
-
-  const rect = anchorEl.getBoundingClientRect()
-  let left = rect.right + 14
-  let top = rect.top - 80
-
-  if (left + 300 > window.innerWidth - 10) left = rect.left - 314
-  if (top < 10) top = 10
-
-  el.style.left = left + 'px'
-  el.style.top = top + 'px'
-
-  el.addEventListener('mouseenter', () => clearTimeout(_orderPopupTimer))
-  el.addEventListener('mouseleave', () => {
-    _orderPopupTimer = setTimeout(removeOrderHierarchyPopup, 200)
-  })
-
-  _orderPopupEl = el
-}
-
 function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, superAdminEmail) {
   clearTimeout(_chainHideTimer)
   removeChainPopup()
@@ -831,9 +718,7 @@ export default function SuperAdminDashboard() {
 const [metalPrices, setMetalPrices] = useState({ gold24k: null, gold22k: null, silver: null })
 const [metalLoading, setMetalLoading] = useState(false)
 const [usdToInr, setUsdToInr] = useState(null)
-const [orderDetailPopup, setOrderDetailPopup] = useState(null)
-// { period: 'today'/'week'/'month', metal: 'gold_22k'/'gold_24k'/'silver_999', orders: [] }
-const [rawOrders, setRawOrders] = useState([])
+
 // NEW — Rate entry popup
 const [showRatePopup, setShowRatePopup] = useState(false)
 const [rateForm, setRateForm] = useState({
@@ -1193,14 +1078,15 @@ const fetchOrderStats = async () => {
   try {
     const res = await api.get('/metal-orders/')
     const orders = res.data
-    setRawOrders(orders) // store raw orders
 
     const now = new Date()
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+
     const dayOfWeek = now.getDay() === 0 ? 7 : now.getDay()
     const weekStart = new Date(now)
     weekStart.setDate(now.getDate() - dayOfWeek + 1)
     weekStart.setHours(0, 0, 0, 0)
+
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
 
     const empty = () => ({ count: 0, grams: 0, amount: 0 })
@@ -1272,24 +1158,6 @@ useEffect(() => {
   fetchOrderStats()
 }, [])
 
-function getFilteredOrders(rawOrders, period, metal) {
-  const now = new Date()
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const dayOfWeek = now.getDay() === 0 ? 7 : now.getDay()
-  const weekStart = new Date(now)
-  weekStart.setDate(now.getDate() - dayOfWeek + 1)
-  weekStart.setHours(0, 0, 0, 0)
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-
-  return rawOrders.filter(order => {
-    if (order.metal_type !== metal) return false
-    const d = new Date(order.created_at)
-    if (period === 'today') return d >= todayStart
-    if (period === 'week') return d >= weekStart
-    if (period === 'month') return d >= monthStart
-    return false
-  })
-}
 
   const handleOpenHierarchy = () => {
     setShowHierarchy(true)
@@ -1622,9 +1490,9 @@ const handleSubmit = async e => {
 </div>
 
 {[
-  { label: 'Today Order', period: 'today', color: '#22d3ee', data: orderStats.today },
-  { label: 'This Week Order', period: 'week', color: '#4ade80', data: orderStats.week },
-  { label: 'This Month Order', period: 'month', color: '#a78bfa', data: orderStats.month },
+  { label: 'Today Order', color: '#22d3ee', data: orderStats.today },
+  { label: 'This Week Order', color: '#4ade80', data: orderStats.week },
+  { label: 'This Month Order', color: '#a78bfa', data: orderStats.month },
 ].map(s => {
   const total22k = s.data.gold_22k
   const total24k = s.data.gold_24k
@@ -1641,18 +1509,9 @@ const handleSubmit = async e => {
       {/* 22K */}
       <div style={{ marginBottom: '6px', paddingBottom: '6px', borderBottom: `1px solid ${border}` }}>
         <div style={{ fontSize: '8px', color: '#fbbf24', fontWeight: 700, marginBottom: '3px' }}>🏅 22K</div>
-      <div
-  onMouseEnter={e => {
-    const orders = getFilteredOrders(rawOrders, s.period, 'gold_22k')
-    showOrderHierarchyPopup(e.currentTarget, orders, dark)
-  }}
-  onMouseLeave={() => {
-    setTimeout(() => removeOrderHierarchyPopup(), 250)
-  }}
-  style={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer' }}
->
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ fontSize: '9px', color: subtext }}>Orders</span>
-          <span style={{ fontSize: '10px', fontWeight: 700, color: '#fbbf24', textDecoration: 'underline dotted' }}>{total22k.count}</span>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: '#fbbf24' }}>{total22k.count}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ fontSize: '9px', color: subtext }}>Grams</span>
@@ -1667,18 +1526,9 @@ const handleSubmit = async e => {
       {/* 24K */}
       <div style={{ marginBottom: '6px', paddingBottom: '6px', borderBottom: `1px solid ${border}` }}>
         <div style={{ fontSize: '8px', color: '#ffd700', fontWeight: 700, marginBottom: '3px' }}>🥇 24K</div>
-       <div
-  onMouseEnter={e => {
-    const orders = getFilteredOrders(rawOrders, s.period, 'gold_24k')
-    showOrderHierarchyPopup(e.currentTarget, orders, dark)
-  }}
-  onMouseLeave={() => {
-    setTimeout(() => removeOrderHierarchyPopup(), 250)
-  }}
-  style={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer' }}
->
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ fontSize: '9px', color: subtext }}>Orders</span>
-          <span style={{ fontSize: '10px', fontWeight: 700, color: '#ffd700', textDecoration: 'underline dotted' }}>{total24k.count}</span>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: '#ffd700' }}>{total24k.count}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ fontSize: '9px', color: subtext }}>Grams</span>
@@ -1693,18 +1543,9 @@ const handleSubmit = async e => {
       {/* Silver */}
       <div>
         <div style={{ fontSize: '8px', color: '#c0c0c0', fontWeight: 700, marginBottom: '3px' }}>🥈 Silver</div>
-     <div
-  onMouseEnter={e => {
-    const orders = getFilteredOrders(rawOrders, s.period, 'silver_999')
-    showOrderHierarchyPopup(e.currentTarget, orders, dark)
-  }}
-  onMouseLeave={() => {
-    setTimeout(() => removeOrderHierarchyPopup(), 250)
-  }}
-  style={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer' }}
->
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ fontSize: '9px', color: subtext }}>Orders</span>
-          <span style={{ fontSize: '10px', fontWeight: 700, color: '#c0c0c0', textDecoration: 'underline dotted' }}>{totalSilver.count}</span>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: '#c0c0c0' }}>{totalSilver.count}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ fontSize: '9px', color: subtext }}>Grams</span>
@@ -2484,146 +2325,6 @@ const handleSubmit = async e => {
           </div>
         )}
 
-        {/* ── ORDER DETAIL POPUP WITH HIERARCHY ── */}
-{orderDetailPopup && (
-  <div
-    onClick={() => setOrderDetailPopup(null)}
-    style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(14px)', zIndex: 1500, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-  >
-    <div
-      onClick={e => e.stopPropagation()}
-      style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: `1px solid ${orderDetailPopup.metal === 'gold_22k' ? 'rgba(251,191,36,0.4)' : orderDetailPopup.metal === 'gold_24k' ? 'rgba(255,215,0,0.4)' : 'rgba(192,192,192,0.4)'}`, borderRadius: '24px', width: '95%', maxWidth: '720px', maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.7)' }}
-    >
-      {/* Header */}
-      <div style={{ flexShrink: 0, padding: '20px 26px', borderBottom: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '24px' }}>{orderDetailPopup.metal === 'gold_22k' ? '🏅' : orderDetailPopup.metal === 'gold_24k' ? '🥇' : '🥈'}</span>
-          <div>
-            <div style={{ color: orderDetailPopup.metal === 'gold_22k' ? '#fbbf24' : orderDetailPopup.metal === 'gold_24k' ? '#ffd700' : '#c0c0c0', fontWeight: 800, fontSize: '15px' }}>
-              {orderDetailPopup.metal === 'gold_22k' ? 'GOLD 22K' : orderDetailPopup.metal === 'gold_24k' ? 'GOLD 24K' : 'SILVER 999'} — {orderDetailPopup.period.toUpperCase()} ORDERS
-            </div>
-            <div style={{ color: subtext, fontSize: '11px', marginTop: '2px' }}>{orderDetailPopup.orders.length} orders • Hierarchy view</div>
-          </div>
-        </div>
-        <button onClick={() => setOrderDetailPopup(null)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px' }}>✕ Close</button>
-      </div>
-
-      {/* Orders List */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 26px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {orderDetailPopup.orders.length === 0 ? (
-          <div style={{ textAlign: 'center', color: subtext, padding: '60px 0' }}>No orders found.</div>
-        ) : orderDetailPopup.orders.map((order, idx) => {
-          const mc = orderDetailPopup.metal === 'gold_22k' ? '#fbbf24' : orderDetailPopup.metal === 'gold_24k' ? '#ffd700' : '#c0c0c0'
-          const mcRgb = orderDetailPopup.metal === 'gold_22k' ? '251,191,36' : orderDetailPopup.metal === 'gold_24k' ? '255,215,0' : '192,192,192'
-
-          // Build hierarchy chain from order
-          const chain = []
-          if (order.super_admin_email || localStorage.getItem('email')) {
-            chain.push({ type: 'super_admin', label: 'SUPER ADMIN', emoji: '🛡️', color: '#ffd700', id: null, name: localStorage.getItem('email') || '—', phone: null, city: null })
-          }
-          if (order.admin_name || order.admin_id) {
-            chain.push({ type: 'admin', label: 'ADMIN', emoji: '🛡️', color: '#22d3ee', id: order.admin_id, name: order.admin_name, phone: order.admin_phone || null, city: order.admin_city || null })
-          }
-          if (order.dealer_name || order.dealer_id) {
-            chain.push({ type: 'dealer', label: 'DEALER', emoji: '🏪', color: '#4ade80', id: order.dealer_id, name: order.dealer_name, phone: order.dealer_phone || null, city: order.dealer_city || null })
-          }
-          if (order.sub_dealer_name || order.sub_dealer_id) {
-            chain.push({ type: 'sub_dealer', label: 'SUB DEALER', emoji: '🔗', color: '#f59e0b', id: order.sub_dealer_id, name: order.sub_dealer_name, phone: order.sub_dealer_phone || null, city: order.sub_dealer_city || null })
-          }
-          if (order.promotor_name || order.promotor_id) {
-            chain.push({ type: 'promotor', label: 'PROMOTOR', emoji: '🌟', color: '#a78bfa', id: order.promotor_id, name: order.promotor_name, phone: order.promotor_phone || null, city: order.promotor_city || null })
-          }
-          // Customer (order placer) - always last
-          chain.push({
-            type: 'customer', label: 'CUSTOMER', emoji: '👤', color: '#f472b6',
-            id: order.customer_id || order.placed_by_id || null,
-            name: order.customer_name || order.placed_by_name || order.first_name || '—',
-            phone: order.mobile_number || order.customer_phone || null,
-            city: order.city_name || order.customer_city || null,
-          })
-
-          return (
-            <div key={order.id || idx} style={{ background: dark ? `rgba(${mcRgb},0.04)` : `rgba(${mcRgb},0.06)`, border: `1px solid rgba(${mcRgb},0.2)`, borderRadius: '16px', padding: '16px 18px' }}>
-              {/* Order Info Row */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ background: `rgba(${mcRgb},0.15)`, border: `1px solid rgba(${mcRgb},0.35)`, borderRadius: '8px', padding: '6px 10px', fontSize: '11px', fontWeight: 800, color: mc, letterSpacing: '0.5px' }}>
-                    ORDER #{order.id || (idx + 1)}
-                  </div>
-                  <div style={{ color: subtext, fontSize: '11px' }}>
-                    {new Date(order.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  {[
-                    { label: 'Qty', val: order.count },
-                    { label: 'Weight', val: formatWeight(parseFloat(order.weight_grams) * parseInt(order.count)) },
-                    { label: 'Amount', val: `₹${parseFloat(order.total_amount).toFixed(0)}` },
-                  ].map(d => (
-                    <div key={d.label} style={{ background: `rgba(${mcRgb},0.1)`, borderRadius: '8px', padding: '4px 10px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '9px', color: subtext }}>{d.label}</div>
-                      <div style={{ fontSize: '12px', fontWeight: 800, color: mc, fontFamily: 'monospace' }}>{d.val}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Hierarchy Chain - Tree Style */}
-              <div style={{ fontSize: '10px', color: subtext, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>
-                🔗 Hierarchy Chain
-              </div>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0', overflowX: 'auto', paddingBottom: '4px' }}>
-                {chain.map((node, ni) => {
-                  const isLast = ni === chain.length - 1
-                  const nRgb = node.color === '#ffd700' ? '255,215,0' : node.color === '#22d3ee' ? '34,211,238' : node.color === '#4ade80' ? '74,222,128' : node.color === '#f59e0b' ? '245,158,11' : node.color === '#a78bfa' ? '167,139,250' : '244,114,182'
-                  return (
-                    <div key={ni} style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
-                      {/* Node Card */}
-                      <div style={{ background: isLast ? `rgba(${nRgb},0.12)` : `rgba(${nRgb},0.05)`, border: `${isLast ? '1.5px' : '1px'} solid rgba(${nRgb},${isLast ? '0.5' : '0.2'})`, borderRadius: '10px', padding: '8px 10px', minWidth: '90px', maxWidth: '120px', flexShrink: 0 }}>
-                        <div style={{ fontSize: '8px', color: node.color, fontWeight: 800, letterSpacing: '1px', marginBottom: '4px' }}>
-                          {node.emoji} {node.label}
-                        </div>
-                        {node.id && (
-                          <div style={{ fontSize: '9px', color: node.color, fontFamily: 'monospace', marginBottom: '3px', opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {node.id}
-                          </div>
-                        )}
-                        <div style={{ fontSize: '11px', fontWeight: 700, color: text, marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {node.name || '—'}
-                        </div>
-                        {node.phone && (
-                          <div style={{ fontSize: '9px', color: subtext, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            📞 {node.phone}
-                          </div>
-                        )}
-                        {node.city && (
-                          <div style={{ fontSize: '9px', color: subtext }}>📍 {node.city}</div>
-                        )}
-                        {isLast && (
-                          <div style={{ marginTop: '5px', fontSize: '8px', fontWeight: 800, padding: '2px 6px', borderRadius: '10px', background: `rgba(${nRgb},0.2)`, color: node.color, border: `1px solid rgba(${nRgb},0.4)`, display: 'inline-block' }}>
-                            ● ORDERED
-                          </div>
-                        )}
-                      </div>
-                      {/* Arrow connector */}
-                      {!isLast && (
-                        <div style={{ display: 'flex', alignItems: 'center', padding: '0 4px', flexShrink: 0 }}>
-                          <div style={{ width: '16px', height: '1px', background: `rgba(${nRgb},0.4)` }} />
-                          <div style={{ width: 0, height: 0, borderTop: '4px solid transparent', borderBottom: '4px solid transparent', borderLeft: `5px solid rgba(${nRgb},0.5)` }} />
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  </div>
-)}
-
         {/* ── PROFILE UPDATE REQUESTS MODAL ── */}
         {showRequests && (
           <div
@@ -3203,6 +2904,31 @@ const handleSubmit = async e => {
             </div>
           </div>
         )}
+
+        {/* ── SENT ANNOUNCEMENTS WITH REPLY VIEWER — inside showAnnouncement modal, after Send button ── */}
+        {/* {myAnnouncements.length > 0 && (
+  <div style={{ marginTop:'24px', borderTop:`1px solid rgba(251,146,60,0.2)`, paddingTop:'20px' }}>
+    <div style={{ fontSize:'11px', color:'#fb923c', fontWeight:800, letterSpacing:'1.5px', marginBottom:'12px' }}>📋 SENT ANNOUNCEMENTS</div>
+    <div style={{ display:'flex', flexDirection:'column', gap:'8px', maxHeight:'200px', overflowY:'auto' }}>
+      {myAnnouncements.map(ann => (
+        <div key={ann.id} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(251,146,60,0.2)', borderRadius:'12px', padding:'10px 14px', display:'flex', justifyContent:'space-between', alignItems:'center', gap:'10px' }}>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ color:text, fontWeight:600, fontSize:'13px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ann.title}</div>
+            <div style={{ color:subtext, fontSize:'10px', marginTop:'2px' }}>{new Date(ann.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</div>
+          </div>
+          <button
+            onClick={() => { fetchReplies(ann.id); setReplyAnn(ann) }}
+            style={{ padding:'5px 12px', fontSize:'10px', fontWeight:700, background:'rgba(34,211,238,0.12)', border:'1px solid rgba(34,211,238,0.3)', borderRadius:'20px', color:'#22d3ee', cursor:'pointer', whiteSpace:'nowrap', flexShrink:0 }}
+          >
+            💬 View Wishes
+          </button>
+        </div>
+      ))}
+    </div>
+  </div>
+)} */}
+
+
 
         {/* ── PROOF DOCUMENT PREVIEW MODAL ── */}
         {proofModal && (
