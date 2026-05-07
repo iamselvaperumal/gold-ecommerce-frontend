@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate
+from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -397,4 +397,24 @@ class MetalRateSerializer(serializers.ModelSerializer):
     class Meta:
         model = MetalRate
         fields = ['id', 'date', 'gold_22k', 'gold_24k', 'silver_999', 'created_at', 'updated_at']
-        read_only_fields = ['created_at', 'updated_at']        
+        read_only_fields = ['created_at', 'updated_at']
+
+class MetalOrderSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source='user.email', read_only=True)
+    customer_id = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MetalOrder
+        fields = [
+            'id', 'email', 'customer_id', 'metal_type',
+            'weight_label', 'weight_grams', 'count',
+            'rate_per_gram', 'unit_price', 'total_amount',
+            'status', 'created_at'
+        ]
+        read_only_fields = ['user', 'status', 'created_at']
+
+    def get_customer_id(self, obj):
+        try:
+            return obj.user.customer_profile.customer_id
+        except Exception:
+            return None                

@@ -4,7 +4,7 @@ from .views import (
     LoginView, CreateAdminView, CreateDealerView,
     CreateSubDealerView, CreatePromotorView, CreateCustomerView,
     DashboardView, AdminListForAdminView, DealerListForDealerView,
-    SubDealerListForView, PromotorListForView,  FullHierarchyView, AnnouncementView, AnnouncementReplyView, ProfileUpdateRequestView, ProfileUpdateApproveView,MetalRateView, ping
+    SubDealerListForView, PromotorListForView,  FullHierarchyView, AnnouncementView, AnnouncementReplyView, ProfileUpdateRequestView, ProfileUpdateApproveView,MetalRateView,MetalOrderView, ping
 )
 
 urlpatterns = [
@@ -27,6 +27,7 @@ urlpatterns = [
     path('profile-update-request/', ProfileUpdateRequestView.as_view()),
     path('profile-update-request/<int:pk>/approve/', ProfileUpdateApproveView.as_view()),
     path('metal-rates/', MetalRateView.as_view()),
+    path('metal-orders/', MetalOrderView.as_view()),
     
 ]
 

@@ -450,4 +450,30 @@ class MetalRate(models.Model):
         ordering = ['-date']
 
     def __str__(self):
-        return f"{self.date} | 22K={self.gold_22k} | 24K={self.gold_24k} | Ag={self.silver_999}"        
+        return f"{self.date} | 22K={self.gold_22k} | 24K={self.gold_24k} | Ag={self.silver_999}"
+
+class MetalOrder(models.Model):
+    METAL_CHOICES = [
+        ('gold_22k', 'Gold 22K'),
+        ('gold_24k', 'Gold 24K'),
+        ('silver_999', 'Silver 999'),
+    ]
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='metal_orders')
+    metal_type = models.CharField(max_length=20, choices=METAL_CHOICES)
+    weight_label = models.CharField(max_length=20)       # "200 mg", "1 gm"
+    weight_grams = models.DecimalField(max_digits=10, decimal_places=4)  # 0.2000
+    count = models.IntegerField()
+    rate_per_gram = models.DecimalField(max_digits=10, decimal_places=2)
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2)    # rate × weight
+    total_amount = models.DecimalField(max_digits=14, decimal_places=2)  # unit_price × count
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.email} - {self.metal_type} - {self.weight_label} × {self.count}"                

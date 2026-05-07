@@ -37,6 +37,14 @@ const [annReplies,      setAnnReplies]      = useState({})
 const [replyPopupAnnId, setReplyPopupAnnId] = useState(null)
 const [replyPopupPos, setReplyPopupPos] = useState({ top: 0, left: 0 })
 const wishTimerRef = useRef(null)
+
+// Place Order popup states — add these after existing useState lines
+const [orderPopup, setOrderPopup]           = useState(false)
+const [orderMetal, setOrderMetal]           = useState(null)  // 'gold_22k' | 'gold_24k' | 'silver_999'
+const [orderWeight, setOrderWeight]         = useState('')
+const [orderCount, setOrderCount]           = useState(1)
+const [orderSubmitting, setOrderSubmitting] = useState(false)
+const [orderMsg, setOrderMsg]               = useState('')
 const canvasRef = useRef(null)
 
   const bg      = dark ? '#020617' : '#f8fafc'
@@ -177,19 +185,7 @@ const handleUpdateChange = e => {
   setUpdateForm({ ...updateForm, [name]: value })
 }
 
-// const handleDocChange = e => {
-//   const file = e.target.files?.[0]
-//   if (!file) return
 
-//   if (file.size > 2 * 1024 * 1024) {
-//     alert('Document size 2 MB kulla irukkanum bro')
-//     e.target.value = ''
-//     setUpdateDoc(null)
-//     return
-//   }
-
-//   setUpdateDoc(file)
-// }
 
 const submitProfileUpdate = async e => {
   e.preventDefault()
@@ -233,6 +229,36 @@ const submitProfileUpdate = async e => {
     setMsg('❌ Error: ' + JSON.stringify(err.response?.data || err.message))
     setMsgType('error')
   }
+}
+
+const submitOrder = async () => {
+  if (!orderWeight) { alert('Weight select pannunga'); return }
+  if (!orderCount || orderCount < 1) { alert('Count enter pannunga'); return }
+
+  const w = WEIGHTS.find(x => x.label === orderWeight)
+  if (!w) return
+
+  const rateMap = {
+    gold_22k: metalPrices.gold22k,
+    gold_24k: metalPrices.gold24k,
+    silver_999: metalPrices.silver,
+  }
+  const rate = rateMap[orderMetal]
+
+  setOrderSubmitting(true)
+  try {
+    await api.post('/metal-orders/', {
+      metal_type: orderMetal,
+      weight_label: orderWeight,
+      weight_grams: w.grams,
+      count: orderCount,
+      rate_per_gram: rate,
+    })
+    setOrderMsg('✅ Order placed successfully!')
+  } catch (err) {
+    setOrderMsg('❌ Failed: ' + JSON.stringify(err.response?.data || err.message))
+  }
+  setOrderSubmitting(false)
 }
 
 const fetchMetalPrices = async () => {
@@ -776,6 +802,114 @@ useEffect(() => {
   </div>
 )}
 
+{/* ── PLACE ORDER POPUP ── */}
+{orderPopup && (() => {
+  const metalLabels = { gold_22k: '🏅 Gold 22K', gold_24k: '🥇 Gold 24K', silver_999: '🥈 Silver 999' }
+  const metalColors = { gold_22k: '#fbbf24', gold_24k: '#ffd700', silver_999: '#c0c0c0' }
+  const rateMap = { gold_22k: metalPrices.gold22k, gold_24k: metalPrices.gold24k, silver_999: metalPrices.silver }
+  
+  const selectedW = WEIGHTS.find(x => x.label === orderWeight)
+  const rate = rateMap[orderMetal] || 0
+  const unitPrice = selectedW ? (selectedW.grams * rate) : 0
+  const totalAmt  = unitPrice * (orderCount || 0)
+  const col = metalColors[orderMetal]
+
+  return (
+    <div onClick={() => setOrderPopup(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.88)', backdropFilter:'blur(12px)', zIndex:1400, display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border:`1px solid ${col}55`, borderRadius:'24px', width:'95%', maxWidth:'480px', padding:'28px', boxShadow:'0 32px 90px rgba(0,0,0,0.8)', animation:'fadeIn 0.25s ease' }}>
+        
+        {/* Header */}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'24px' }}>
+          <div>
+            <div style={{ color:col, fontWeight:900, fontSize:'16px' }}>{metalLabels[orderMetal]}</div>
+            <div style={{ color:subtext, fontSize:'11px', marginTop:'3px' }}>Rate: ₹{rate?.toFixed(2)}/gm</div>
+          </div>
+          <button onClick={() => setOrderPopup(false)} style={{ background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.3)', color:'#f87171', borderRadius:'8px', padding:'6px 14px', cursor:'pointer', fontSize:'12px' }}>✕ Close</button>
+        </div>
+
+        {/* Weight Dropdown + Display */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'14px', marginBottom:'16px' }}>
+          <div>
+            <label style={{ color:subtext, fontSize:'11px', fontWeight:700, display:'block', marginBottom:'6px' }}>SELECT WEIGHT</label>
+            <select
+              value={orderWeight}
+              onChange={e => setOrderWeight(e.target.value)}
+              style={{ width:'100%', background:inpBg, border:`1px solid ${inpBorder}`, borderRadius:'10px', padding:'12px 14px', color:text, fontSize:'14px', outline:'none', cursor:'pointer' }}
+            >
+              <option value="" style={{ background:optionBg }}>-- Select --</option>
+              {WEIGHTS.map(w => (
+                <option key={w.label} value={w.label} style={{ background:optionBg }}>{w.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label style={{ color:subtext, fontSize:'11px', fontWeight:700, display:'block', marginBottom:'6px' }}>WEIGHT (DISPLAY)</label>
+            <div style={{ background:inpBg, border:`1px solid ${col}44`, borderRadius:'10px', padding:'12px 14px', color:col, fontWeight:700, fontSize:'14px', fontFamily:'monospace', minHeight:'46px', display:'flex', alignItems:'center' }}>
+              {orderWeight || '—'}
+            </div>
+          </div>
+        </div>
+
+        {/* Count Input + Display */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'14px', marginBottom:'20px' }}>
+          <div>
+            <label style={{ color:subtext, fontSize:'11px', fontWeight:700, display:'block', marginBottom:'6px' }}>COUNT</label>
+            <input
+              type="number"
+              min="1"
+              value={orderCount}
+              onChange={e => setOrderCount(Math.max(1, parseInt(e.target.value) || 1))}
+              style={{ width:'100%', background:inpBg, border:`1px solid ${inpBorder}`, borderRadius:'10px', padding:'12px 14px', color:text, fontSize:'14px', outline:'none', boxSizing:'border-box' }}
+            />
+          </div>
+          <div>
+            <label style={{ color:subtext, fontSize:'11px', fontWeight:700, display:'block', marginBottom:'6px' }}>COUNT (DISPLAY)</label>
+            <div style={{ background:inpBg, border:`1px solid ${col}44`, borderRadius:'10px', padding:'12px 14px', color:col, fontWeight:700, fontSize:'14px', fontFamily:'monospace', minHeight:'46px', display:'flex', alignItems:'center' }}>
+              {orderCount || '—'}
+            </div>
+          </div>
+        </div>
+
+        {/* Price Summary */}
+        <div style={{ background:`rgba(${orderMetal==='silver_999'?'192,192,192':'251,191,36'},0.06)`, border:`1px solid ${col}33`, borderRadius:'14px', padding:'16px 18px', marginBottom:'20px' }}>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px' }}>
+            <div>
+              <div style={{ color:subtext, fontSize:'10px', fontWeight:600, textTransform:'uppercase', marginBottom:'4px' }}>Unit Price</div>
+              <div style={{ color:col, fontWeight:700, fontSize:'15px', fontFamily:'monospace' }}>
+                {unitPrice > 0 ? `₹${unitPrice.toFixed(2)}` : '—'}
+              </div>
+              <div style={{ color:subtext, fontSize:'10px', marginTop:'2px' }}>{orderWeight} × ₹{rate?.toFixed(2)}/gm</div>
+            </div>
+            <div>
+              <div style={{ color:subtext, fontSize:'10px', fontWeight:600, textTransform:'uppercase', marginBottom:'4px' }}>Total Amount</div>
+              <div style={{ color:'#4ade80', fontWeight:800, fontSize:'18px', fontFamily:'monospace' }}>
+                {totalAmt > 0 ? `₹${totalAmt.toFixed(2)}` : '—'}
+              </div>
+              <div style={{ color:subtext, fontSize:'10px', marginTop:'2px' }}>₹{unitPrice.toFixed(2)} × {orderCount}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Message */}
+        {orderMsg && (
+          <div style={{ background: orderMsg.includes('✅') ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)', border:`1px solid ${orderMsg.includes('✅') ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.3)'}`, color: orderMsg.includes('✅') ? '#4ade80' : '#f87171', borderRadius:'10px', padding:'10px 14px', fontSize:'13px', marginBottom:'16px' }}>
+            {orderMsg}
+          </div>
+        )}
+
+        {/* Confirm Button */}
+        <button
+          disabled={orderSubmitting || !orderWeight || !orderCount}
+          onClick={submitOrder}
+          style={{ width:'100%', padding:'14px', background: orderSubmitting || !orderWeight ? 'rgba(52,211,153,0.2)' : `linear-gradient(90deg,${col},${col}cc)`, border:'none', borderRadius:'12px', fontWeight:900, fontSize:'14px', color:'#000', cursor: orderSubmitting || !orderWeight ? 'not-allowed' : 'pointer', transition:'all 0.3s ease' }}
+        >
+          {orderSubmitting ? '⏳ Placing Order...' : '✅ Confirm Order'}
+        </button>
+      </div>
+    </div>
+  )
+})()}
+
 {/* ── WISH HOVER POPUP — Admin ── */}
 {replyPopupAnnId && (
   <div
@@ -826,17 +960,18 @@ useEffect(() => {
 )}
 
 {(() => {
-  const WEIGHTS = [
-    { label: '50 mg', grams: 0.05 },
-    { label: '100 mg', grams: 0.10 },
-    { label: '150 mg', grams: 0.15 },
-    { label: '200 mg', grams: 0.20 },
-    { label: '500 mg', grams: 0.50 },
-    { label: '1 gm', grams: 1 },
-    { label: '2 gm', grams: 2 },
-    { label: '4 gm', grams: 4 },
-    { label: '8 gm', grams: 8 },
-  ]
+// Component level la add pannunga (PROFILE_FIELDS ku mela)
+const WEIGHTS = [
+  { label: '50 mg',  grams: 0.05 },
+  { label: '100 mg', grams: 0.10 },
+  { label: '150 mg', grams: 0.15 },
+  { label: '200 mg', grams: 0.20 },
+  { label: '500 mg', grams: 0.50 },
+  { label: '1 gm',   grams: 1    },
+  { label: '2 gm',   grams: 2    },
+  { label: '4 gm',   grams: 4    },
+  { label: '8 gm',   grams: 8    },
+]
   return (
     <div style={{ background: cardBg, border: cardBorder, borderRadius: '20px', padding: '28px 32px', marginBottom: '24px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -933,6 +1068,34 @@ useEffect(() => {
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              <tr>
+                <td style={{ padding: '14px 16px' }}>
+                  <span style={{ color: subtext, fontSize: '11px', fontWeight: 700 }}>Place Order</span>
+                </td>
+                {/* Gold 22K - Place Order */}
+                <td style={{ padding: '10px 16px', textAlign: 'center' }}>
+                  <button
+                    onClick={() => { setOrderMetal('gold_22k'); setOrderWeight(''); setOrderCount(1); setOrderMsg(''); setOrderPopup(true) }}
+                    style={{ padding: '8px 18px', background: 'linear-gradient(90deg,#f59e0b,#fbbf24)', border: 'none', borderRadius: '20px', color: '#000', fontWeight: 800, fontSize: '12px', cursor: 'pointer' }}
+                  >🛒 Order 22K</button>
+                </td>
+                {/* Gold 24K - Place Order */}
+                <td style={{ padding: '10px 16px', textAlign: 'center' }}>
+                  <button
+                    onClick={() => { setOrderMetal('gold_24k'); setOrderWeight(''); setOrderCount(1); setOrderMsg(''); setOrderPopup(true) }}
+                    style={{ padding: '8px 18px', background: 'linear-gradient(90deg,#d97706,#ffd700)', border: 'none', borderRadius: '20px', color: '#000', fontWeight: 800, fontSize: '12px', cursor: 'pointer' }}
+                  >🛒 Order 24K</button>
+                </td>
+                {/* Silver 999 - Place Order */}
+                <td style={{ padding: '10px 16px', textAlign: 'center' }}>
+                  <button
+                    onClick={() => { setOrderMetal('silver_999'); setOrderWeight(''); setOrderCount(1); setOrderMsg(''); setOrderPopup(true) }}
+                    style={{ padding: '8px 18px', background: 'linear-gradient(90deg,#9ca3af,#e5e7eb)', border: 'none', borderRadius: '20px', color: '#000', fontWeight: 800, fontSize: '12px', cursor: 'pointer' }}
+                  >🛒 Order Silver</button>
+                </td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       )}

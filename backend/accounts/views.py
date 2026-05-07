@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
-from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate
+from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder
 from .serializers import *
 
 
@@ -618,6 +618,48 @@ class MetalRateView(APIView):
         return Response(serializer.errors, status=400)
     
 
+class MetalOrderView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """Customer places an order."""
+        data = request.data
+        metal_type = data.get('metal_type')
+        weight_label = data.get('weight_label')
+        weight_grams = float(data.get('weight_grams', 0))
+        count = int(data.get('count', 1))
+        rate_per_gram = float(data.get('rate_per_gram', 0))
+
+        if not all([metal_type, weight_label, weight_grams, count, rate_per_gram]):
+            return Response({'error': 'All fields required'}, status=400)
+
+        unit_price = round(weight_grams * rate_per_gram, 2)
+        total_amount = round(unit_price * count, 2)
+
+        order = MetalOrder.objects.create(
+            user=request.user,
+            metal_type=metal_type,
+            weight_label=weight_label,
+            weight_grams=weight_grams,
+            count=count,
+            rate_per_gram=rate_per_gram,
+            unit_price=unit_price,
+            total_amount=total_amount,
+        )
+        return Response({
+            'message': 'Order placed successfully!',
+            'order_id': order.id,
+            'total_amount': total_amount,
+        }, status=201)
+
+    def get(self, request):
+        """Super admin sees all orders; customer sees own orders."""
+        if request.user.role == 'super_admin':
+            orders = MetalOrder.objects.all().order_by('-created_at')
+        else:
+            orders = MetalOrder.objects.filter(user=request.user).order_by('-created_at')
+        serializer = MetalOrderSerializer(orders, many=True)
+        return Response(serializer.data)
     
 @api_view(['GET'])
 @permission_classes([AllowAny])
