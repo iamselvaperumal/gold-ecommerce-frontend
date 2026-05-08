@@ -1244,9 +1244,9 @@ export default function SuperAdminDashboard() {
   }
 
   // ── ORDER HIERARCHY BUILDER ─────────────────────────────────────────────────
-const buildHierarchyOrders = (period, metalKey) => {
-  if (!hierarchyData) return null
-  const custOrders = orderDetails[period]?.[metalKey] || {}
+  const buildHierarchyOrders = (period, metalKey) => {
+    if (!hierarchyData) return null
+    const custOrders = orderDetails[period]?.[metalKey] || {}
     const superAdminEmail = localStorage.getItem('email') || ''
     let superTotal = 0
     const matchedIds = new Set()   // ← track which customer_ids exist in hierarchy
@@ -1595,36 +1595,36 @@ const buildHierarchyOrders = (period, metalKey) => {
               const totalSilver = s.data.silver_999
               return (
                 <div key={s.label} style={{
-  background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
-  border: cardBorder,
-  borderRadius: '10px',
-  padding: '10px',
-}}>
+                  background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+                  border: cardBorder,
+                  borderRadius: '10px',
+                  padding: '10px',
+                }}>
                   <div style={{ fontSize: '9px', color: s.color, fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px' }}>
                     {s.label}
                   </div>
 
                   {/* 22K */}
                   <div
-  onMouseEnter={e => {
-    clearTimeout(orderHideTimer.current)
-    const rect = e.currentTarget.getBoundingClientRect()
-    setOrderPopupState({
-      visible: true,
-      period: s.periodKey,
-      metalKey: 'gold_22k',
-      left: rect.right + 14,
-      top: rect.top,
-    })
-  }}
-  onMouseLeave={() => {
-    orderHideTimer.current = setTimeout(
-      () => setOrderPopupState(p => ({ ...p, visible: false })),
-      300
-    )
-  }}
-  style={{ marginBottom: '6px', paddingBottom: '6px', borderBottom: `1px solid ${border}`, cursor: 'pointer' }}
->
+                    onMouseEnter={e => {
+                      clearTimeout(orderHideTimer.current)
+                      const rect = e.currentTarget.getBoundingClientRect()
+                      setOrderPopupState({
+                        visible: true,
+                        period: s.periodKey,
+                        metalKey: 'gold_22k',
+                        left: rect.right + 14,
+                        top: rect.top,
+                      })
+                    }}
+                    onMouseLeave={() => {
+                      orderHideTimer.current = setTimeout(
+                        () => setOrderPopupState(p => ({ ...p, visible: false })),
+                        300
+                      )
+                    }}
+                    style={{ marginBottom: '6px', paddingBottom: '6px', borderBottom: `1px solid ${border}`, cursor: 'pointer' }}
+                  >
                     <div style={{ fontSize: '8px', color: '#fbbf24', fontWeight: 700, marginBottom: '3px' }}>🏅 22K</div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ fontSize: '9px', color: subtext }}>Orders</span>
@@ -1642,25 +1642,25 @@ const buildHierarchyOrders = (period, metalKey) => {
 
                   {/* 24K */}
                   <div
-  onMouseEnter={e => {
-    clearTimeout(orderHideTimer.current)
-    const rect = e.currentTarget.getBoundingClientRect()
-    setOrderPopupState({
-      visible: true,
-      period: s.periodKey,
-      metalKey: 'gold_24k',
-      left: rect.right + 14,
-      top: rect.top,
-    })
-  }}
-  onMouseLeave={() => {
-    orderHideTimer.current = setTimeout(
-      () => setOrderPopupState(p => ({ ...p, visible: false })),
-      300
-    )
-  }}
-  style={{ marginBottom: '6px', paddingBottom: '6px', borderBottom: `1px solid ${border}`, cursor: 'pointer' }}
->
+                    onMouseEnter={e => {
+                      clearTimeout(orderHideTimer.current)
+                      const rect = e.currentTarget.getBoundingClientRect()
+                      setOrderPopupState({
+                        visible: true,
+                        period: s.periodKey,
+                        metalKey: 'gold_24k',
+                        left: rect.right + 14,
+                        top: rect.top,
+                      })
+                    }}
+                    onMouseLeave={() => {
+                      orderHideTimer.current = setTimeout(
+                        () => setOrderPopupState(p => ({ ...p, visible: false })),
+                        300
+                      )
+                    }}
+                    style={{ marginBottom: '6px', paddingBottom: '6px', borderBottom: `1px solid ${border}`, cursor: 'pointer' }}
+                  >
                     <div style={{ fontSize: '8px', color: '#ffd700', fontWeight: 700, marginBottom: '3px' }}>🥇 24K</div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ fontSize: '9px', color: subtext }}>Orders</span>
@@ -1678,26 +1678,26 @@ const buildHierarchyOrders = (period, metalKey) => {
 
                   {/* Silver */}
                   <div
-  onMouseEnter={e => {
-    clearTimeout(orderHideTimer.current)
-    const rect = e.currentTarget.getBoundingClientRect()
-    setOrderPopupState({
-      visible: true,
-      period: s.periodKey,
-      metalKey: 'silver_999',
-      left: rect.right + 14,
-      top: rect.top,
-    })
-  }}
-  onMouseLeave={() => {
-    orderHideTimer.current = setTimeout(
-      () => setOrderPopupState(p => ({ ...p, visible: false })),
-      300
-    )
-  }}
-  style={{ cursor: 'pointer' }}
->
-  <div style={{ fontSize: '8px', color: '#c0c0c0', fontWeight: 700, marginBottom: '3px' }}>🥈 Silver</div>
+                    onMouseEnter={e => {
+                      clearTimeout(orderHideTimer.current)
+                      const rect = e.currentTarget.getBoundingClientRect()
+                      setOrderPopupState({
+                        visible: true,
+                        period: s.periodKey,
+                        metalKey: 'silver_999',
+                        left: rect.right + 14,
+                        top: rect.top,
+                      })
+                    }}
+                    onMouseLeave={() => {
+                      orderHideTimer.current = setTimeout(
+                        () => setOrderPopupState(p => ({ ...p, visible: false })),
+                        300
+                      )
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div style={{ fontSize: '8px', color: '#c0c0c0', fontWeight: 700, marginBottom: '3px' }}>🥈 Silver</div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ fontSize: '9px', color: subtext }}>Orders</span>
                       <span style={{ fontSize: '10px', fontWeight: 700, color: '#c0c0c0' }}>{totalSilver.count}</span>
@@ -1872,36 +1872,36 @@ const buildHierarchyOrders = (period, metalKey) => {
               },
             ].map(s => (
               <div
-  key={s.label}
-  style={{
-    background: s.bg, border: `1px solid ${s.bd}`,
-    borderRadius: '10px', padding: '12px 10px',
-    cursor: 'default',
-  }}
-  onMouseEnter={e => {
-    clearTimeout(orderHideTimer.current)
-    const rect = e.currentTarget.getBoundingClientRect()
-    let left = rect.left - 314
-    let top = rect.top
+                key={s.label}
+                style={{
+                  background: s.bg, border: `1px solid ${s.bd}`,
+                  borderRadius: '10px', padding: '12px 10px',
+                  cursor: 'default',
+                }}
+                onMouseEnter={e => {
+                  clearTimeout(orderHideTimer.current)
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  let left = rect.left - 314
+                  let top = rect.top
 
-    if (left < 10) left = rect.right + 14
-    if (top + 500 > window.innerHeight) top = window.innerHeight - 510
+                  if (left < 10) left = rect.right + 14
+                  if (top + 500 > window.innerHeight) top = window.innerHeight - 510
 
-    setOrderPopupState({
-      visible: true,
-      period: 'today',
-      metalKey: s.metalKey,
-      left,
-      top,
-    })
-  }}
-  onMouseLeave={() => {
-    orderHideTimer.current = setTimeout(
-      () => setOrderPopupState(p => ({ ...p, visible: false })),
-      300
-    )
-  }}
->
+                  setOrderPopupState({
+                    visible: true,
+                    period: 'today',
+                    metalKey: s.metalKey,
+                    left,
+                    top,
+                  })
+                }}
+                onMouseLeave={() => {
+                  orderHideTimer.current = setTimeout(
+                    () => setOrderPopupState(p => ({ ...p, visible: false })),
+                    300
+                  )
+                }}
+              >
 
                 <div style={{ fontSize: '14px', marginBottom: '5px' }}>{s.icon}</div>
                 <div style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase', color: s.color, marginBottom: '8px' }}>
@@ -2512,29 +2512,180 @@ const buildHierarchyOrders = (period, metalKey) => {
         )}
 
 
-        {/* ── ORDER HIERARCHY POPUP ─────────────────────────────────────────── */}
-        {orderPopupState.visible && (() => {
-         const hData = buildHierarchyOrders(orderPopupState.period, orderPopupState.metalKey)
-          const periodLabel = { today: "TODAY'S", week: "THIS WEEK'S", month: "THIS MONTH'S" }[orderPopupState.period]
+{/* ── ORDER HIERARCHY POPUP ─────────────────────────────────────────── */}
+{orderPopupState.visible && orderPopupState.period && orderPopupState.metalKey && (() => {
+  if (!hierarchyData) return null
 
-          const Arrow = ({ rgb }) => (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2px 0' }}>
-              <div style={{ width: '1.5px', height: '12px', background: `rgba(${rgb},0.45)` }} />
-              <div style={{ width: 0, height: 0, borderLeft: '4px solid transparent', borderRight: '4px solid transparent', borderTop: `6px solid rgba(${rgb},0.55)` }} />
+  const hData = buildHierarchyOrders(orderPopupState.period, orderPopupState.metalKey)
+  if (!hData) return null
+
+  const periodLabel = { today: "TODAY'S", week: "THIS WEEK'S", month: "THIS MONTH'S" }[orderPopupState.period]
+  const renderOrderNode = (node, role) => {
+    const cfg = ROLE_LABELS[role]
+    const color = cfg?.color || '#22d3ee'
+    const rgb = hexToRgb(color)
+
+    const children =
+      role === 'admin' ? (node.dealers || []) :
+      role === 'dealer' ? (node.subDealers || node.sub_dealers || []) :
+      role === 'sub_dealer' ? (node.promotors || []) :
+      role === 'promotor' ? (node.customers || []) :
+      []
+
+    const nextRole =
+      role === 'admin' ? 'dealer' :
+      role === 'dealer' ? 'sub_dealer' :
+      role === 'sub_dealer' ? 'promotor' :
+      role === 'promotor' ? 'customer' :
+      null
+
+    const idVal = node[cfg?.idKey] || node.id || ''
+    const name = `${node.first_name || ''} ${node.last_name || ''}`.trim() || 'Unknown'
+
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        position: 'relative',
+      }}>
+        {/* Node card */}
+        <div style={{
+          background: `rgba(${rgb},0.08)`,
+          border: `1px solid rgba(${rgb},0.4)`,
+          borderRadius: '12px',
+          padding: '9px 11px',
+          minWidth: '145px',
+          maxWidth: '170px',
+        }}>
+          <div style={{
+            fontSize: '8px',
+            color,
+            fontWeight: 800,
+            letterSpacing: '1px',
+            marginBottom: '4px',
+          }}>
+            {cfg?.emoji} {cfg?.label}
+          </div>
+
+          <div style={{
+            fontSize: '8px',
+            color: `rgba(${rgb},0.65)`,
+            fontFamily: 'monospace',
+            marginBottom: '3px',
+            wordBreak: 'break-all',
+          }}>
+            {idVal}
+          </div>
+
+          <div style={{
+            fontSize: '11px',
+            color: dark ? '#f1f5f9' : '#0f172a',
+            fontWeight: 800,
+          }}>
+            {name}
+          </div>
+
+          {node.mobile_number && (
+            <div style={{
+              fontSize: '9px',
+              color: `rgba(${rgb},0.7)`,
+              marginTop: '3px',
+            }}>
+              📞 {node.mobile_number}
             </div>
-          )
+          )}
 
-          return (
+          {node.orderCount > 0 && (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginTop: '5px',
+            }}>
+              <span style={{
+                fontSize: '14px',
+                fontWeight: 900,
+                color,
+                fontFamily: 'monospace',
+              }}>
+                {node.orderCount}
+              </span>
+              <span style={{
+                fontSize: '8px',
+                color: `rgba(${rgb},0.65)`,
+                marginLeft: '3px',
+                alignSelf: 'flex-end',
+              }}>
+                orders
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Children tree */}
+        {children.length > 0 && (
+          <>
+            <div style={{
+              width: '2px',
+              height: '16px',
+              background: `rgba(${rgb},0.55)`,
+            }} />
+
+            <div style={{
+              position: 'relative',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'flex-start',
+              gap: '14px',
+              paddingTop: '12px',
+            }}>
+              {children.length > 1 && (
+                <div style={{
+                  position: 'absolute',
+                  top: '0',
+                  left: '10%',
+                  right: '10%',
+                  height: '2px',
+                  background: `rgba(${rgb},0.45)`,
+                }} />
+              )}
+
+              {children.map((child, idx) => (
+                <div
+                  key={child.id || child.admin_id || child.dealer_id || child.sub_dealer_id || child.promotor_id || child.customer_id || idx}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div style={{
+                    width: '2px',
+                    height: '12px',
+                    background: `rgba(${rgb},0.55)`,
+                  }} />
+
+                  {renderOrderNode(child, nextRole)}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    )
+  }
+
+  return (
             <div
               style={{
-                position: 'fixed', zIndex: 9998,
-                left: Math.min(orderPopupState.left, window.innerWidth - 310),
-                top: Math.min(Math.max(orderPopupState.top, 10), window.innerHeight - 510),
+                position: 'fixed', zIndex: 900,
+                left: Math.max(10, Math.min(orderPopupState.left || 10, window.innerWidth - 320)),
+                top: Math.max(10, Math.min(orderPopupState.top || 10, window.innerHeight - 520)),
                 background: dark ? 'rgba(5,10,20,0.97)' : 'rgba(248,250,252,0.98)',
                 border: '1px solid rgba(34,211,238,0.22)',
                 borderRadius: '16px', padding: '16px',
                 minWidth: '260px', maxWidth: '300px',
-                maxHeight: '78vh', overflowY: 'auto', overflowX: 'hidden',
+                maxHeight: '78vh', overflow: 'auto',
                 boxShadow: '0 32px 80px rgba(0,0,0,0.85)',
                 fontFamily: 'Inter,system-ui,sans-serif',
                 animation: 'popupIn 0.25s cubic-bezier(0.22,1,0.36,1) both',
@@ -2583,152 +2734,43 @@ const buildHierarchyOrders = (period, metalKey) => {
                     </div>
                   </div>
 
-                  {/* ── Hierarchy chain (admins → dealers → ...) ── */}
-                  {hData.admins.map(admin => (
-                    <div key={admin.admin_id}>
-                      <Arrow rgb="34,211,238" />
-                      <div style={{ background: 'rgba(34,211,238,0.06)', border: '1px solid rgba(34,211,238,0.22)', borderRadius: '10px', padding: '9px 12px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <div>
-                            <div style={{ fontSize: '8px', color: '#22d3ee', fontWeight: 800, letterSpacing: '1px' }}>🛡️ ADMIN</div>
-                            <div style={{ fontSize: '9px', color: 'rgba(34,211,238,0.6)', fontFamily: 'monospace' }}>{admin.admin_id}</div>
-                            <div style={{ fontSize: '12px', color: dark ? '#f1f5f9' : '#0f172a', fontWeight: 700, marginTop: '2px' }}>{admin.first_name} {admin.last_name || ''}</div>
-                            <div style={{ fontSize: '9px', color: 'rgba(34,211,238,0.6)', marginTop: '2px' }}>📞 {admin.mobile_number}</div>
-                          </div>
-                          <div style={{ textAlign: 'right', marginLeft: '8px', flexShrink: 0 }}>
-                            <div style={{ fontSize: '15px', fontWeight: 800, color: '#22d3ee', fontFamily: 'monospace' }}>{admin.orderCount}</div>
-                            <div style={{ fontSize: '8px', color: 'rgba(34,211,238,0.55)' }}>orders</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {admin.dealers.map(dealer => (
-                        <div key={dealer.dealer_id} style={{ marginLeft: '10px' }}>
-                          <Arrow rgb="74,222,128" />
-                          <div style={{ background: 'rgba(74,222,128,0.06)', border: '1px solid rgba(74,222,128,0.22)', borderRadius: '10px', padding: '9px 12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <div>
-                                <div style={{ fontSize: '8px', color: '#4ade80', fontWeight: 800, letterSpacing: '1px' }}>🏪 DEALER</div>
-                                <div style={{ fontSize: '9px', color: 'rgba(74,222,128,0.6)', fontFamily: 'monospace' }}>{dealer.dealer_id}</div>
-                                <div style={{ fontSize: '12px', color: dark ? '#f1f5f9' : '#0f172a', fontWeight: 700, marginTop: '2px' }}>{dealer.first_name} {dealer.last_name || ''}</div>
-                                <div style={{ fontSize: '9px', color: 'rgba(74,222,128,0.6)', marginTop: '2px' }}>📞 {dealer.mobile_number}</div>
-                              </div>
-                              <div style={{ textAlign: 'right', marginLeft: '8px', flexShrink: 0 }}>
-                                <div style={{ fontSize: '15px', fontWeight: 800, color: '#4ade80', fontFamily: 'monospace' }}>{dealer.orderCount}</div>
-                                <div style={{ fontSize: '8px', color: 'rgba(74,222,128,0.55)' }}>orders</div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {dealer.subDealers.map(sd => (
-                            <div key={sd.sub_dealer_id} style={{ marginLeft: '10px' }}>
-                              <Arrow rgb="245,158,11" />
-                              <div style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.22)', borderRadius: '10px', padding: '9px 12px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                  <div>
-                                    <div style={{ fontSize: '8px', color: '#f59e0b', fontWeight: 800, letterSpacing: '1px' }}>🔗 SUB DEALER</div>
-                                    <div style={{ fontSize: '9px', color: 'rgba(245,158,11,0.6)', fontFamily: 'monospace' }}>{sd.sub_dealer_id}</div>
-                                    <div style={{ fontSize: '12px', color: dark ? '#f1f5f9' : '#0f172a', fontWeight: 700, marginTop: '2px' }}>{sd.first_name} {sd.last_name || ''}</div>
-                                    <div style={{ fontSize: '9px', color: 'rgba(245,158,11,0.6)', marginTop: '2px' }}>📞 {sd.mobile_number}</div>
-                                  </div>
-                                  <div style={{ textAlign: 'right', marginLeft: '8px', flexShrink: 0 }}>
-                                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#f59e0b', fontFamily: 'monospace' }}>{sd.orderCount}</div>
-                                    <div style={{ fontSize: '8px', color: 'rgba(245,158,11,0.55)' }}>orders</div>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {sd.promotors.map(pr => (
-                                <div key={pr.promotor_id} style={{ marginLeft: '10px' }}>
-                                  <Arrow rgb="167,139,250" />
-                                  <div style={{ background: 'rgba(167,139,250,0.06)', border: '1px solid rgba(167,139,250,0.22)', borderRadius: '10px', padding: '9px 12px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                      <div>
-                                        <div style={{ fontSize: '8px', color: '#a78bfa', fontWeight: 800, letterSpacing: '1px' }}>🌟 PROMOTOR</div>
-                                        <div style={{ fontSize: '9px', color: 'rgba(167,139,250,0.6)', fontFamily: 'monospace' }}>{pr.promotor_id}</div>
-                                        <div style={{ fontSize: '12px', color: dark ? '#f1f5f9' : '#0f172a', fontWeight: 700, marginTop: '2px' }}>{pr.first_name} {pr.last_name || ''}</div>
-                                        <div style={{ fontSize: '9px', color: 'rgba(167,139,250,0.6)', marginTop: '2px' }}>📞 {pr.mobile_number}</div>
-                                      </div>
-                                      <div style={{ textAlign: 'right', marginLeft: '8px', flexShrink: 0 }}>
-                                        <div style={{ fontSize: '15px', fontWeight: 800, color: '#a78bfa', fontFamily: 'monospace' }}>{pr.orderCount}</div>
-                                        <div style={{ fontSize: '8px', color: 'rgba(167,139,250,0.55)' }}>orders</div>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {pr.customers.length > 0 && (
-                                    <div style={{ marginLeft: '10px' }}>
-                                      <Arrow rgb="244,114,182" />
-                                      {/* Customer row — tree style */}
-                                      {/* Customer row — proper tree style */}
-<div style={{
-  position: 'relative',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'flex-start',
-  gap: '12px',
-  flexWrap: 'nowrap',
-  paddingTop: '18px',
-  overflowX: 'auto',
-}}>
-
-  {pr.customers.length > 1 && (
+{/* ── Hierarchy chain tree style ── */}
+{/* ── Hierarchy chain tree style ── */}
+{hData.admins.length > 0 && (
+  <div>
     <div style={{
-      position: 'absolute',
-      top: '6px',
-      left: '12%',
-      right: '12%',
-      height: '1.5px',
-      background: 'rgba(244,114,182,0.45)',
-    }} />
-  )}
-
-  {pr.customers.map(c => (
-    <div
-      key={c.customer_id}
-      style={{
-        position: 'relative',
-        background: 'rgba(244,114,182,0.08)',
-        border: '1px solid rgba(244,114,182,0.35)',
-        borderRadius: '10px',
-        padding: '8px 10px',
-        minWidth: '130px',
-        flex: '0 0 130px',
-      }}
-    >
+      display: 'flex',
+      justifyContent: 'center',
+      padding: '4px 0 8px',
+    }}>
       <div style={{
-        position: 'absolute',
-        top: '-12px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: '1.5px',
-        height: '12px',
-        background: 'rgba(244,114,182,0.55)',
+        width: '2px',
+        height: '18px',
+        background: 'rgba(34,211,238,0.55)',
       }} />
+    </div>
 
-      <div style={{ fontSize: '8px', color: '#f472b6', fontWeight: 800, letterSpacing: '1px', marginBottom: '4px' }}>👤 CUSTOMER</div>
-      <div style={{ fontSize: '9px', color: 'rgba(244,114,182,0.6)', fontFamily: 'monospace', marginBottom: '2px' }}>{c.customer_id}</div>
-      <div style={{ fontSize: '11px', color: dark ? '#f1f5f9' : '#0f172a', fontWeight: 700 }}>{c.first_name} {c.last_name || ''}</div>
-      <div style={{ fontSize: '9px', color: 'rgba(244,114,182,0.6)', marginTop: '2px' }}>📞 {c.mobile_number}</div>
-
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
-        <span style={{ fontSize: '14px', fontWeight: 800, color: '#f472b6', fontFamily: 'monospace' }}>{c.orderCount}</span>
-        <span style={{ fontSize: '8px', color: 'rgba(244,114,182,0.55)', marginLeft: '3px', alignSelf: 'flex-end' }}>orders</span>
+    <div style={{
+      overflowX: 'auto',
+      padding: '10px 0 14px',
+    }}>
+    
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        gap: '24px',
+        minWidth: 'max-content',
+      }}>
+        {hData.admins.map((admin, idx) => (
+          <div key={admin.id || admin.admin_id || idx}>
+            {renderOrderNode(admin, 'admin')}
+          </div>
+        ))}
       </div>
     </div>
-  ))}
-</div>
-
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
+  </div>
+)}
 
                   {/* ── Unlinked customers (no assigned promotor in hierarchy) ── */}
                   {hData.unlinked && hData.unlinked.length > 0 && (
@@ -3344,7 +3386,7 @@ const buildHierarchyOrders = (period, metalKey) => {
           </div>
         )}
 
- 
+
 
 
         {/* ── PROOF DOCUMENT PREVIEW MODAL ── */}
