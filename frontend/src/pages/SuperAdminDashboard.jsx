@@ -751,6 +751,42 @@ export default function SuperAdminDashboard() {
   })
 
   const orderHideTimer = useRef(null)
+  const getOrderPopupPosition = (anchorEl, side = 'right') => {
+  const rect = anchorEl.getBoundingClientRect()
+
+  const popupWidth = 320
+  const popupHeight = Math.min(window.innerHeight * 0.82, 620)
+  const gap = 14
+  const margin = 12
+
+  let left =
+    side === 'left'
+      ? rect.left - popupWidth - gap
+      : rect.right + gap
+
+  if (left + popupWidth > window.innerWidth - margin) {
+    left = rect.left - popupWidth - gap
+  }
+
+  if (left < margin) {
+    left = rect.right + gap
+  }
+
+  let top = rect.top + rect.height / 2 - popupHeight / 2
+
+  // popup konjam mela irunthu show aaganum na offset reduce pannalam
+  top = top - 60
+
+  if (top < margin) {
+    top = margin
+  }
+
+  if (top + popupHeight > window.innerHeight - margin) {
+    top = window.innerHeight - popupHeight - margin
+  }
+
+  return { left, top }
+}
 
   const canvasRef = useRef(null)
 
@@ -1244,55 +1280,60 @@ export default function SuperAdminDashboard() {
   }
 
   // ── ORDER HIERARCHY BUILDER ─────────────────────────────────────────────────
-  const buildHierarchyOrders = (period, metalKey) => {
-    if (!hierarchyData) return null
-    const custOrders = orderDetails[period]?.[metalKey] || {}
-    const superAdminEmail = localStorage.getItem('email') || ''
-    let superTotal = 0
-    const matchedIds = new Set()   // ← track which customer_ids exist in hierarchy
+const buildHierarchyOrders = (period, metalKey) => {
+  if (!hierarchyData) return null
+  const custOrders = orderDetails[period]?.[metalKey] || {}
+  const superAdminEmail = localStorage.getItem('email') || ''
+  let superTotal = 0
+  const matchedIds = new Set()
 
-    console.log(`[OrderPopup] period=${period} custOrders=`, custOrders)
+  const admins = (hierarchyData.admins || []).map(admin => {
+    let adminTotal = 0
+    const dealers = (admin.dealers || []).map(dealer => {
+      let dealerTotal = 0
+      const subDealers = (dealer.sub_dealers || []).map(sd => {
+        let sdTotal = 0
+        const promotors = (sd.promotors || []).map(pr => {
+          let prTotal = 0
 
-    console.log('hierarchyData keys:', Object.keys(hierarchyData))
-    console.log('first admin sample:', JSON.stringify(hierarchyData.admins?.[0], null, 2))
-    const admins = (hierarchyData.admins || []).map(admin => {
-      let adminTotal = 0
-      const dealers = (admin.dealers || []).map(dealer => {
-        let dealerTotal = 0
-        const subDealers = (dealer.sub_dealers || []).map(sd => {
-          let sdTotal = 0
-          const promotors = (sd.promotors || []).map(pr => {
-            let prTotal = 0
-            console.log('PR customers:', pr.customers)
-            console.log('PR full data:', JSON.stringify(pr, null, 2))  // ADD THIS LINE
-            const customers = (pr.customers || pr.customer || []).map(c => {
-              const o = custOrders[c.customer_id] || { count: 0, amount: 0 }
-              if (o.count > 0) matchedIds.add(c.customer_id)  // ← mark as matched
-              prTotal += o.count
-              return { ...c, orderCount: o.count, orderAmount: o.amount }
-            }).filter(c => c.orderCount > 0)
-            sdTotal += prTotal
-            return { ...pr, customers, orderCount: prTotal }
-          }).filter(pr => pr.orderCount > 0)
-          dealerTotal += sdTotal
-          return { ...sd, promotors, orderCount: sdTotal }
-        }).filter(sd => sd.orderCount > 0)
-        adminTotal += dealerTotal
-        return { ...dealer, subDealers, orderCount: dealerTotal }
-      }).filter(d => d.orderCount > 0)
-      superTotal += adminTotal
-      return { ...admin, dealers, orderCount: adminTotal }
-    }).filter(a => a.orderCount > 0)
+          // ✅ FIX: Try all possible customer array keys
+          const customerList = pr.customers || pr.customer || []
+          
+          const customers = customerList.map(c => {
+            // ✅ FIX: Try all possible id fields
+            const custId = c.customer_id || c.id || c.pk
+            const o = custOrders[custId] || { count: 0, amount: 0 }
+            
+            console.log(`Customer lookup: custId=${custId}, found=${o.count > 0}`, 
+              'Available keys:', Object.keys(custOrders).slice(0, 5))
+            
+            if (o.count > 0) matchedIds.add(custId)
+            prTotal += o.count
+            return { ...c, orderCount: o.count, orderAmount: o.amount }
+          }).filter(c => c.orderCount > 0)
+          
+          sdTotal += prTotal
+          return { ...pr, customers, orderCount: prTotal }
+        }).filter(pr => pr.orderCount > 0)
+        
+        dealerTotal += sdTotal
+        return { ...sd, promotors, orderCount: sdTotal }
+      }).filter(sd => sd.orderCount > 0)
+      
+      adminTotal += dealerTotal
+      return { ...dealer, subDealers, orderCount: dealerTotal }
+    }).filter(d => d.orderCount > 0)
+    
+    superTotal += adminTotal
+    return { ...admin, dealers, orderCount: adminTotal }
+  }).filter(a => a.orderCount > 0)
 
-    // ── Customers whose orders exist but are NOT in any hierarchy chain ──
-    const unlinked = Object.values(custOrders).filter(o => !matchedIds.has(o.customer_id))
-    const unlinkedTotal = unlinked.reduce((s, o) => s + o.count, 0)
-    superTotal += unlinkedTotal
+  const unlinked = Object.values(custOrders).filter(o => !matchedIds.has(o.customer_id))
+  const unlinkedTotal = unlinked.reduce((s, o) => s + o.count, 0)
+  superTotal += unlinkedTotal
 
-    console.log(`[OrderPopup] admins=${admins.length}, unlinked=${unlinked.length}, superTotal=${superTotal}`)
-
-    return { superAdminEmail, superTotal, admins, unlinked, unlinkedTotal }
-  }
+  return { superAdminEmail, superTotal, admins, unlinked, unlinkedTotal }
+}
 
 
   const s = {
@@ -1608,14 +1649,15 @@ export default function SuperAdminDashboard() {
                   <div
                     onMouseEnter={e => {
                       clearTimeout(orderHideTimer.current)
-                      const rect = e.currentTarget.getBoundingClientRect()
-                      setOrderPopupState({
-                        visible: true,
-                        period: s.periodKey,
-                        metalKey: 'gold_22k',
-                        left: rect.right + 14,
-                        top: rect.top,
-                      })
+                      const pos = getOrderPopupPosition(e.currentTarget, 'right')
+
+                     setOrderPopupState({
+                      visible: true,
+                      period: s.periodKey,
+                       metalKey: 'gold_22k',
+                      left: pos.left,
+                       top: pos.top,
+                         })
                     }}
                     onMouseLeave={() => {
                       orderHideTimer.current = setTimeout(
@@ -1644,14 +1686,15 @@ export default function SuperAdminDashboard() {
                   <div
                     onMouseEnter={e => {
                       clearTimeout(orderHideTimer.current)
-                      const rect = e.currentTarget.getBoundingClientRect()
-                      setOrderPopupState({
-                        visible: true,
-                        period: s.periodKey,
-                        metalKey: 'gold_24k',
-                        left: rect.right + 14,
-                        top: rect.top,
-                      })
+                      const pos = getOrderPopupPosition(e.currentTarget, 'right')
+
+setOrderPopupState({
+  visible: true,
+  period: s.periodKey,
+  metalKey: 'gold_24k',
+  left: pos.left,
+  top: pos.top,
+})
                     }}
                     onMouseLeave={() => {
                       orderHideTimer.current = setTimeout(
@@ -1680,14 +1723,15 @@ export default function SuperAdminDashboard() {
                   <div
                     onMouseEnter={e => {
                       clearTimeout(orderHideTimer.current)
-                      const rect = e.currentTarget.getBoundingClientRect()
-                      setOrderPopupState({
-                        visible: true,
-                        period: s.periodKey,
-                        metalKey: 'silver_999',
-                        left: rect.right + 14,
-                        top: rect.top,
-                      })
+                     const pos = getOrderPopupPosition(e.currentTarget, 'right')
+
+setOrderPopupState({
+  visible: true,
+  period: s.periodKey,
+  metalKey: 'silver_999',
+  left: pos.left,
+  top: pos.top,
+})
                     }}
                     onMouseLeave={() => {
                       orderHideTimer.current = setTimeout(
@@ -1880,20 +1924,15 @@ export default function SuperAdminDashboard() {
                 }}
                 onMouseEnter={e => {
                   clearTimeout(orderHideTimer.current)
-                  const rect = e.currentTarget.getBoundingClientRect()
-                  let left = rect.left - 314
-                  let top = rect.top
+                  const pos = getOrderPopupPosition(e.currentTarget, 'left')
 
-                  if (left < 10) left = rect.right + 14
-                  if (top + 500 > window.innerHeight) top = window.innerHeight - 510
-
-                  setOrderPopupState({
-                    visible: true,
-                    period: 'today',
-                    metalKey: s.metalKey,
-                    left,
-                    top,
-                  })
+setOrderPopupState({
+  visible: true,
+  period: 'today',
+  metalKey: s.metalKey,
+  left: pos.left,
+  top: pos.top,
+})
                 }}
                 onMouseLeave={() => {
                   orderHideTimer.current = setTimeout(

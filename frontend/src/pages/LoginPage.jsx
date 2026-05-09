@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
+import logo from "../assets/logo.png";
 
 const PARTICLES = Array.from({ length: 15 }, (_, i) => ({
   id: i, size: Math.random() * 60 + 10, x: Math.random() * 100,
@@ -203,7 +204,32 @@ const handleLogin = async (e) => {
 
       <div style={{ position:'relative', zIndex:10, width:'100%', maxWidth:'420px', background: glass, border:`1px solid ${dark ? 'rgba(103,232,249,0.15)' : 'rgba(0,0,0,0.1)'}`, borderRadius:'28px', padding:'40px 36px', backdropFilter:'blur(20px)', boxShadow:'0 32px 64px rgba(0,0,0,0.4)', transition:'background 0.8s ease' }}>
         <div style={{ textAlign:'center', marginBottom:'28px' }}>
-          <div style={{ width:48, height:48, borderRadius:'14px', background: accent, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'900', color:'#fff', fontSize:'20px', margin:'0 auto 14px' }}>B</div>
+<div
+  style={{
+    width: 56,
+    height: 56,
+    borderRadius: '14px',
+    background: '#fff',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: '0 auto 14px',
+    overflow: 'hidden',
+    boxShadow: '0 8px 24px rgba(0,0,0,0.2)'
+  }}
+>
+  <img
+    src={logo}
+    alt="Bit Byte Technology Logo"
+    style={{
+      width: '100%',
+      height: '100%',
+      objectFit: 'contain',
+      padding: '6px'
+    }}
+  />
+</div>
+
           <h2 style={{ fontSize:'1.6rem', fontWeight:900, color: dark ? '#a5f3fc' : accent, margin:'0 0 6px' }}>Bit Byte Technology</h2>
           <p style={{ color: subtext, fontSize:'13px', margin:0 }}>Access Portal</p>
         </div>
