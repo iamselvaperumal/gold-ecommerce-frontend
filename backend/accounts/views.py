@@ -6,6 +6,8 @@ from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
 from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder
 from .serializers import *
+from django.utils import timezone
+from datetime import timedelta
 
 
 def get_user_profile_id(user):
@@ -684,7 +686,40 @@ class MetalOrderView(APIView):
             orders = MetalOrder.objects.filter(user=request.user).order_by('-created_at')
         serializer = MetalOrderSerializer(orders, many=True)
         return Response(serializer.data)
-    
+class MetalOrderSummaryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        today = timezone.now().date()
+        week_start = today - timedelta(days=today.weekday())
+        month_start = today.replace(day=1)
+
+        def summarize(qs):
+            from django.db.models import Sum, Count
+            result = {}
+            for metal in ['gold_22k', 'gold_24k', 'silver_999']:
+                metal_qs = qs.filter(metal_type=metal)
+                agg = metal_qs.aggregate(
+                    total_orders=Count('id'),
+                    total_grams=Sum('weight_grams'),
+                    total_amount=Sum('total_amount'),
+                )
+                result[metal] = {
+                    'orders': agg['total_orders'] or 0,
+                    'grams': float(agg['total_grams'] or 0),
+                    'amount': float(agg['total_amount'] or 0),
+                }
+            return result
+
+        base = MetalOrder.objects.filter(user=user)
+
+        return Response({
+            'today': summarize(base.filter(created_at__date=today)),
+            'week':  summarize(base.filter(created_at__date__gte=week_start)),
+            'month': summarize(base.filter(created_at__date__gte=month_start)),
+        })    
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def ping(request):

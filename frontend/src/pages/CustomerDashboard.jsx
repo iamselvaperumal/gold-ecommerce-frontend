@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
 import logo from '../assets/logo.png'
+import goldCoin from '../assets/gold-coin.png'
+import silverCoin from '../assets/silver-coin.png'
 
 const PARTICLES = Array.from({ length: 15 }, (_, i) => ({
   id: i, size: Math.random() * 60 + 10, x: Math.random() * 100,
@@ -37,6 +39,9 @@ const [annReplies,      setAnnReplies]      = useState({})
 const [replyPopupAnnId, setReplyPopupAnnId] = useState(null)
 const [replyPopupPos, setReplyPopupPos] = useState({ top: 0, left: 0 })
 const wishTimerRef = useRef(null)
+
+const [orderSummary, setOrderSummary] = useState(null)
+const [summaryPeriod, setSummaryPeriod] = useState('today') // 'today'|'week'|'month'
 
 // Place Order popup states — add these after existing useState lines
 const [orderPopup, setOrderPopup]           = useState(false)
@@ -293,6 +298,13 @@ const fetchMetalPrices = async () => {
   setMetalLoading(false)
 }
 
+const fetchOrderSummary = async () => {
+  try {
+    const res = await api.get('/metal-orders/summary/')
+    setOrderSummary(res.data)
+  } catch {}
+}
+
 
 const fetchAnnouncements = async () => {
   try {
@@ -344,9 +356,11 @@ useEffect(() => {
   api.get('/dashboard/').then(res => setProfile(res.data)).catch(() => {})
   fetchAnnouncements()
   fetchMetalPrices()
+  fetchOrderSummary() // ← ADD THIS
   const interval = setInterval(() => {
     fetchAnnouncements()
     fetchMetalPrices()
+    fetchOrderSummary() // ← ADD THIS
   }, 30000)
   return () => clearInterval(interval)
 }, [])
@@ -441,7 +455,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
         </div>
       </div>
 
-      <div style={{ position:'relative', zIndex:10, padding:'36px 40px', maxWidth:'1000px', margin:'0 auto' }}>
+<div style={{ position:'relative', zIndex:10, padding:'36px 40px', maxWidth:'1400px', margin:'0 auto' }}>
 
 
 {/* ── CUSTOMER PROFILE MODAL ── */}
@@ -697,15 +711,6 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     </div>
   )}
 
-          {/* <div style={{ color:subtext, fontSize:'12px', marginTop:'8px' }}>
-            PAN / Aadhaar / supporting document upload pannunga. Max size: 2 MB.
-          </div>
-
-          {updateDoc && (
-            <div style={{ color:'#34d399', fontSize:'12px', marginTop:'8px' }}>
-              Selected: {updateDoc.name}
-            </div>
-          )} */}
 
 
         </div>
@@ -976,183 +981,205 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
 )}
 
-{(() => {
-  return (
-    <div style={{ background: cardBg, border: cardBorder, borderRadius: '20px', padding: '28px 32px', marginBottom: '24px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '22px' }}>⚖️</span>
-          <div>
-            <div style={{ color: '#a5f3fc', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-              Today's Gold & Silver Rates
+{/* Main wrapper - 2 column layout */}
+<div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px', alignItems: 'start' }}>
+
+  {/* ── LEFT COLUMN: Metal Rates ── */}
+  <div>
+    {(() => {
+      return (
+        <div style={{ background: cardBg, border: cardBorder, borderRadius: '20px', padding: '28px 32px', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '22px' }}>⚖️</span>
+              <div>
+                <div style={{ color: '#a5f3fc', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Today's Gold & Silver Rates</div>
+                <div style={{ color: subtext, fontSize: '11px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>📍 Chennai, India</span>
+                  <span style={{ opacity: 0.4 }}>•</span>
+                  <span>₹ per gram</span>
+                  <span style={{ opacity: 0.4 }}>•</span>
+                  {dbRateDate ? (
+                    <span style={{ color: '#4ade80', fontSize: '10px', fontWeight: 700 }}>
+                      📅 {new Date(dbRateDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
+                    </span>
+                  ) : (
+                    <span style={{ color: '#f87171', fontSize: '9px', fontWeight: 700 }}>No rate entered yet</span>
+                  )}
+                </div>
+              </div>
             </div>
-            <div style={{ color: subtext, fontSize: '11px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>📍 Chennai, India</span>
-              <span style={{ opacity: 0.4 }}>•</span>
-              <span>Live price • ₹ per gram</span>
-              <span style={{ opacity: 0.4 }}>•</span>
-{dbRateDate ? (
-  <span style={{ color: '#4ade80', fontSize: '10px', fontWeight: 700 }}>
-    📅 {new Date(dbRateDate).toLocaleDateString('en-IN', {
-      day: '2-digit', month: 'long', year: 'numeric'
-    })}
-  </span>
-) : (
-  <span style={{ color: '#f87171', fontSize: '9px', fontWeight: 700 }}>
-    No rate entered yet
-  </span>
-)}
-            </div>
+            <button onClick={fetchMetalPrices} style={{ padding: '7px 16px', background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.3)', borderRadius: '10px', color: '#22d3ee', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>🔄 Refresh</button>
           </div>
-        </div>
-        <button
-          onClick={fetchMetalPrices}
-          style={{ padding: '7px 16px', background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.3)', borderRadius: '10px', color: '#22d3ee', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
-        >🔄 Refresh</button>
-      </div>
-      {metalLoading ? (
-        <div style={{ textAlign: 'center', padding: '30px', color: subtext }}>Loading prices...</div>
-      ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-            <thead>
-              <tr style={{ borderBottom: `1px solid ${inpBorder}` }}>
-                <th style={{ padding: '12px 16px', textAlign: 'left', color: subtext, fontSize: '12px', fontWeight: 600 }}>Weight</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center' }}>
-                  <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.5)', borderRadius: '12px', padding: '6px 14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontSize: '14px' }}>🏅</span>
-                      <span style={{ color: '#fbbf24', fontWeight: 800, fontSize: '12px' }}>GOLD 22K</span>
-                    </div>
-                    {metalPrices.gold22k && <span style={{ color: '#fbbf24', fontSize: '10px', opacity: 0.8 }}>₹{metalPrices.gold22k.toFixed(2)}/gm</span>}
-                  </div>
-                </th>
-                <th style={{ padding: '12px 16px', textAlign: 'center' }}>
-                  <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'rgba(255,215,0,0.12)', border: '1px solid rgba(255,215,0,0.5)', borderRadius: '12px', padding: '6px 14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontSize: '14px' }}>🥇</span>
-                      <span style={{ color: '#ffd700', fontWeight: 800, fontSize: '12px' }}>GOLD 24K</span>
-                    </div>
-                    {metalPrices.gold24k && <span style={{ color: '#ffd700', fontSize: '10px', opacity: 0.8 }}>₹{metalPrices.gold24k.toFixed(2)}/gm</span>}
-                  </div>
-                </th>
-                <th style={{ padding: '12px 16px', textAlign: 'center' }}>
-                  <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'rgba(192,192,192,0.1)', border: '1px solid rgba(192,192,192,0.4)', borderRadius: '12px', padding: '6px 14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontSize: '14px' }}>🥈</span>
-                      <span style={{ color: '#c0c0c0', fontWeight: 800, fontSize: '12px' }}>SILVER 999</span>
-                    </div>
-                    {metalPrices.silver && <span style={{ color: '#c0c0c0', fontSize: '10px', opacity: 0.8 }}>₹{metalPrices.silver.toFixed(2)}/gm</span>}
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {WEIGHTS.map((w, i) => (
-                <tr key={w.label} style={{ borderBottom: `1px solid ${border}`, background: i % 2 === 0 ? 'transparent' : (dark ? 'rgba(255,255,255,0.01)' : 'rgba(0,0,0,0.01)') }}>
-                  <td style={{ padding: '12px 16px' }}>
-                    <span style={{ background: dark ? 'rgba(165,243,252,0.08)' : 'rgba(37,99,235,0.07)', border: `1px solid ${dark ? 'rgba(165,243,252,0.2)' : 'rgba(37,99,235,0.2)'}`, borderRadius: '8px', padding: '3px 10px', color: dark ? '#a5f3fc' : '#2563eb', fontWeight: 700, fontSize: '13px' }}>
-                      {w.label}
-                    </span>
-                  </td>
-                  <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                    <span style={{ color: '#fbbf24', fontWeight: 700, fontSize: '14px', fontFamily: 'monospace' }}>
-                      {metalPrices.gold22k != null ? `₹${(w.grams * metalPrices.gold22k).toFixed(2)}` : '—'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                    <span style={{ color: '#ffd700', fontWeight: 700, fontSize: '14px', fontFamily: 'monospace' }}>
-                      {metalPrices.gold24k != null ? `₹${(w.grams * metalPrices.gold24k).toFixed(2)}` : '—'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                    <span style={{ color: '#c0c0c0', fontWeight: 700, fontSize: '14px', fontFamily: 'monospace' }}>
-                      {metalPrices.silver != null ? `₹${(w.grams * metalPrices.silver).toFixed(2)}` : '—'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td style={{ padding: '14px 16px' }}>
-                  <span style={{ color: subtext, fontSize: '11px', fontWeight: 700 }}>Place Order</span>
-                </td>
-                {/* Gold 22K - Place Order */}
-                <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                  <button
-                    onClick={() => { setOrderMetal('gold_22k'); setOrderWeight(''); setOrderCount(''); setOrderMsg(''); setOrderPopup(true) }}
-                    style={{ padding: '8px 18px', background: 'linear-gradient(90deg,#f59e0b,#fbbf24)', border: 'none', borderRadius: '20px', color: '#000', fontWeight: 800, fontSize: '12px', cursor: 'pointer' }}
-                  >🛒 Place Order</button>
-                </td>
-                {/* Gold 24K - Place Order */}
-                <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                  <button
-                    onClick={() => { setOrderMetal('gold_24k'); setOrderWeight(''); setOrderCount(''); setOrderMsg(''); setOrderPopup(true) }}
-                    style={{ padding: '8px 18px', background: 'linear-gradient(90deg,#d97706,#ffd700)', border: 'none', borderRadius: '20px', color: '#000', fontWeight: 800, fontSize: '12px', cursor: 'pointer' }}
-                  >🛒 Place Order</button>
-                </td>
-                {/* Silver 999 - Place Order */}
-                <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                  <button
-                    onClick={() => { setOrderMetal('silver_999'); setOrderWeight(''); setOrderCount(''); setOrderMsg(''); setOrderPopup(true) }}
-                    style={{ padding: '8px 18px', background: 'linear-gradient(90deg,#9ca3af,#e5e7eb)', border: 'none', borderRadius: '20px', color: '#000', fontWeight: 800, fontSize: '12px', cursor: 'pointer' }}
-                  >🛒 Place Order</button>
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      )}
-    </div>
-  )
-})()}
 
+          {metalLoading ? (
+            <div style={{ textAlign: 'center', padding: '30px', color: subtext }}>Loading prices...</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
-        {profile ? (
-          <>
-            <div className="cu-fade" style={{ background:'rgba(52,211,153,0.05)', border:'1px solid rgba(52,211,153,0.2)', borderRadius:'16px', padding:'20px 28px', marginBottom:'24px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <span style={{ color: subtext, fontSize:'15px' }}>Customer ID</span>
-              <span style={{ color:'#34d399', fontFamily:'monospace', fontSize:'22px', fontWeight:700 }}>{profile.customer_id}</span>
+              {/* GOLD 22K */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                  <span style={{ fontSize: '16px' }}>🏅</span>
+                  <span style={{ color: '#fbbf24', fontWeight: 800, fontSize: '12px', letterSpacing: '1px' }}>GOLD 22K</span>
+                  {metalPrices.gold22k && <span style={{ color: 'rgba(251,191,36,0.55)', fontSize: '11px' }}>₹{metalPrices.gold22k.toFixed(2)}/gm</span>}
+                </div>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap' }}>
+                  {WEIGHTS.map(w => (
+                    <div key={w.label} style={{ flex: 1, minWidth: 0, background: dark ? 'rgba(251,191,36,0.05)' : 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '14px', overflow: 'hidden', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
+                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(251,191,36,0.2)' }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 0' }}>
+                        <img src={goldCoin} alt="Gold 22K" style={{ width: '44px', height: '44px', objectFit: 'contain', mixBlendMode: 'multiply' }} />
+                      </div>
+                      <div style={{ padding: '6px 6px 8px', textAlign: 'center' }}>
+                        <div style={{ display: 'inline-block', fontSize: '9px', fontWeight: 800, color: '#fbbf24', background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '20px', padding: '2px 6px', marginBottom: '4px' }}>{w.label}</div>
+                        <div style={{ color: '#fbbf24', fontWeight: 900, fontSize: '11px', fontFamily: 'monospace' }}>
+                          {metalPrices.gold22k != null ? `₹${(w.grams * metalPrices.gold22k).toFixed(2)}` : '—'}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
+                  <button onClick={() => { setOrderMetal('gold_22k'); setOrderWeight(''); setOrderCount(''); setOrderMsg(''); setOrderPopup(true) }}
+                    style={{ padding: '10px 32px', background: 'linear-gradient(90deg,#f59e0b,#fbbf24)', border: 'none', borderRadius: '20px', color: '#000', fontWeight: 800, fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 16px rgba(251,191,36,0.3)' }}>
+                    🛒 Place Order — Gold 22K
+                  </button>
+                </div>
+              </div>
+
+              {/* GOLD 24K */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                  <span style={{ fontSize: '16px' }}>🥇</span>
+                  <span style={{ color: '#ffd700', fontWeight: 800, fontSize: '12px', letterSpacing: '1px' }}>GOLD 24K</span>
+                  {metalPrices.gold24k && <span style={{ color: 'rgba(255,215,0,0.55)', fontSize: '11px' }}>₹{metalPrices.gold24k.toFixed(2)}/gm</span>}
+                </div>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap' }}>
+                  {WEIGHTS.map(w => (
+                    <div key={w.label} style={{ flex: 1, minWidth: 0, background: dark ? 'rgba(255,215,0,0.05)' : 'rgba(255,215,0,0.07)', border: '1px solid rgba(255,215,0,0.3)', borderRadius: '14px', overflow: 'hidden', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
+                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(255,215,0,0.2)' }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 0' }}>
+                        <img src={goldCoin} alt="Gold 24K" style={{ width: '44px', height: '44px', objectFit: 'contain', mixBlendMode: 'multiply' }} />
+                      </div>
+                      <div style={{ padding: '6px 6px 8px', textAlign: 'center' }}>
+                        <div style={{ display: 'inline-block', fontSize: '9px', fontWeight: 800, color: '#ffd700', background: 'rgba(255,215,0,0.12)', border: '1px solid rgba(255,215,0,0.3)', borderRadius: '20px', padding: '2px 6px', marginBottom: '4px' }}>{w.label}</div>
+                        <div style={{ color: '#ffd700', fontWeight: 900, fontSize: '11px', fontFamily: 'monospace' }}>
+                          {metalPrices.gold24k != null ? `₹${(w.grams * metalPrices.gold24k).toFixed(2)}` : '—'}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
+                  <button onClick={() => { setOrderMetal('gold_24k'); setOrderWeight(''); setOrderCount(''); setOrderMsg(''); setOrderPopup(true) }}
+                    style={{ padding: '10px 32px', background: 'linear-gradient(90deg,#d97706,#ffd700)', border: 'none', borderRadius: '20px', color: '#000', fontWeight: 800, fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 16px rgba(255,215,0,0.3)' }}>
+                    🛒 Place Order — Gold 24K
+                  </button>
+                </div>
+              </div>
+
+              {/* SILVER 999 */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                  <span style={{ fontSize: '16px' }}>🥈</span>
+                  <span style={{ color: '#c0c0c0', fontWeight: 800, fontSize: '12px', letterSpacing: '1px' }}>SILVER 999</span>
+                  {metalPrices.silver && <span style={{ color: 'rgba(192,192,192,0.55)', fontSize: '11px' }}>₹{metalPrices.silver.toFixed(2)}/gm</span>}
+                </div>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap' }}>
+                  {WEIGHTS.map(w => (
+                    <div key={w.label} style={{ flex: 1, minWidth: 0, background: dark ? 'rgba(192,192,192,0.04)' : 'rgba(192,192,192,0.07)', border: '1px solid rgba(192,192,192,0.25)', borderRadius: '14px', overflow: 'hidden', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
+                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(192,192,192,0.15)' }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 0' }}>
+                        <img src={silverCoin} alt="Silver 999" style={{ width: '44px', height: '44px', objectFit: 'contain', mixBlendMode: 'multiply' }} />
+                      </div>
+                      <div style={{ padding: '6px 6px 8px', textAlign: 'center' }}>
+                        <div style={{ display: 'inline-block', fontSize: '9px', fontWeight: 800, color: '#c0c0c0', background: 'rgba(192,192,192,0.1)', border: '1px solid rgba(192,192,192,0.25)', borderRadius: '20px', padding: '2px 6px', marginBottom: '4px' }}>{w.label}</div>
+                        <div style={{ color: '#c0c0c0', fontWeight: 900, fontSize: '11px', fontFamily: 'monospace' }}>
+                          {metalPrices.silver != null ? `₹${(w.grams * metalPrices.silver).toFixed(2)}` : '—'}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
+                  <button onClick={() => { setOrderMetal('silver_999'); setOrderWeight(''); setOrderCount(''); setOrderMsg(''); setOrderPopup(true) }}
+                    style={{ padding: '10px 32px', background: 'linear-gradient(90deg,#9ca3af,#e5e7eb)', border: 'none', borderRadius: '20px', color: '#000', fontWeight: 800, fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 16px rgba(192,192,192,0.2)' }}>
+                    🛒 Place Order — Silver 999
+                  </button>
+                </div>
+              </div>
+
             </div>
+          )}
+        </div>
+      )
+    })()}
+  </div>
 
-            <Section title="Personal Info" grid={g3}>
-              <Row label="Initial"    value={profile.initial} />
-              <Row label="First Name" value={profile.first_name} />
-              <Row label="Last Name"  value={profile.last_name} />
-              <Row label="Mobile"     value={profile.mobile_number} />
-              <Row label="Email"      value={profile.email} />
-            </Section>
+  {/* ── RIGHT COLUMN: Order Summary ── */}
+  <div style={{ position: 'sticky', top: '24px' }}>
+    <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
+      {['today', 'week', 'month'].map(p => (
+        <button key={p} onClick={() => setSummaryPeriod(p)} style={{
+          flex: 1, padding: '8px 0', borderRadius: '10px',
+          border: summaryPeriod === p ? 'none' : `1px solid ${border}`,
+          background: summaryPeriod === p ? 'linear-gradient(90deg,#34d399,#22d3ee)' : 'transparent',
+          color: summaryPeriod === p ? '#003b40' : subtext,
+          fontWeight: 800, fontSize: '11px', textTransform: 'uppercase',
+          letterSpacing: '0.5px', cursor: 'pointer', transition: 'all 0.2s ease',
+        }}>
+          {p === 'today' ? 'Today' : p === 'week' ? 'Week' : 'Month'}
+        </button>
+      ))}
+    </div>
 
-            <Section title="Address" grid={g3}>
-              <Row label="Door No"  value={profile.door_no} />
-              <Row label="Street"   value={profile.street_name} />
-              <Row label="Town"     value={profile.town_name} />
-              <Row label="City"     value={profile.city_name} />
-              <Row label="District" value={profile.district} />
-              <Row label="State"    value={profile.state} />
-            </Section>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+      <span style={{ fontSize: '16px' }}>🏆</span>
+      <span style={{ color: '#a5f3fc', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+        {summaryPeriod === 'today' ? "Today's" : summaryPeriod === 'week' ? "This Week's" : "This Month's"} Orders
+      </span>
+    </div>
 
-            <Section title="Identity" grid={g2}>
-              <Row label="Aadhaar No" value={profile.aadhaar_no} mono />
-              <Row label="PAN No"     value={profile.pan_no}     mono />
-            </Section>
+    {[
+      { key: 'gold_22k',   label: 'GOLD 22K',   icon: '🥇', color: '#fbbf24', rgba: '251,191,36' },
+      { key: 'gold_24k',   label: 'GOLD 24K',   icon: '🥇', color: '#ffd700', rgba: '255,215,0'  },
+      { key: 'silver_999', label: 'SILVER 999', icon: '🥈', color: '#c0c0c0', rgba: '192,192,192' },
+    ].map(({ key, label, icon, color, rgba }) => {
+      const data = orderSummary?.[summaryPeriod]?.[key]
+      return (
+        <div key={key} style={{ background: `rgba(${rgba},0.05)`, border: `1px solid rgba(${rgba},0.25)`, borderRadius: '16px', padding: '16px 18px', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <span style={{ fontSize: '18px' }}>{icon}</span>
+            <span style={{ color, fontWeight: 800, fontSize: '12px', letterSpacing: '1px' }}>{label}</span>
+          </div>
+          {[
+            { label: 'Order',        value: data ? `${data.orders}` : '0' },
+            { label: 'Grams',        value: data ? (data.grams >= 1 ? `${data.grams.toFixed(2)} gm` : `${(data.grams * 1000).toFixed(2)} mg`) : '0.00 mg' },
+            { label: 'Total Amount', value: data ? `₹${Number(data.amount).toLocaleString('en-IN')}` : '₹0', highlight: true },
+          ].map(({ label: lbl, value, highlight }) => (
+            <div key={lbl} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: lbl !== 'Total Amount' ? `1px solid rgba(${rgba},0.1)` : 'none' }}>
+              <span style={{ color: subtext, fontSize: '12px' }}>{lbl}</span>
+              <span style={{ color: highlight ? '#4ade80' : color, fontWeight: highlight ? 800 : 700, fontSize: highlight ? '14px' : '13px', fontFamily: 'monospace' }}>{value}</span>
+            </div>
+          ))}
+        </div>
+      )
+    })}
 
-            <Section title="Occupation" grid={g3}>
-              <Row label="Occupation"    value={profile.occupation} />
-              <Row label="Detail"        value={profile.occupation_detail} />
-              <Row label="Annual Salary" value={profile.annual_salary} />
-            </Section>
+    <button onClick={fetchOrderSummary} style={{ width: '100%', padding: '10px', background: 'rgba(34,211,238,0.08)', border: '1px solid rgba(34,211,238,0.25)', borderRadius: '12px', color: '#22d3ee', fontSize: '12px', fontWeight: 700, cursor: 'pointer', marginTop: '4px' }}>
+      🔄 Refresh Orders
+    </button>
+  </div>
 
-            <Section title="Promotor Info" grid={g3}>
-              <Row label="Promotor Name"    value={profile.promotor_name} />
-              <Row label="Promotor ID"      value={profile.promotor_id} mono />
-              <Row label="Promotor Contact" value={profile.promotor_contact_no} />
-            </Section>
-          </>
-        ) : (
-          <p style={{ color: subtext, textAlign:'center', padding:'80px 0', fontSize:'16px' }}>Loading profile...</p>
-        )}
+</div>
+
       </div>
     </div>
   )

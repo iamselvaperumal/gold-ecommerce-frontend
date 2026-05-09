@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
 import logo from '../assets/logo.png'
+import goldCoin from '../assets/gold-coin.png'
+import silverCoin from '../assets/silver-coin.png'
 
 const OCCUPATION_OPTIONS = ['employee', 'business', 'others']
 
@@ -1812,68 +1814,219 @@ setOrderPopupState({
                 { label: '4 gm', grams: 4 },
                 { label: '8 gm', grams: 8 },
               ]
-              return (
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                  <thead>
-                    <tr style={{ borderBottom: `1px solid ${inpBorder}` }}>
-                      <th style={{ padding: '10px 12px', textAlign: 'left', color: subtext, fontSize: '11px', fontWeight: 600 }}>Weight</th>
-                      <th style={{ padding: '10px 12px', textAlign: 'center' }}>
-                        <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '2px', background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.5)', borderRadius: '10px', padding: '5px 12px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <span style={{ fontSize: '13px' }}>🏅</span>
-                            <span style={{ color: '#fbbf24', fontWeight: 800, fontSize: '11px' }}>GOLD 22K</span>
-                          </div>
-                          {metalPrices.gold22k && <span style={{ color: '#fbbf24', fontSize: '9px', opacity: 0.8 }}>₹{metalPrices.gold22k.toFixed(2)}/gm</span>}
-                        </div>
-                      </th>
-                      <th style={{ padding: '10px 12px', textAlign: 'center' }}>
-                        <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '2px', background: 'rgba(255,215,0,0.12)', border: '1px solid rgba(255,215,0,0.5)', borderRadius: '10px', padding: '5px 12px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <span style={{ fontSize: '13px' }}>🥇</span>
-                            <span style={{ color: '#ffd700', fontWeight: 800, fontSize: '11px' }}>GOLD 24K</span>
-                          </div>
-                          {metalPrices.gold24k && <span style={{ color: '#ffd700', fontSize: '9px', opacity: 0.8 }}>₹{metalPrices.gold24k.toFixed(2)}/gm</span>}
-                        </div>
-                      </th>
-                      <th style={{ padding: '10px 12px', textAlign: 'center' }}>
-                        <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '2px', background: 'rgba(192,192,192,0.1)', border: '1px solid rgba(192,192,192,0.4)', borderRadius: '10px', padding: '5px 12px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <span style={{ fontSize: '13px' }}>🥈</span>
-                            <span style={{ color: '#c0c0c0', fontWeight: 800, fontSize: '11px' }}>SILVER 999</span>
-                          </div>
-                          {metalPrices.silver && <span style={{ color: '#c0c0c0', fontSize: '9px', opacity: 0.8 }}>₹{metalPrices.silver.toFixed(2)}/gm</span>}
-                        </div>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {WEIGHTS.map((w, i) => (
-                      <tr key={w.label} style={{ borderBottom: `1px solid ${border}`, background: i % 2 === 0 ? 'transparent' : (dark ? 'rgba(255,255,255,0.01)' : 'rgba(0,0,0,0.01)') }}>
-                        <td style={{ padding: '10px 12px' }}>
-                          <span style={{ background: dark ? 'rgba(165,243,252,0.08)' : 'rgba(37,99,235,0.07)', border: `1px solid ${dark ? 'rgba(165,243,252,0.2)' : 'rgba(37,99,235,0.2)'}`, borderRadius: '6px', padding: '3px 8px', color: dark ? '#a5f3fc' : '#2563eb', fontWeight: 700, fontSize: '12px' }}>
-                            {w.label}
-                          </span>
-                        </td>
-                        <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                          <span style={{ color: '#fbbf24', fontWeight: 700, fontSize: '13px', fontFamily: 'monospace' }}>
-                            {metalPrices.gold22k != null ? `₹${(w.grams * metalPrices.gold22k).toFixed(2)}` : '—'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                          <span style={{ color: '#ffd700', fontWeight: 700, fontSize: '13px', fontFamily: 'monospace' }}>
-                            {metalPrices.gold24k != null ? `₹${(w.grams * metalPrices.gold24k).toFixed(2)}` : '—'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                          <span style={{ color: '#c0c0c0', fontWeight: 700, fontSize: '13px', fontFamily: 'monospace' }}>
-                            {metalPrices.silver != null ? `₹${(w.grams * metalPrices.silver).toFixed(2)}` : '—'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )
+return (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+    {/* ── GOLD 22K CARDS ── */}
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+        <span style={{ fontSize: '16px' }}>🏅</span>
+        <span style={{ color: '#fbbf24', fontWeight: 800, fontSize: '12px', letterSpacing: '1px' }}>
+          GOLD 22K
+        </span>
+        {metalPrices.gold22k && (
+          <span style={{ color: 'rgba(251,191,36,0.55)', fontSize: '11px' }}>
+            ₹{metalPrices.gold22k.toFixed(2)}/gm
+          </span>
+        )}
+      </div>
+<div style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap' }}>
+        {WEIGHTS.map((w, i) => (
+          <div key={w.label} style={{
+            flex: 1,
+            minWidth: 0,
+            background: dark ? 'rgba(251,191,36,0.05)' : 'rgba(251,191,36,0.07)',
+            border: '1px solid rgba(251,191,36,0.3)',
+            borderRadius: '14px',
+            overflow: 'hidden',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            cursor: 'default',
+          }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = 'translateY(-4px)'
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(251,191,36,0.2)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
+          >
+            {/* Coin Image */}
+           <div style={{
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  padding: '12px 0',
+}}>
+              <img src={goldCoin} alt="Gold 22K"
+                style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(251,191,36,0.4))' }} />
+            </div>
+
+            {/* Weight Label */}
+            <div style={{ padding: '8px 8px 4px', textAlign: 'center' }}>
+              <div style={{
+                display: 'inline-block', fontSize: '10px', fontWeight: 800,
+                color: '#fbbf24',
+                background: 'rgba(251,191,36,0.12)',
+                border: '1px solid rgba(251,191,36,0.3)',
+                borderRadius: '20px', padding: '2px 8px',
+                marginBottom: '6px'
+              }}>
+                {w.label}
+              </div>
+
+              {/* Price */}
+              <div style={{
+                color: '#fbbf24', fontWeight: 900, fontSize: '12px',
+                fontFamily: 'monospace', paddingBottom: '8px'
+              }}>
+                {metalPrices.gold22k != null
+                  ? `₹${(w.grams * metalPrices.gold22k).toFixed(2)}`
+                  : '—'}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* ── GOLD 24K CARDS ── */}
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+        <span style={{ fontSize: '16px' }}>🥇</span>
+        <span style={{ color: '#ffd700', fontWeight: 800, fontSize: '12px', letterSpacing: '1px' }}>
+          GOLD 24K
+        </span>
+        {metalPrices.gold24k && (
+          <span style={{ color: 'rgba(255,215,0,0.55)', fontSize: '11px' }}>
+            ₹{metalPrices.gold24k.toFixed(2)}/gm
+          </span>
+        )}
+      </div>
+<div style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap' }}>
+        {WEIGHTS.map((w, i) => (
+          <div key={w.label} style={{
+            flex: 1,
+            minWidth: 0,
+            background: dark ? 'rgba(255,215,0,0.05)' : 'rgba(255,215,0,0.07)',
+            border: '1px solid rgba(255,215,0,0.3)',
+            borderRadius: '14px',
+            overflow: 'hidden',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            cursor: 'default',
+          }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = 'translateY(-4px)'
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(255,215,0,0.2)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
+          >
+          <div style={{
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  padding: '12px 0',
+}}>
+
+              <img src={goldCoin} alt="Gold 24K"
+                style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(255,215,0,0.5))' }} />
+            </div>
+
+            <div style={{ padding: '8px 8px 4px', textAlign: 'center' }}>
+              <div style={{
+                display: 'inline-block', fontSize: '10px', fontWeight: 800,
+                color: '#ffd700',
+                background: 'rgba(255,215,0,0.12)',
+                border: '1px solid rgba(255,215,0,0.3)',
+                borderRadius: '20px', padding: '2px 8px',
+                marginBottom: '6px'
+              }}>
+                {w.label}
+              </div>
+              <div style={{
+                color: '#ffd700', fontWeight: 900, fontSize: '12px',
+                fontFamily: 'monospace', paddingBottom: '8px'
+              }}>
+                {metalPrices.gold24k != null
+                  ? `₹${(w.grams * metalPrices.gold24k).toFixed(2)}`
+                  : '—'}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* ── SILVER 999 CARDS ── */}
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+        <span style={{ fontSize: '16px' }}>🥈</span>
+        <span style={{ color: '#c0c0c0', fontWeight: 800, fontSize: '12px', letterSpacing: '1px' }}>
+          SILVER 999
+        </span>
+        {metalPrices.silver && (
+          <span style={{ color: 'rgba(192,192,192,0.55)', fontSize: '11px' }}>
+            ₹{metalPrices.silver.toFixed(2)}/gm
+          </span>
+        )}
+      </div>
+<div style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap' }}>
+        {WEIGHTS.map((w, i) => (
+          <div key={w.label} style={{
+            flex: 1,
+            minWidth: 0,
+            background: dark ? 'rgba(192,192,192,0.04)' : 'rgba(192,192,192,0.07)',
+            border: '1px solid rgba(192,192,192,0.25)',
+            borderRadius: '14px',
+            overflow: 'hidden',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            cursor: 'default',
+          }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = 'translateY(-4px)'
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(192,192,192,0.15)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
+          >
+           <div style={{
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  padding: '12px 0',
+}}>
+
+              <img src={silverCoin} alt="Silver 999"
+                style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(192,192,192,0.4))' }} />
+            </div>
+
+            <div style={{ padding: '8px 8px 4px', textAlign: 'center' }}>
+              <div style={{
+                display: 'inline-block', fontSize: '10px', fontWeight: 800,
+                color: '#c0c0c0',
+                background: 'rgba(192,192,192,0.1)',
+                border: '1px solid rgba(192,192,192,0.25)',
+                borderRadius: '20px', padding: '2px 8px',
+                marginBottom: '6px'
+              }}>
+                {w.label}
+              </div>
+              <div style={{
+                color: '#c0c0c0', fontWeight: 900, fontSize: '12px',
+                fontFamily: 'monospace', paddingBottom: '8px'
+              }}>
+                {metalPrices.silver != null
+                  ? `₹${(w.grams * metalPrices.silver).toFixed(2)}`
+                  : '—'}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+  </div>
+)
+
             })()}
           </div>
 
