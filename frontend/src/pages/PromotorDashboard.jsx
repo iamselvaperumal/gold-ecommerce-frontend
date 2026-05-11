@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
 import logo from '../assets/logo.png'
+import goldCoin from '../assets/gold-coin.png'
+import silverCoin from '../assets/silver-coin.png'
 
 const OCCUPATIONS = ['employee', 'business', 'others']
 const emptyForm = {
@@ -13,7 +15,8 @@ const emptyForm = {
   email: '', password: '',
   door_no: '', street_name: '', town_name: '', city_name: '',
   district: '', state: '', aadhaar_no: '', pan_no: '',
-  occupation: '', occupation_detail: '', annual_salary: ''
+  occupation: '', occupation_detail: '', annual_salary: '',
+  assigned_promotor_id: null
 }
 
 const PARTICLES = Array.from({ length: 15 }, (_, i) => ({
@@ -329,9 +332,11 @@ function CustomerLeafNode({ node, dark, text, subtext, colorIdx=0, superAdminEma
 
 // ─── MAIN DASHBOARD ────────────────────────────────────────────────────────────
 export default function PromotorDashboard() {
-  const navigate = useNavigate()
-  const [dark, setDark]               = useState(true)
+  const navigate = useNavigate()                         
+  const [dark, setDark]               = useState(true)       
   const [customers, setCustomers]     = useState([])
+  const [allPromotors, setAllPromotors] = useState([])
+  const [selectedPromotor, setSelectedPromotor] = useState(null)
   const [promotorInfo, setPromotorInfo] = useState(null)
   const [showForm, setShowForm]       = useState(false)
   const [showHierarchy, setShowHierarchy] = useState(false)
@@ -450,15 +455,106 @@ function init(){pts=[];for(let i=0;i<60;i++)pts.push(new Particle())}
       }
     }
     function animate(){ctx.clearRect(0,0,canvas.width,canvas.height);pts.forEach(p=>{p.update();p.draw()});connect();animId=requestAnimationFrame(animate)}
-    init(); animate()
-    return () => { window.removeEventListener('resize',onResize); window.removeEventListener('mousemove',onMouse); cancelAnimationFrame(animId) }
+init(); animate()
+
+    // ── PLANETS & COMETS ──────────────────────────────────────────
+    let planets = [], comets2 = [], planetAnimId
+
+    class Planet {
+      constructor(index, total) {
+        this.distFactor = 0.12 + (index / total) * 0.75
+        this.radius = 12 + Math.random() * 25
+        this.speed = (0.003 / (index + 1)) * 0.35
+        this.angle = Math.random() * Math.PI * 2
+        const hues = [200, 30, 180, 5, 280, 150, 45, 210, 330, 20]
+        this.color = `hsl(${hues[index % hues.length]}, 70%, 60%)`
+      }
+      update(c2, x2) {
+        this.angle += this.speed
+        const centerX = c2.width / 2
+        const centerY = c2.height / 2
+        const maxDim = Math.max(c2.width, c2.height)
+        const orbitRadius = maxDim * this.distFactor
+        const x = centerX + Math.cos(this.angle) * orbitRadius
+        const y = centerY + Math.sin(this.angle) * orbitRadius
+        x2.strokeStyle = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
+        x2.lineWidth = 1
+        x2.beginPath()
+        x2.arc(centerX, centerY, orbitRadius, 0, Math.PI * 2)
+        x2.stroke()
+        x2.shadowBlur = dark ? 20 : 5
+        x2.shadowColor = this.color
+        x2.fillStyle = this.color
+        x2.beginPath()
+        x2.arc(x, y, this.radius, 0, Math.PI * 2)
+        x2.fill()
+        x2.shadowBlur = 0
+      }
+    }
+
+    const canvas2 = document.createElement('canvas')
+    canvas2.style.cssText = 'position:fixed;top:0;left:0;pointer-events:none;z-index:2;opacity:0.5;'
+    canvas2.width = window.innerWidth
+    canvas2.height = window.innerHeight
+    document.body.appendChild(canvas2)
+    const ctx2 = canvas2.getContext('2d')
+
+    function createComet2() {
+      const sides = ['top', 'bottom', 'left', 'right']
+      const side = sides[Math.floor(Math.random() * 4)]
+      let x, y, vx, vy
+      const speed = 0.4 + Math.random() * 0.3
+      if (side === 'top')         { x = Math.random() * canvas2.width;  y = -100;                vx = 0.1;  vy = speed  }
+      else if (side === 'bottom') { x = Math.random() * canvas2.width;  y = canvas2.height + 100; vx = -0.1; vy = -speed }
+      else if (side === 'left')   { x = -100;               y = Math.random() * canvas2.height;  vx = speed; vy = 0.1  }
+      else                        { x = canvas2.width + 100; y = Math.random() * canvas2.height;  vx = -speed; vy = -0.1 }
+      return { x, y, vx, vy, history: [], tailLength: 130 }
+    }
+
+    planets = Array.from({ length: 10 }, (_, i) => new Planet(i, 10))
+    comets2 = Array.from({ length: 3 }, createComet2)
+
+    function drawPlanets() {
+      ctx2.clearRect(0, 0, canvas2.width, canvas2.height)
+      const colorAccent = dark ? '76, 201, 240' : '0, 95, 115'
+      planets.forEach(p => p.update(canvas2, ctx2))
+      comets2.forEach((c, i) => {
+        c.x += c.vx; c.y += c.vy
+        c.history.push({ x: c.x, y: c.y })
+        if (c.history.length > c.tailLength) c.history.shift()
+        if (c.x < -200 || c.x > canvas2.width + 200 || c.y < -200 || c.y > canvas2.height + 200)
+          comets2[i] = createComet2()
+        c.history.forEach((h, idx) => {
+          ctx2.fillStyle = `rgba(${colorAccent}, ${(idx / c.history.length) * 0.3})`
+          ctx2.beginPath()
+          ctx2.arc(h.x, h.y, (idx / c.history.length) * 3, 0, Math.PI * 2)
+          ctx2.fill()
+        })
+      })
+      planetAnimId = requestAnimationFrame(drawPlanets)
+    }
+
+    const handleResize2 = () => { canvas2.width = window.innerWidth; canvas2.height = window.innerHeight }
+    window.addEventListener('resize', handleResize2)
+    drawPlanets()
+    // ── END PLANETS & COMETS ──────────────────────────────────────
+
+    return () => {
+      window.removeEventListener('resize', onResize)
+      window.removeEventListener('mousemove', onMouse)
+      window.removeEventListener('resize', handleResize2)
+      cancelAnimationFrame(animId)
+      cancelAnimationFrame(planetAnimId)
+      canvas2.remove()
+    }
   }, [dark])
 
-  const fetchAll = async () => {
+ const fetchAll = async () => {
     try {
-      const [custRes, dashRes] = await Promise.allSettled([
+      const [custRes, dashRes, allPRRes] = await Promise.allSettled([
         api.get('/customers/'),
         api.get('/dashboard/'),
+        api.get('/promotors/list'),
       ])
       if (custRes.status === 'fulfilled') setCustomers(custRes.value.data)
       if (dashRes.status === 'fulfilled') {
@@ -467,6 +563,7 @@ function init(){pts=[];for(let i=0;i<60;i++)pts.push(new Particle())}
           localStorage.setItem('superAdminEmail', dashRes.value.data.super_admin_email)
         }
       }
+      if (allPRRes.status === 'fulfilled') setAllPromotors(allPRRes.value.data)
     } catch(err) { console.error(err) }
   }
 
@@ -497,6 +594,7 @@ const PROFILE_FIELDS = [
   ['sub_dealer_contact_no', 'Contact No'],
 ]
 
+
 const openProfileEdit = () => {
   const next = {}
   PROFILE_FIELDS.forEach(([key]) => {
@@ -519,19 +617,7 @@ const handleUpdateChange = e => {
   setUpdateForm({ ...updateForm, [name]: value })
 }
 
-// const handleDocChange = e => {
-//   const file = e.target.files?.[0]
-//   if (!file) return
 
-//   if (file.size > 2 * 1024 * 1024) {
-//     alert('Document size 2 MB kulla irukkanum bro')
-//     e.target.value = ''
-//     setUpdateDoc(null)
-//     return
-//   }
-
-//   setUpdateDoc(file)
-// }
 
 const submitProfileUpdate = async e => {
   e.preventDefault()
@@ -640,6 +726,13 @@ function extractIdsFromTitle(title) {
     setReplyLoading(false)
   }
 
+useEffect(() => {
+  if (showForm && promotorInfo) {
+    setSelectedPromotor(promotorInfo)
+    setForm(prev => ({ ...prev, assigned_promotor_id: promotorInfo.id }))
+  }
+}, [showForm])
+
 useEffect(() => { 
   fetchAll(); fetchAnnouncements()
   fetchMetalPrices()
@@ -651,6 +744,14 @@ useEffect(() => {
 }, [])
 
 
+
+const handlePromotorChange = (e) => {
+  const id = parseInt(e.target.value)
+  const pr = allPromotors.find(p => p.id === id)
+  setSelectedPromotor(pr || null)
+  setForm({ ...form, assigned_promotor_id: id })
+}
+
 const handleChange = e => {
   const { name, value } = e.target
 
@@ -661,20 +762,20 @@ const handleChange = e => {
 
   setForm({ ...form, [name]: value })
 }
+
 const handleSubmit = async e => {
   e.preventDefault()
+
+  if (form.married_status === 'married' && !form.anniversary_date) {
+    setMsg('❌ Please enter Anniversary Date!'); setMsgType('error')
+    return
+  }
+
   try {
     const payload = { ...form }
-    
-    // Send null for empty optional date fields, not empty string
-    if (!payload.dob) payload.dob = null
-    if (payload.married_status !== 'married') payload.anniversary_date = null
-    if (!payload.anniversary_date) payload.anniversary_date = null
-    
-    // Ensure annual_salary is a number
-    if (payload.annual_salary) payload.annual_salary = Number(payload.annual_salary)
-    
-    
+    if (!payload.dob) delete payload.dob
+    if (payload.married_status !== 'married') delete payload.anniversary_date
+
     await api.post('/customers/', payload)
     setMsg('✅ Customer created successfully!'); setMsgType('success')
     setShowForm(false); fetchAll(); setForm(emptyForm)
@@ -771,115 +872,131 @@ const handleSubmit = async e => {
 
 {(() => {
   const WEIGHTS = [
-    { label: '50 mg', grams: 0.05 },
+    { label: '50 mg',  grams: 0.05 },
     { label: '100 mg', grams: 0.10 },
     { label: '150 mg', grams: 0.15 },
     { label: '200 mg', grams: 0.20 },
     { label: '500 mg', grams: 0.50 },
-    { label: '1 gm', grams: 1 },
-    { label: '2 gm', grams: 2 },
-    { label: '4 gm', grams: 4 },
-    { label: '8 gm', grams: 8 },
+    { label: '1 gm',   grams: 1 },
+    { label: '2 gm',   grams: 2 },
+    { label: '4 gm',   grams: 4 },
+    { label: '8 gm',   grams: 8 },
   ]
+
+  const METALS = [
+    {
+      key: 'gold22k', icon: '🏅', label: 'GOLD 22K',
+      price: metalPrices.gold22k,
+      cardBg: 'rgba(251,191,36,0.05)', cardBd: 'rgba(251,191,36,0.28)',
+      hoverShadow: '0 10px 28px rgba(251,191,36,0.22)',
+      coinShadow: '0 3px 10px rgba(251,191,36,0.4)',
+      pillBg: 'rgba(251,191,36,0.12)', pillBd: 'rgba(251,191,36,0.3)',
+      color: '#fbbf24', img: goldCoin,
+    },
+    {
+      key: 'gold24k', icon: '🥇', label: 'GOLD 24K',
+      price: metalPrices.gold24k,
+      cardBg: 'rgba(255,215,0,0.05)', cardBd: 'rgba(255,215,0,0.28)',
+      hoverShadow: '0 10px 28px rgba(255,215,0,0.22)',
+      coinShadow: '0 3px 10px rgba(255,215,0,0.5)',
+      pillBg: 'rgba(255,215,0,0.12)', pillBd: 'rgba(255,215,0,0.3)',
+      color: '#ffd700', img: goldCoin,
+    },
+    {
+      key: 'silver', icon: '🥈', label: 'SILVER 999',
+      price: metalPrices.silver,
+      cardBg: 'rgba(192,192,192,0.04)', cardBd: 'rgba(192,192,192,0.22)',
+      hoverShadow: '0 10px 28px rgba(192,192,192,0.15)',
+      coinShadow: '0 3px 10px rgba(192,192,192,0.4)',
+      pillBg: 'rgba(192,192,192,0.1)', pillBd: 'rgba(192,192,192,0.25)',
+      color: '#c0c0c0', img: silverCoin,
+    },
+  ]
+
   return (
     <div style={{ background: cardBg, border: cardBorder, borderRadius: '20px', padding: '28px 32px', marginBottom: '24px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '22px' }}>⚖️</span>
-          <div>
-            <div style={{ color: '#a5f3fc', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-              Today's Gold & Silver Rates
-            </div>
-            <div style={{ color: subtext, fontSize: '11px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>📍 Chennai, India</span>
-              <span style={{ opacity: 0.4 }}>•</span>
-              <span>Live price • ₹ per gram</span>
-              <span style={{ opacity: 0.4 }}>•</span>
-{dbRateDate ? (
-  <span style={{ color: '#4ade80', fontSize: '10px', fontWeight: 700 }}>
-    📅 {new Date(dbRateDate).toLocaleDateString('en-IN', {
-      day: '2-digit', month: 'long', year: 'numeric'
-    })}
-  </span>
-) : (
-  <span style={{ color: '#f87171', fontSize: '9px', fontWeight: 700 }}>
-    No rate entered yet
-  </span>
-)}
-            </div>
+
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+        <span style={{ fontSize: '22px' }}>⚖️</span>
+        <div>
+          <div style={{ color: '#fbcfe8', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em' }}>
+            Today's Gold & Silver Rates
+          </div>
+          <div style={{ color: subtext, fontSize: '10px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span>📍 Chennai, India</span>
+            <span style={{ opacity: 0.4 }}>•</span>
+            <span>₹ per gram</span>
+            <span style={{ opacity: 0.4 }}>•</span>
+            {dbRateDate ? (
+              <span style={{ color: '#4ade80', fontSize: '9px', fontWeight: 700 }}>
+                📅 {new Date(dbRateDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
+              </span>
+            ) : (
+              <span style={{ color: '#f87171', fontSize: '9px', fontWeight: 700 }}>No rate entered yet</span>
+            )}
           </div>
         </div>
-        <button
-          onClick={fetchMetalPrices}
-          style={{ padding: '7px 16px', background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.3)', borderRadius: '10px', color: '#22d3ee', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
-        >🔄 Refresh</button>
       </div>
-      {metalLoading ? (
-        <div style={{ textAlign: 'center', padding: '30px', color: subtext }}>Loading prices...</div>
-      ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-            <thead>
-              <tr style={{ borderBottom: `1px solid ${inpBorder}` }}>
-                <th style={{ padding: '12px 16px', textAlign: 'left', color: subtext, fontSize: '12px', fontWeight: 600 }}>Weight</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center' }}>
-                  <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.5)', borderRadius: '12px', padding: '6px 14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontSize: '14px' }}>🏅</span>
-                      <span style={{ color: '#fbbf24', fontWeight: 800, fontSize: '12px' }}>GOLD 22K</span>
-                    </div>
-                    {metalPrices.gold22k && <span style={{ color: '#fbbf24', fontSize: '10px', opacity: 0.8 }}>₹{metalPrices.gold22k.toFixed(2)}/gm</span>}
-                  </div>
-                </th>
-                <th style={{ padding: '12px 16px', textAlign: 'center' }}>
-                  <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'rgba(255,215,0,0.12)', border: '1px solid rgba(255,215,0,0.5)', borderRadius: '12px', padding: '6px 14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontSize: '14px' }}>🥇</span>
-                      <span style={{ color: '#ffd700', fontWeight: 800, fontSize: '12px' }}>GOLD 24K</span>
-                    </div>
-                    {metalPrices.gold24k && <span style={{ color: '#ffd700', fontSize: '10px', opacity: 0.8 }}>₹{metalPrices.gold24k.toFixed(2)}/gm</span>}
-                  </div>
-                </th>
-                <th style={{ padding: '12px 16px', textAlign: 'center' }}>
-                  <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'rgba(192,192,192,0.1)', border: '1px solid rgba(192,192,192,0.4)', borderRadius: '12px', padding: '6px 14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontSize: '14px' }}>🥈</span>
-                      <span style={{ color: '#c0c0c0', fontWeight: 800, fontSize: '12px' }}>SILVER 999</span>
-                    </div>
-                    {metalPrices.silver && <span style={{ color: '#c0c0c0', fontSize: '10px', opacity: 0.8 }}>₹{metalPrices.silver.toFixed(2)}/gm</span>}
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
+
+      {/* Metal Sections */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {METALS.map(m => (
+          <div key={m.key}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              <span style={{ fontSize: '15px' }}>{m.icon}</span>
+              <span style={{ color: m.color, fontWeight: 800, fontSize: '11px', letterSpacing: '1px' }}>{m.label}</span>
+              {m.price && (
+                <span style={{ color: m.color, fontSize: '10px', opacity: 0.55 }}>₹{m.price.toFixed(2)}/gm</span>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: '5px', flexWrap: 'nowrap' }}>
               {WEIGHTS.map((w, i) => (
-                <tr key={w.label} style={{ borderBottom: `1px solid ${border}`, background: i % 2 === 0 ? 'transparent' : (dark ? 'rgba(255,255,255,0.01)' : 'rgba(0,0,0,0.01)') }}>
-                  <td style={{ padding: '12px 16px' }}>
-                    <span style={{ background: dark ? 'rgba(165,243,252,0.08)' : 'rgba(37,99,235,0.07)', border: `1px solid ${dark ? 'rgba(165,243,252,0.2)' : 'rgba(37,99,235,0.2)'}`, borderRadius: '8px', padding: '3px 10px', color: dark ? '#a5f3fc' : '#2563eb', fontWeight: 700, fontSize: '13px' }}>
+                <div
+                  key={w.label}
+                  className="metal-card"
+                  style={{
+                    flex: 1, minWidth: 0,
+                    background: m.cardBg,
+                    border: `1px solid ${m.cardBd}`,
+                    animationDelay: `${i * 0.06}s`,
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = m.hoverShadow }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 0' }}>
+                    <img
+                      src={m.img}
+                      alt={m.label}
+                      style={{
+                        width: '46px', height: '46px', objectFit: 'contain',
+                        filter: `drop-shadow(0 2px 6px ${m.color}66)`,
+                        boxShadow: m.coinShadow,
+                        borderRadius: '50%',
+                      }}
+                    />
+                  </div>
+                  <div style={{ padding: '6px 4px 8px', textAlign: 'center' }}>
+                    <div style={{
+                      display: 'inline-block', fontSize: '9px', fontWeight: 800,
+                      color: m.color, background: m.pillBg,
+                      border: `1px solid ${m.pillBd}`,
+                      borderRadius: '20px', padding: '2px 7px', marginBottom: '5px',
+                    }}>
                       {w.label}
-                    </span>
-                  </td>
-                  <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                    <span style={{ color: '#fbbf24', fontWeight: 700, fontSize: '14px', fontFamily: 'monospace' }}>
-                      {metalPrices.gold22k != null ? `₹${(w.grams * metalPrices.gold22k).toFixed(2)}` : '—'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                    <span style={{ color: '#ffd700', fontWeight: 700, fontSize: '14px', fontFamily: 'monospace' }}>
-                      {metalPrices.gold24k != null ? `₹${(w.grams * metalPrices.gold24k).toFixed(2)}` : '—'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                    <span style={{ color: '#c0c0c0', fontWeight: 700, fontSize: '14px', fontFamily: 'monospace' }}>
-                      {metalPrices.silver != null ? `₹${(w.grams * metalPrices.silver).toFixed(2)}` : '—'}
-                    </span>
-                  </td>
-                </tr>
+                    </div>
+                    <div style={{ color: m.color, fontWeight: 900, fontSize: '11px', fontFamily: 'monospace', paddingBottom: '4px' }}>
+                      {m.price != null ? `₹${(w.grams * m.price).toFixed(2)}` : '—'}
+                    </div>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+            </div>
+          </div>
+        ))}
+      </div>
+
     </div>
   )
 })()}
@@ -1540,6 +1657,31 @@ const handleSubmit = async e => {
         </div>
         <div><label style={lbl}>Annual Salary *</label>
           <input name="annual_salary" value={form.annual_salary} onChange={handleChange} required className="pr-inp" style={inp}/>
+        </div>
+      </div>
+
+<p style={secLabel('#fbcfe8')}>🌟 Promotor Info</p>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'14px' }}>
+        <div><label style={lbl}>Promotor ID *</label>
+          <select
+            value={form.assigned_promotor_id || ''}
+            onChange={handlePromotorChange}
+            className="pr-inp"
+            style={{ ...inp, cursor:'pointer' }}
+          >
+            <option value="" style={{ background:'#1a1f26' }}>Select Promotor ID</option>
+            {allPromotors.map((p, idx) => (
+              <option key={p.promotor_id || p.id || idx} value={p.id} style={{ background:'#1a1f26' }}>
+                {p.promotor_id}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div><label style={lbl}>Promotor Name</label>
+          <input value={selectedPromotor?.first_name || ''} readOnly placeholder="Auto fetch" style={{ ...inp, opacity:0.5, cursor:'not-allowed' }}/>
+        </div>
+        <div><label style={lbl}>Promotor Contact</label>
+          <input value={selectedPromotor?.mobile_number || ''} readOnly placeholder="Auto fetch" style={{ ...inp, opacity:0.5, cursor:'not-allowed' }}/>
         </div>
       </div>
 
