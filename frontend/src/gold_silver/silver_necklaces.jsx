@@ -399,7 +399,7 @@ export default function SilverNecklaces() {
       {selectedItem && (
         <div onClick={() => setSelectedItem(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(14px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: '1px solid rgba(192,192,192,0.35)', borderRadius: '28px', width: '95%', maxWidth: '560px', overflow: 'hidden', boxShadow: '0 40px 100px rgba(0,0,0,0.8)', animation: 'fadeInUp 0.3s ease' }}>
-            <div style={{ position: 'relative', height: '320px', overflow: 'hidden' }}>
+            <div style={{ position: 'relative', height: '200px', overflow: 'hidden' }}>
               <img src={selectedItem.img} alt={selectedItem.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(2,6,23,0.9) 0%,transparent 60%)' }} />
 
