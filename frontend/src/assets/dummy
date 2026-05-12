@@ -698,3 +698,67 @@ export default function SuperAdminDashboard() {
     </div>
   )
 }
+
+
+
+
+
+{/* ── JEWELRY SHOWCASE ── */}
+<div style={{ marginBottom: '28px' }}>
+  <div style={{ color: '#a5f3fc', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+    <span>💍</span> Our Collections
+  </div>
+  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+    
+    {/* Big left card - Ring */}
+    <div style={{ gridRow: 'span 2', position: 'relative', borderRadius: '20px', overflow: 'hidden', cursor: 'pointer', border: cardBorder, minHeight: '340px' }}>
+      <img src="/src/assets/img/gold/gold-ring-1.png" alt="Signature Rings" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)' }} />
+      <div style={{ position: 'absolute', bottom: '20px', left: '20px' }}>
+        <div style={{ color: '#fff', fontWeight: 800, fontSize: '18px' }}>Signature Rings</div>
+        <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '12px', marginTop: '3px' }}>Bridal & Everyday</div>
+      </div>
+    </div>
+
+    {/* Heritage Necklaces */}
+    <div style={{ position: 'relative', borderRadius: '20px', overflow: 'hidden', cursor: 'pointer', border: cardBorder, minHeight: '160px' }}>
+      <img src="/src/assets/img/gold/gold chain-1.png" alt="Heritage Necklaces" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)' }} />
+      <div style={{ position: 'absolute', bottom: '14px', left: '16px' }}>
+        <div style={{ color: '#fff', fontWeight: 800, fontSize: '14px' }}>Heritage Necklaces</div>
+        <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '11px' }}>Antique & Modern</div>
+      </div>
+    </div>
+
+    {/* Eternal Bangles */}
+    <div style={{ position: 'relative', borderRadius: '20px', overflow: 'hidden', cursor: 'pointer', border: cardBorder, minHeight: '160px' }}>
+      <img src="/src/assets/img/gold/gold-bangles-1.png" alt="Eternal Bangles" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)' }} />
+      <div style={{ position: 'absolute', bottom: '14px', left: '16px' }}>
+        <div style={{ color: '#fff', fontWeight: 800, fontSize: '14px' }}>Eternal Bangles</div>
+        <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '11px' }}>Kangan & Bracelets</div>
+      </div>
+    </div>
+
+    {/* Diamond Earrings */}
+    <div style={{ position: 'relative', borderRadius: '20px', overflow: 'hidden', cursor: 'pointer', border: cardBorder, minHeight: '160px' }}>
+      <img src="/src/assets/img/silver/silver-Earrings-4.png" alt="Diamond Earrings" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)' }} />
+      <div style={{ position: 'absolute', bottom: '14px', left: '16px' }}>
+        <div style={{ color: '#fff', fontWeight: 800, fontSize: '14px' }}>Diamond Earrings</div>
+        <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '11px' }}>Studs & Drops</div>
+      </div>
+    </div>
+
+    {/* Gold Chains */}
+    <div style={{ position: 'relative', borderRadius: '20px', overflow: 'hidden', cursor: 'pointer', border: cardBorder, minHeight: '160px' }}>
+      <img src="/src/assets/img/gold/gold chain-1.png" alt="Gold Chains" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)' }} />
+      <div style={{ position: 'absolute', bottom: '14px', left: '16px' }}>
+        <div style={{ color: '#fff', fontWeight: 800, fontSize: '14px' }}>Gold Chains</div>
+        <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '11px' }}>Minimal & Premium</div>
+      </div>
+    </div>
+
+  </div>
+</div>

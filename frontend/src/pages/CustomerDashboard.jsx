@@ -52,6 +52,7 @@ const [orderSubmitting, setOrderSubmitting] = useState(false)
 const [orderMsg, setOrderMsg]               = useState('')
 const [msg, setMsg]         = useState('')
 const [msgType, setMsgType] = useState('')
+const [hoveredJewel, setHoveredJewel] = useState(null)
 const canvasRef = useRef(null)
 
   const bg      = dark ? '#020617' : '#f8fafc'
@@ -397,6 +398,14 @@ useEffect(() => {
 #sd-wish-popup::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#a78bfa,#22d3ee);border-radius:10px}
 #sd-wish-popup{scrollbar-color:rgba(167,139,250,0.5) rgba(167,139,250,0.03)}
 @keyframes sdWishIn{from{opacity:0;transform:translate(-50%,calc(-100% + 8px)) scale(0.95)}to{opacity:1;transform:translate(-50%,calc(-100% - 10px)) scale(1)}}
+@keyframes jewelGlow{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.04)}}
+@keyframes shimmerSlide{0%{left:-80%}100%{left:120%}}
+.jewel-card-img{transition:transform 0.55s cubic-bezier(0.34,1.56,0.64,1);}
+.jewel-card:hover .jewel-card-img{transform:scale(1.10) translateY(-4px) !important;}
+.jewel-shine{position:absolute;top:0;left:-80%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);transform:skewX(-20deg);opacity:0;transition:opacity 0.3s;}
+.jewel-card:hover .jewel-shine{opacity:1;animation:shimmerSlide 0.65s ease;}
+
+
         .cu-fade{animation:fadeIn .45s ease both}
         input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
@@ -456,6 +465,9 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
       </div>
 
 <div style={{ position:'relative', zIndex:10, padding:'36px 40px', maxWidth:'1400px', margin:'0 auto' }}>
+
+
+
 
 
 {/* ── CUSTOMER PROFILE MODAL ── */}
@@ -1009,14 +1021,9 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
                 </div>
               </div>
             </div>
-            <button onClick={fetchMetalPrices} style={{ padding: '7px 16px', background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.3)', borderRadius: '10px', color: '#22d3ee', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>🔄 Refresh</button>
           </div>
 
-          {metalLoading ? (
-            <div style={{ textAlign: 'center', padding: '30px', color: subtext }}>Loading prices...</div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
+         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               {/* GOLD 22K */}
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
@@ -1117,7 +1124,6 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
               </div>
 
             </div>
-          )}
         </div>
       )
     })()}
@@ -1173,14 +1179,188 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
       )
     })}
 
+    
+
     <button onClick={fetchOrderSummary} style={{ width: '100%', padding: '10px', background: 'rgba(34,211,238,0.08)', border: '1px solid rgba(34,211,238,0.25)', borderRadius: '12px', color: '#22d3ee', fontSize: '12px', fontWeight: 700, cursor: 'pointer', marginTop: '4px' }}>
       🔄 Refresh Orders
     </button>
   </div>
-
 </div>
 
-      </div>
+{/* ── JEWELRY SHOWCASE ── */}
+  <div style={{ marginBottom: '28px', marginTop: '28px' }}>
+    <div style={{ color: '#a5f3fc', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <span>💍</span> Our Collections
     </div>
-  )
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gridTemplateRows: '270px 270px', gap: '12px' }}>
+
+      {/* Big left card - Signature Rings */}
+      <div
+        className="jewel-card"
+        onClick={() => navigate('/collection/rings')}
+        onMouseEnter={() => setHoveredJewel('rings')}
+        onMouseLeave={() => setHoveredJewel(null)}
+        style={{
+          gridRow: 'span 2', position: 'relative', borderRadius: '20px', overflow: 'hidden', cursor: 'pointer',
+          border: hoveredJewel === 'rings' ? '1px solid rgba(251,191,36,0.6)' : cardBorder,
+          minHeight: '400px',
+          transform: hoveredJewel === 'rings' ? 'scale(1.015)' : 'scale(1)',
+          boxShadow: hoveredJewel === 'rings' ? '0 20px 60px rgba(251,191,36,0.25)' : 'none',
+          transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+        }}
+      >
+        <div className="jewel-shine" />
+        <img src="/src/assets/img/gold/gold-ring-1.png" alt="Signature Rings" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <div style={{ position: 'absolute', inset: 0, background: hoveredJewel === 'rings' ? 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 55%)' : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)', transition: 'background 0.4s ease' }} />
+        <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px' }}>
+          <div style={{ color: hoveredJewel === 'rings' ? '#fbbf24' : '#fff', fontWeight: 800, fontSize: '18px', transition: 'color 0.3s ease' }}>Signature Rings</div>
+          <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '12px', marginTop: '3px' }}>Bridal & Everyday</div>
+          {hoveredJewel === 'rings' && (
+            <div style={{ marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(251,191,36,0.2)', border: '1px solid rgba(251,191,36,0.5)', borderRadius: '20px', padding: '4px 14px', color: '#fbbf24', fontSize: '11px', fontWeight: 800, animation: 'fadeIn 0.3s ease' }}>
+              → Explore Collection
+            </div>
+          )}
+        </div>
+        {hoveredJewel === 'rings' && (
+          <div style={{ position: 'absolute', top: '14px', right: '14px', width: '36px', height: '36px', borderRadius: '50%', border: '2px solid rgba(251,191,36,0.6)', animation: 'jewelGlow 1.5s ease infinite' }} />
+        )}
+      </div>
+
+      {/* Heritage Necklaces */}
+      <div
+        className="jewel-card"
+        onMouseEnter={() => setHoveredJewel('necklaces')}
+        onMouseLeave={() => setHoveredJewel(null)}
+        style={{
+          position: 'relative', borderRadius: '20px', overflow: 'hidden', cursor: 'pointer',
+          border: hoveredJewel === 'necklaces' ? '1px solid rgba(34,211,238,0.6)' : cardBorder,
+          minHeight: '200px',
+          transform: hoveredJewel === 'necklaces' ? 'scale(1.02)' : 'scale(1)',
+          boxShadow: hoveredJewel === 'necklaces' ? '0 16px 48px rgba(34,211,238,0.2)' : 'none',
+          transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+        }}
+      >
+        <div className="jewel-shine" />
+        <img src="/src/assets/img/gold/gold chain-1.png" alt="Heritage Necklaces" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <div style={{ position: 'absolute', inset: 0, background: hoveredJewel === 'necklaces' ? 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 55%)' : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)', transition: 'background 0.4s ease' }} />
+        <div style={{ position: 'absolute', bottom: '14px', left: '16px', right: '16px' }}>
+          <div style={{ color: hoveredJewel === 'necklaces' ? '#22d3ee' : '#fff', fontWeight: 800, fontSize: '14px', transition: 'color 0.3s ease' }}>Heritage Necklaces</div>
+          <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '11px' }}>Antique & Modern</div>
+          {hoveredJewel === 'necklaces' && (
+            <div style={{ marginTop: '8px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(34,211,238,0.15)', border: '1px solid rgba(34,211,238,0.4)', borderRadius: '20px', padding: '3px 12px', color: '#22d3ee', fontSize: '10px', fontWeight: 800, animation: 'fadeIn 0.3s ease' }}>
+              → Explore
+            </div>
+          )}
+        </div>
+        {hoveredJewel === 'necklaces' && (
+          <div style={{ position: 'absolute', top: '10px', right: '10px', width: '28px', height: '28px', borderRadius: '50%', border: '2px solid rgba(34,211,238,0.6)', animation: 'jewelGlow 1.5s ease infinite' }} />
+        )}
+      </div>
+
+      {/* Eternal Bangles */}
+      <div
+        className="jewel-card"
+        onClick={() => navigate('/collection/bangles')}
+        onMouseEnter={() => setHoveredJewel('bangles')}
+        onMouseLeave={() => setHoveredJewel(null)}
+        style={{
+          position: 'relative', borderRadius: '20px', overflow: 'hidden', cursor: 'pointer',
+          border: hoveredJewel === 'bangles' ? '1px solid rgba(251,191,36,0.6)' : cardBorder,
+          minHeight: '200px',
+          transform: hoveredJewel === 'bangles' ? 'scale(1.02)' : 'scale(1)',
+          boxShadow: hoveredJewel === 'bangles' ? '0 16px 48px rgba(251,191,36,0.2)' : 'none',
+          transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+        }}
+      >
+        <div className="jewel-shine" />
+        <img src="/src/assets/img/gold/gold-bangles-1.png" alt="Eternal Bangles" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <div style={{ position: 'absolute', inset: 0, background: hoveredJewel === 'bangles' ? 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 55%)' : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)', transition: 'background 0.4s ease' }} />
+        <div style={{ position: 'absolute', bottom: '14px', left: '16px', right: '16px' }}>
+          <div style={{ color: hoveredJewel === 'bangles' ? '#fbbf24' : '#fff', fontWeight: 800, fontSize: '14px', transition: 'color 0.3s ease' }}>Eternal Bangles</div>
+          <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '11px' }}>Kangan & Bracelets</div>
+          {hoveredJewel === 'bangles' && (
+            <div style={{ marginTop: '8px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', borderRadius: '20px', padding: '3px 12px', color: '#fbbf24', fontSize: '10px', fontWeight: 800, animation: 'fadeIn 0.3s ease' }}>
+              → Explore
+            </div>
+          )}
+        </div>
+        {hoveredJewel === 'bangles' && (
+          <div style={{ position: 'absolute', top: '10px', right: '10px', width: '28px', height: '28px', borderRadius: '50%', border: '2px solid rgba(251,191,36,0.6)', animation: 'jewelGlow 1.5s ease infinite' }} />
+        )}
+      </div>
+
+      {/* Diamond Earrings */}
+      <div
+        className="jewel-card"
+        onMouseEnter={() => setHoveredJewel('earrings')}
+        onMouseLeave={() => setHoveredJewel(null)}
+        style={{
+          position: 'relative', borderRadius: '20px', overflow: 'hidden', cursor: 'pointer',
+          border: hoveredJewel === 'earrings' ? '1px solid rgba(167,139,250,0.6)' : cardBorder,
+          minHeight: '200px',
+          transform: hoveredJewel === 'earrings' ? 'scale(1.02)' : 'scale(1)',
+          boxShadow: hoveredJewel === 'earrings' ? '0 16px 48px rgba(167,139,250,0.2)' : 'none',
+          transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+        }}
+      >
+        <div className="jewel-shine" />
+        <img src="/src/assets/img/silver/silver-Earrings-4.png" alt="Diamond Earrings" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <div style={{ position: 'absolute', inset: 0, background: hoveredJewel === 'earrings' ? 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 55%)' : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)', transition: 'background 0.4s ease' }} />
+        <div style={{ position: 'absolute', bottom: '14px', left: '16px', right: '16px' }}>
+          <div style={{ color: hoveredJewel === 'earrings' ? '#a78bfa' : '#fff', fontWeight: 800, fontSize: '14px', transition: 'color 0.3s ease' }}>Diamond Earrings</div>
+          <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '11px' }}>Studs & Drops</div>
+          {hoveredJewel === 'earrings' && (
+            <div style={{ marginTop: '8px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(167,139,250,0.15)', border: '1px solid rgba(167,139,250,0.4)', borderRadius: '20px', padding: '3px 12px', color: '#a78bfa', fontSize: '10px', fontWeight: 800, animation: 'fadeIn 0.3s ease' }}>
+              → Explore
+            </div>
+          )}
+        </div>
+        {hoveredJewel === 'earrings' && (
+          <div style={{ position: 'absolute', top: '10px', right: '10px', width: '28px', height: '28px', borderRadius: '50%', border: '2px solid rgba(167,139,250,0.6)', animation: 'jewelGlow 1.5s ease infinite' }} />
+        )}
+      </div>
+
+      {/* Gold Chains */}
+      <div
+        className="jewel-card"
+        onMouseEnter={() => setHoveredJewel('chains')}
+        onMouseLeave={() => setHoveredJewel(null)}
+        style={{
+          position: 'relative', borderRadius: '20px', overflow: 'hidden', cursor: 'pointer',
+          border: hoveredJewel === 'chains' ? '1px solid rgba(255,215,0,0.6)' : cardBorder,
+          minHeight: '200px',
+          transform: hoveredJewel === 'chains' ? 'scale(1.02)' : 'scale(1)',
+          boxShadow: hoveredJewel === 'chains' ? '0 16px 48px rgba(255,215,0,0.2)' : 'none',
+          transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+        }}
+      >
+        <div className="jewel-shine" />
+        <img src="/src/assets/img/gold/gold chain-1.png" alt="Gold Chains" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <div style={{ position: 'absolute', inset: 0, background: hoveredJewel === 'chains' ? 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 55%)' : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)', transition: 'background 0.4s ease' }} />
+        <div style={{ position: 'absolute', bottom: '14px', left: '16px', right: '16px' }}>
+          <div style={{ color: hoveredJewel === 'chains' ? '#ffd700' : '#fff', fontWeight: 800, fontSize: '14px', transition: 'color 0.3s ease' }}>Gold Chains</div>
+          <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '11px' }}>Minimal & Premium</div>
+          {hoveredJewel === 'chains' && (
+            <div style={{ marginTop: '8px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.4)', borderRadius: '20px', padding: '3px 12px', color: '#ffd700', fontSize: '10px', fontWeight: 800, animation: 'fadeIn 0.3s ease' }}>
+              → Explore
+            </div>
+          )}
+        </div>
+        {hoveredJewel === 'chains' && (
+          <div style={{ position: 'absolute', top: '10px', right: '10px', width: '28px', height: '28px', borderRadius: '50%', border: '2px solid rgba(255,215,0,0.6)', animation: 'jewelGlow 1.5s ease infinite' }} />
+        )}
+      </div>
+
+    </div>
+  </div>
+  {/* ── END JEWELRY SHOWCASE ── */}
+ 
+
+      </div> 
+    </div>    
+
+
+
+  )  
 }
+
