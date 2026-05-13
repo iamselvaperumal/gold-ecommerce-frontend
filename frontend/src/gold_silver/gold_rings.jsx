@@ -21,11 +21,11 @@ const WEIGHTS = [
 ]
 
 const GOLD_RINGS = [
-  { id: 1, name: 'Blossom Ring', desc: 'Floral petal design with a vintage soul', img: '/src/assets/img/gold/gold-ring-1.png', tag: 'Bestseller' },
-  { id: 2, name: 'Solitaire Twist', desc: 'Classic twisted shank with a brilliant center stone', img: '/src/assets/img/gold/gold-ring-2.png', tag: 'Bridal' },
-  { id: 3, name: 'Eternity Band', desc: 'Seamless band with continuous diamond-cut detailing', img: '/src/assets/img/gold/gold-ring-3.png', tag: 'Premium' },
-  { id: 4, name: 'Crown Solitaire', desc: 'Six-prong crown setting for the statement piece', img: '/src/assets/img/gold/gold-ring-4.png', tag: 'Statement' },
-  { id: 5, name: 'Duo Stack Ring', desc: 'Double-band stackable ring for everyday elegance', img: '/src/assets/img/gold/gold-ring-5.png', tag: 'Stackable' },
+  { id: 1, name: 'Blossom Ring', desc: 'Floral petal design with a vintage soul', img: '/img/gold/gold-ring-1.png', tag: 'Bestseller' },
+  { id: 2, name: 'Solitaire Twist', desc: 'Classic twisted shank with a brilliant center stone', img: '/img/gold/gold-ring-2.png', tag: 'Bridal' },
+  { id: 3, name: 'Eternity Band', desc: 'Seamless band with continuous diamond-cut detailing', img: '/img/gold/gold-ring-3.png', tag: 'Premium' },
+  { id: 4, name: 'Crown Solitaire', desc: 'Six-prong crown setting for the statement piece', img: '/img/gold/gold-ring-4.png', tag: 'Statement' },
+  { id: 5, name: 'Duo Stack Ring', desc: 'Double-band stackable ring for everyday elegance', img: '/img/gold/gold-ring-5.png', tag: 'Stackable' },
 ]
 
 const TAG_COLORS = {

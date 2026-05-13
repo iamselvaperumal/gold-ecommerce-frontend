@@ -1210,7 +1210,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
         }}
       >
         <div className="jewel-shine" />
-        <img src="/src/assets/img/gold/gold-ring-1.png" alt="Signature Rings" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <img src="/img/gold/gold-ring-1.png" alt="Signature Rings" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         <div style={{ position: 'absolute', inset: 0, background: hoveredJewel === 'rings' ? 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 55%)' : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)', transition: 'background 0.4s ease' }} />
         <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px' }}>
           <div style={{ color: hoveredJewel === 'rings' ? '#fbbf24' : '#fff', fontWeight: 800, fontSize: '18px', transition: 'color 0.3s ease' }}>Signature Rings</div>
@@ -1244,7 +1244,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   }}
 >
         <div className="jewel-shine" />
-        <img src="/src/assets/img/gold/gold chain-1.png" alt="Heritage Necklaces" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <img src="/img/silver/silver-necklace-2.png" alt="Heritage Necklaces" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         <div style={{ position: 'absolute', inset: 0, background: hoveredJewel === 'necklaces' ? 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 55%)' : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)', transition: 'background 0.4s ease' }} />
         <div style={{ position: 'absolute', bottom: '14px', left: '16px', right: '16px' }}>
           <div style={{ color: hoveredJewel === 'necklaces' ? '#22d3ee' : '#fff', fontWeight: 800, fontSize: '14px', transition: 'color 0.3s ease' }}>Heritage Necklaces</div>
@@ -1276,7 +1276,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
         }}
       >
         <div className="jewel-shine" />
-        <img src="/src/assets/img/gold/gold-bangles-1.png" alt="Eternal Bangles" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <img src="/img/gold/gold-bangles-1.png" alt="Eternal Bangles" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         <div style={{ position: 'absolute', inset: 0, background: hoveredJewel === 'bangles' ? 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 55%)' : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)', transition: 'background 0.4s ease' }} />
         <div style={{ position: 'absolute', bottom: '14px', left: '16px', right: '16px' }}>
           <div style={{ color: hoveredJewel === 'bangles' ? '#fbbf24' : '#fff', fontWeight: 800, fontSize: '14px', transition: 'color 0.3s ease' }}>Eternal Bangles</div>
@@ -1312,7 +1312,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 >
         
         <div className="jewel-shine" />
-        <img src="/src/assets/img/silver/silver-Earrings-4.png" alt="Diamond Earrings" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <img src="/img/silver/silver-Earrings-4.png" alt="Diamond Earrings" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         <div style={{ position: 'absolute', inset: 0, background: hoveredJewel === 'earrings' ? 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 55%)' : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)', transition: 'background 0.4s ease' }} />
         <div style={{ position: 'absolute', bottom: '14px', left: '16px', right: '16px' }}>
           <div style={{ color: hoveredJewel === 'earrings' ? '#a78bfa' : '#fff', fontWeight: 800, fontSize: '14px', transition: 'color 0.3s ease' }}>Diamond Earrings</div>
@@ -1346,7 +1346,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   }}
 >
         <div className="jewel-shine" />
-        <img src="/src/assets/img/gold/gold chain-1.png" alt="Gold Chains" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <img src="/img/gold/gold chain-1.png" alt="Gold Chains" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         <div style={{ position: 'absolute', inset: 0, background: hoveredJewel === 'chains' ? 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 55%)' : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)', transition: 'background 0.4s ease' }} />
         <div style={{ position: 'absolute', bottom: '14px', left: '16px', right: '16px' }}>
           <div style={{ color: hoveredJewel === 'chains' ? '#ffd700' : '#fff', fontWeight: 800, fontSize: '14px', transition: 'color 0.3s ease' }}>Gold Chains</div>

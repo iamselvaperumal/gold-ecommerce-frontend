@@ -21,11 +21,11 @@ const WEIGHTS = [
 ]
 
 const SILVER_BANGLES = [
-  { id: 1, name: 'Moonlit Kangan',    desc: 'Elegant silver kangan with moonlit finish — timeless classic',     img: '/src/assets/img/silver/silver-bangle-1.png', tag: 'Bestseller' },
-  { id: 2, name: 'Oxidised Kada',     desc: 'Antique oxidised kada with tribal-inspired patterns',               img: '/src/assets/img/silver/silver-bangle-2.png', tag: 'Antique'    },
-  { id: 3, name: 'Crystal Bangle',    desc: 'Sparkling crystal-embedded silver bangle for special occasions',    img: '/src/assets/img/silver/silver-bangle-3.png', tag: 'Premium'    },
-  { id: 4, name: 'Slim Pearl Band',   desc: 'Delicate slim band with pearl accents — minimal & modern',          img: '/src/assets/img/silver/silver-bangle-4.png', tag: 'Minimal'    },
-  { id: 5, name: 'Floral Stack Set',  desc: 'Floral motif stackable set — wear one or layer all five',           img: '/src/assets/img/silver/silver-bangle-5.png', tag: 'Stackable'  },
+  { id: 1, name: 'Moonlit Kangan',    desc: 'Elegant silver kangan with moonlit finish — timeless classic',     img: '/img/silver/silver-bangle-1.png', tag: 'Bestseller' },
+  { id: 2, name: 'Oxidised Kada',     desc: 'Antique oxidised kada with tribal-inspired patterns',               img: '/img/silver/silver-bangle-2.png', tag: 'Antique'    },
+  { id: 3, name: 'Crystal Bangle',    desc: 'Sparkling crystal-embedded silver bangle for special occasions',    img: '/img/silver/silver-bangle-3.png', tag: 'Premium'    },
+  { id: 4, name: 'Slim Pearl Band',   desc: 'Delicate slim band with pearl accents — minimal & modern',          img: '/img/silver/silver-bangle-4.png', tag: 'Minimal'    },
+  { id: 5, name: 'Floral Stack Set',  desc: 'Floral motif stackable set — wear one or layer all five',           img: '/img/silver/silver-bangle-5.png', tag: 'Stackable'  },
 ]
 
 const TAG_COLORS = {

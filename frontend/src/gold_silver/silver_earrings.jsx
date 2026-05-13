@@ -25,11 +25,11 @@ const WEIGHTS = [
 ]
 
 const SILVER_EARRINGS = [
-  { id: 1, name: 'Moon Drop', desc: 'Elegant silver drop earrings with smooth premium finish', img: '/src/assets/img/silver/silver-Earrings-1.png', tag: 'Bestseller' },
-  { id: 2, name: 'Twinkle Studs', desc: 'Minimal silver studs for daily wear and simple styling', img: '/src/assets/img/silver/silver-Earrings-2.png', tag: 'Minimal' },
-  { id: 3, name: 'Royal Jhumka', desc: 'Traditional handcrafted silver jhumka design', img: '/src/assets/img/silver/silver-Earrings-3.png', tag: 'Premium' },
-  { id: 4, name: 'Floral Silver', desc: 'Floral earrings with statement silver craftsmanship', img: '/src/assets/img/silver/silver-Earrings-4.png', tag: 'Statement' },
-  { id: 5, name: 'Duo Spark', desc: 'Modern silver earrings with polished layered detailing', img: '/src/assets/img/silver/silver-Earrings-5.png', tag: 'New' },
+  { id: 1, name: 'Moon Drop', desc: 'Elegant silver drop earrings with smooth premium finish', img: '/img/silver/silver-Earrings-1.png', tag: 'Bestseller' },
+  { id: 2, name: 'Twinkle Studs', desc: 'Minimal silver studs for daily wear and simple styling', img: '/img/silver/silver-Earrings-2.png', tag: 'Minimal' },
+  { id: 3, name: 'Royal Jhumka', desc: 'Traditional handcrafted silver jhumka design', img: '/img/silver/silver-Earrings-3.png', tag: 'Premium' },
+  { id: 4, name: 'Floral Silver', desc: 'Floral earrings with statement silver craftsmanship', img: '/img/silver/silver-Earrings-4.png', tag: 'Statement' },
+  { id: 5, name: 'Duo Spark', desc: 'Modern silver earrings with polished layered detailing', img: '/img/silver/silver-Earrings-5.png', tag: 'New' },
 ]
 
 const TAG_COLORS = {

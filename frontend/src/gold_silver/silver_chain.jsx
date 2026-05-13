@@ -25,11 +25,11 @@ const WEIGHTS = [
 ]
 
 const SILVER_CHAINS = [
-  { id: 1, name: 'Silver Classic Link', desc: 'Classic silver chain with simple premium finishing', img: '/src/assets/img/silver/silver-chain-1.png', tag: 'Bestseller' },
-  { id: 2, name: 'Moonlight Chain', desc: 'Elegant chain with smooth silver shine', img: '/src/assets/img/silver/silver-chain-2.png', tag: 'Premium' },
-  { id: 3, name: 'Minimal Silver Chain', desc: 'Lightweight silver chain for daily wear', img: '/src/assets/img/silver/silver-chain-3.png', tag: 'Minimal' },
-  { id: 4, name: 'Royal Silver Chain', desc: 'Statement silver chain with handcrafted pattern', img: '/src/assets/img/silver/silver-chain-4.png', tag: 'Statement' },
-  { id: 5, name: 'Duo Shine Chain', desc: 'Modern polished silver chain with premium look', img: '/src/assets/img/silver/silver-chain-5.png', tag: 'New' },
+  { id: 1, name: 'Silver Classic Link', desc: 'Classic silver chain with simple premium finishing', img: '/img/silver/silver-chain-1.png', tag: 'Bestseller' },
+  { id: 2, name: 'Moonlight Chain', desc: 'Elegant chain with smooth silver shine', img: '/img/silver/silver-chain-2.png', tag: 'Premium' },
+  { id: 3, name: 'Minimal Silver Chain', desc: 'Lightweight silver chain for daily wear', img: '/img/silver/silver-chain-3.png', tag: 'Minimal' },
+  { id: 4, name: 'Royal Silver Chain', desc: 'Statement silver chain with handcrafted pattern', img: '/img/silver/silver-chain-4.png', tag: 'Statement' },
+  { id: 5, name: 'Duo Shine Chain', desc: 'Modern polished silver chain with premium look', img: '/img/silver/silver-chain-5.png', tag: 'New' },
 ]
 
 const TAG_COLORS = {

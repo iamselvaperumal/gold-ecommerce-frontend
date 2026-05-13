@@ -25,13 +25,13 @@ const WEIGHTS = [
 ]
 
 const GOLD_NECKLACES = [
-  { id: 1, name: 'Royal Gold Necklace', desc: 'Elegant gold necklace with premium bridal finish', img: '/src/assets/img/gold/gold-necklace-1.png', tag: 'Bestseller' },
-  { id: 2, name: 'Classic Heritage', desc: 'Traditional gold necklace with handcrafted detailing', img: '/src/assets/img/gold/gold-necklace-2.png', tag: 'Premium' },
-  { id: 3, name: 'Temple Glow', desc: 'Statement necklace inspired by heritage craftsmanship', img: '/src/assets/img/gold/gold-necklace-3.png', tag: 'Statement' },
-  { id: 4, name: 'Modern Leaf', desc: 'Modern necklace with elegant gold pattern', img: '/src/assets/img/gold/gold-necklace-4.png', tag: 'New' },
-  { id: 5, name: 'Floral Charm', desc: 'Premium floral pendant necklace with rich shine', img: '/src/assets/img/gold/gold-necklace-5.png', tag: 'Premium' },
-  { id: 6, name: 'Bridal Classic', desc: 'Bridal style necklace for special occasions', img: '/src/assets/img/gold/gold-necklace-6.png', tag: 'Bridal' },
-  { id: 7, name: 'Minimal Gold Necklace', desc: 'Lightweight necklace for everyday elegance', img: '/src/assets/img/gold/gold-necklace-7.png', tag: 'Minimal' },
+  { id: 1, name: 'Royal Gold Necklace', desc: 'Elegant gold necklace with premium bridal finish', img: '/img/gold/gold-necklace-1.png', tag: 'Bestseller' },
+  { id: 2, name: 'Classic Heritage', desc: 'Traditional gold necklace with handcrafted detailing', img: '/img/gold/gold-necklace-2.png', tag: 'Premium' },
+  { id: 3, name: 'Temple Glow', desc: 'Statement necklace inspired by heritage craftsmanship', img: '/img/gold/gold-necklace-3.png', tag: 'Statement' },
+  { id: 4, name: 'Modern Leaf', desc: 'Modern necklace with elegant gold pattern', img: '/img/gold/gold-necklace-4.png', tag: 'New' },
+  { id: 5, name: 'Floral Charm', desc: 'Premium floral pendant necklace with rich shine', img: '/img/gold/gold-necklace-5.png', tag: 'Premium' },
+  { id: 6, name: 'Bridal Classic', desc: 'Bridal style necklace for special occasions', img: '/img/gold/gold-necklace-6.png', tag: 'Bridal' },
+  { id: 7, name: 'Minimal Gold Necklace', desc: 'Lightweight necklace for everyday elegance', img: '/img/gold/gold-necklace-7.png', tag: 'Minimal' },
 ]
 
 const TAG_COLORS = {

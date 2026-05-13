@@ -25,11 +25,11 @@ const WEIGHTS = [
 ]
 
 const GOLD_EARRINGS = [
-  { id: 1, name: 'Golden Bloom', desc: 'Elegant floral earrings with premium gold finish', img: '/src/assets/img/gold/gold-earrings-1.png', tag: 'Bestseller' },
-  { id: 2, name: 'Royal Drops', desc: 'Traditional drop earrings for festive and bridal wear', img: '/src/assets/img/gold/gold-earrings-2.png', tag: 'Premium' },
-  { id: 3, name: 'Classic Studs', desc: 'Minimal everyday studs with handcrafted detailing', img: '/src/assets/img/gold/gold-earrings-3.png', tag: 'Minimal' },
-  { id: 4, name: 'Temple Shine', desc: 'Statement earrings inspired by heritage craftsmanship', img: '/src/assets/img/gold/gold-earrings-4.png', tag: 'Statement' },
-  { id: 5, name: 'Duo Charm', desc: 'Modern earrings with polished elegant curves', img: '/src/assets/img/gold/gold-earrings-5.png', tag: 'New' },
+  { id: 1, name: 'Golden Bloom', desc: 'Elegant floral earrings with premium gold finish', img: '/img/gold/gold-earrings-1.png', tag: 'Bestseller' },
+  { id: 2, name: 'Royal Drops', desc: 'Traditional drop earrings for festive and bridal wear', img: '/img/gold/gold-earrings-2.png', tag: 'Premium' },
+  { id: 3, name: 'Classic Studs', desc: 'Minimal everyday studs with handcrafted detailing', img: '/img/gold/gold-earrings-3.png', tag: 'Minimal' },
+  { id: 4, name: 'Temple Shine', desc: 'Statement earrings inspired by heritage craftsmanship', img: '/img/gold/gold-earrings-4.png', tag: 'Statement' },
+  { id: 5, name: 'Duo Charm', desc: 'Modern earrings with polished elegant curves', img: '/img/gold/gold-earrings-5.png', tag: 'New' },
 ]
 
 const TAG_COLORS = {

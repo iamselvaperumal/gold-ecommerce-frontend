@@ -21,11 +21,11 @@ const WEIGHTS = [
 ]
 
 const SILVER_RINGS = [
-  { id: 1, name: 'Crystal Halo',    desc: 'Sparkling halo design with a brilliant centre stone',   img: '/src/assets/img/silver/silver-ring-1.png', tag: 'Bestseller' },
-  { id: 2, name: 'Twisted Elegance',desc: 'Sleek twisted band for everyday modern elegance',        img: '/src/assets/img/silver/silver-ring-2.png', tag: 'Minimal'    },
-  { id: 3, name: 'Royal Solitaire', desc: 'Classic six-prong solitaire — timeless & regal',         img: '/src/assets/img/silver/silver-ring-3.png', tag: 'Premium'    },
-  { id: 4, name: 'Floral Crest',    desc: 'Intricate floral motif, perfect for special occasions',  img: '/src/assets/img/silver/silver-ring-4.png', tag: 'Statement'  },
-  { id: 5, name: 'Duo Stack',       desc: 'Double-band stackable ring — mix, match and layer',      img: '/src/assets/img/silver/silver-ring-5.png', tag: 'Stackable'  },
+  { id: 1, name: 'Crystal Halo',    desc: 'Sparkling halo design with a brilliant centre stone',   img: '/img/silver/silver-ring-1.png', tag: 'Bestseller' },
+  { id: 2, name: 'Twisted Elegance',desc: 'Sleek twisted band for everyday modern elegance',        img: '/img/silver/silver-ring-2.png', tag: 'Minimal'    },
+  { id: 3, name: 'Royal Solitaire', desc: 'Classic six-prong solitaire — timeless & regal',         img: '/img/silver/silver-ring-3.png', tag: 'Premium'    },
+  { id: 4, name: 'Floral Crest',    desc: 'Intricate floral motif, perfect for special occasions',  img: '/img/silver/silver-ring-4.png', tag: 'Statement'  },
+  { id: 5, name: 'Duo Stack',       desc: 'Double-band stackable ring — mix, match and layer',      img: '/img/silver/silver-ring-5.png', tag: 'Stackable'  },
 ]
 
 const TAG_COLORS = {

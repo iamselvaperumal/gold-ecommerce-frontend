@@ -21,12 +21,12 @@ const WEIGHTS = [
 ]
 
 const GOLD_BANGLES = [
-  { id: 1, name: 'Royal Kangan',      desc: 'Traditional kangan with intricate gold filigree work',          img: '/src/assets/img/gold/gold-bangles-1.png', tag: 'Bestseller' },
-  { id: 2, name: 'Bridal Splendour',  desc: 'Heavy bridal bangle with gemstone accents — made for queens',  img: '/src/assets/img/gold/gold-bangles-2.png', tag: 'Bridal'     },
-  { id: 3, name: 'Temple Heritage',   desc: 'South Indian temple-style bangle with divine motifs',           img: '/src/assets/img/gold/gold-bangles-3.png', tag: 'Premium'   },
-  { id: 4, name: 'Floral Kada',       desc: 'Floral pattern kada — perfect for festivals and occasions',     img: '/src/assets/img/gold/gold-bangles-4.png', tag: 'Statement' },
-  { id: 5, name: 'Slim Elegance',     desc: 'Minimalist slim bangle for everyday gold elegance',             img: '/src/assets/img/gold/gold-bangles-5.png', tag: 'Minimal'   },
-  { id: 6, name: 'Antique Duo Stack', desc: 'Antique-finish stackable duo — layer them your way',            img: '/src/assets/img/gold/gold-bangles-6.png', tag: 'Stackable' },
+  { id: 1, name: 'Royal Kangan',      desc: 'Traditional kangan with intricate gold filigree work',          img: '/img/gold/gold-bangles-1.png', tag: 'Bestseller' },
+  { id: 2, name: 'Bridal Splendour',  desc: 'Heavy bridal bangle with gemstone accents — made for queens',  img: '/img/gold/gold-bangles-2.png', tag: 'Bridal'     },
+  { id: 3, name: 'Temple Heritage',   desc: 'South Indian temple-style bangle with divine motifs',           img: '/img/gold/gold-bangles-3.png', tag: 'Premium'   },
+  { id: 4, name: 'Floral Kada',       desc: 'Floral pattern kada — perfect for festivals and occasions',     img: '/img/gold/gold-bangles-4.png', tag: 'Statement' },
+  { id: 5, name: 'Slim Elegance',     desc: 'Minimalist slim bangle for everyday gold elegance',             img: '/img/gold/gold-bangles-5.png', tag: 'Minimal'   },
+  { id: 6, name: 'Antique Duo Stack', desc: 'Antique-finish stackable duo — layer them your way',            img: '/img/gold/gold-bangles-6.png', tag: 'Stackable' },
 ]
 
 const TAG_COLORS = {

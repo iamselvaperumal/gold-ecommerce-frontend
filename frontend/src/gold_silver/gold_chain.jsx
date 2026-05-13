@@ -25,11 +25,11 @@ const WEIGHTS = [
 ]
 
 const GOLD_CHAINS = [
-  { id: 1, name: 'Classic Gold Link', desc: 'Elegant classic chain with smooth gold finishing', img: '/src/assets/img/gold/gold chain-1.png', tag: 'Bestseller' },
-  { id: 2, name: 'Royal Rope Chain', desc: 'Premium rope-style chain for festive and daily wear', img: '/src/assets/img/gold/gold chain-2.png', tag: 'Premium' },
-  { id: 3, name: 'Floral Pendant Chain', desc: 'Modern chain with rich shine and handcrafted detail', img: '/src/assets/img/gold/gold chain-3.png', tag: 'Statement' },
-  { id: 4, name: 'Minimal Daily Chain', desc: 'Lightweight gold chain for everyday elegance', img: '/src/assets/img/gold/gold chain-4.png', tag: 'Minimal' },
-  { id: 5, name: 'Heritage Gold Chain', desc: 'Traditional gold chain with premium polished look', img: '/src/assets/img/gold/gold chain-5.png', tag: 'New' },
+  { id: 1, name: 'Classic Gold Link', desc: 'Elegant classic chain with smooth gold finishing', img: '/img/gold/gold chain-1.png', tag: 'Bestseller' },
+  { id: 2, name: 'Royal Rope Chain', desc: 'Premium rope-style chain for festive and daily wear', img: '/img/gold/gold chain-2.png', tag: 'Premium' },
+  { id: 3, name: 'Floral Pendant Chain', desc: 'Modern chain with rich shine and handcrafted detail', img: '/img/gold/gold chain-3.png', tag: 'Statement' },
+  { id: 4, name: 'Minimal Daily Chain', desc: 'Lightweight gold chain for everyday elegance', img: '/img/gold/gold chain-4.png', tag: 'Minimal' },
+  { id: 5, name: 'Heritage Gold Chain', desc: 'Traditional gold chain with premium polished look', img: '/img/gold/gold chain-5.png', tag: 'New' },
 ]
 
 const TAG_COLORS = {

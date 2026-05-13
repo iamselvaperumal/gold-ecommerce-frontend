@@ -25,12 +25,12 @@ const WEIGHTS = [
 ]
 
 const SILVER_NECKLACES = [
-  { id: 1, name: 'Silver Royal Necklace', desc: 'Premium silver necklace with elegant handcrafted finish', img: '/src/assets/img/silver/silver-necklace-1.png', tag: 'Bestseller' },
-  { id: 2, name: 'Moonlight Necklace', desc: 'Smooth silver shine with modern premium styling', img: '/src/assets/img/silver/silver-necklace-2.png', tag: 'Premium' },
-  { id: 3, name: 'Floral Silver Necklace', desc: 'Floral silver design for special occasions', img: '/src/assets/img/silver/silver-necklace-3.png', tag: 'Statement' },
-  { id: 4, name: 'Minimal Silver Necklace', desc: 'Lightweight necklace for daily wear', img: '/src/assets/img/silver/silver-necklace-4.png', tag: 'Minimal' },
-  { id: 5, name: 'Classic Silver Charm', desc: 'Classic necklace with premium polished finish', img: '/src/assets/img/silver/silver-necklace-5.png', tag: 'New' },
-  { id: 6, name: 'Heritage Silver Necklace', desc: 'Traditional silver necklace with detailed craftsmanship', img: '/src/assets/img/silver/silver-necklace-6.png', tag: 'Premium' },
+  { id: 1, name: 'Silver Royal Necklace', desc: 'Premium silver necklace with elegant handcrafted finish', img: '/img/silver/silver-necklace-1.png', tag: 'Bestseller' },
+  { id: 2, name: 'Moonlight Necklace', desc: 'Smooth silver shine with modern premium styling', img: '/img/silver/silver-necklace-2.png', tag: 'Premium' },
+  { id: 3, name: 'Floral Silver Necklace', desc: 'Floral silver design for special occasions', img: '/img/silver/silver-necklace-3.png', tag: 'Statement' },
+  { id: 4, name: 'Minimal Silver Necklace', desc: 'Lightweight necklace for daily wear', img: '/img/silver/silver-necklace-4.png', tag: 'Minimal' },
+  { id: 5, name: 'Classic Silver Charm', desc: 'Classic necklace with premium polished finish', img: '/img/silver/silver-necklace-5.png', tag: 'New' },
+  { id: 6, name: 'Heritage Silver Necklace', desc: 'Traditional silver necklace with detailed craftsmanship', img: '/img/silver/silver-necklace-6.png', tag: 'Premium' },
 ]
 
 const TAG_COLORS = {
