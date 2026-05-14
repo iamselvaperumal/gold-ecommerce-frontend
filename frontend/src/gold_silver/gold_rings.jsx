@@ -66,12 +66,28 @@ const [loading, setLoading] = useState(true)
   const goldColor = metalType === '22k' ? '#fbbf24' : '#ffd700'
   const goldGlow  = metalType === '22k' ? 'rgba(251,191,36,0.3)' : 'rgba(255,215,0,0.3)'
 
+
+
+  const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
+
+const getImageUrl = (img) => {
+  if (!img) return '/img/gold/gold-ring-1.png'
+
+  if (img.startsWith('http://') || img.startsWith('https://')) {
+    return img
+  }
+
+  return `${API_BASE}/${img.replace(/^\/+/, '')}`
+}
+
   // Try to get prices from API (optional — works even without)
 // Add this useEffect in GoldRings.jsx (after the metalPrices useEffect)
 useEffect(() => {
   import('../api').then(({ default: api }) => {
     api.get('/jewelry-products/?category=rings&metal=gold')
       .then(res => {
+        console.log('PRODUCT DATA:', res.data)
+    console.log('FIRST IMAGE:', res.data?.[0]?.images?.[0]?.image)
         setGoldRings(res.data)
         setLoading(false)
       })
@@ -290,13 +306,15 @@ useEffect(() => {
 
                 {/* Image */}
                 <div className="ring-img-wrap" style={{ position: 'relative', height: '200px', background: dark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.04)' }}>
-                  <img
-                    src={ring.images?.[0]?.image 
-  ? `https://bitbyte-backend-f66f.onrender.com${ring.images[0].image}` 
-  : '/img/gold/gold-ring-1.png'}
-                    alt={ring.name}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                  />
+  <img
+  src={getImageUrl(ring.images?.[0]?.image)}
+  alt={ring.name}
+  onError={(e) => {
+    console.log('Image failed:', e.currentTarget.src)
+    e.currentTarget.src = '/img/gold/gold-ring-1.png'
+  }}
+  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+/>
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(2,6,23,0.8) 0%, transparent 60%)' }} />
 
                   {/* Tag */}
@@ -355,9 +373,15 @@ useEffect(() => {
 
             {/* Ring Image */}
             <div style={{ position: 'relative', height: '200px', overflow: 'hidden' }}>
-              <img src={selectedRing.images?.[0]?.image 
-  ? `https://bitbyte-backend-f66f.onrender.com${selectedRing.images[0].image}` 
-  : '/img/gold/gold-ring-1.png'} alt={selectedRing.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+             <img
+  src={getImageUrl(selectedRing.images?.[0]?.image)}
+  alt={selectedRing.name}
+  onError={(e) => {
+    console.log('Modal image failed:', e.currentTarget.src)
+    e.currentTarget.src = '/img/gold/gold-ring-1.png'
+  }}
+  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+/>
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(2,6,23,0.9) 0%, transparent 60%)' }} />
               <button onClick={() => setSelectedRing(null)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', borderRadius: '10px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px', backdropFilter: 'blur(8px)' }}>✕ Close</button>
               <div style={{ position: 'absolute', top: '16px', left: '16px', background: tagStyle(selectedRing.tag).bg, border: `1px solid ${tagStyle(selectedRing.tag).border}`, borderRadius: '20px', padding: '5px 14px', color: tagStyle(selectedRing.tag).color, fontSize: '11px', fontWeight: 800, backdropFilter: 'blur(8px)' }}>{selectedRing.tag}</div>
@@ -377,9 +401,7 @@ useEffect(() => {
   id: selectedRing.id,
   name: selectedRing.name,
   desc: selectedRing.description,
-  img: selectedRing.images?.[0]?.image 
-    ? `https://bitbyte-backend-f66f.onrender.com${selectedRing.images[0].image}` 
-    : '/img/gold/gold-ring-1.png',
+ img: getImageUrl(selectedRing.images?.[0]?.image),
   tag: selectedRing.tag,
   metal: metalType,
   metalLabel: `Gold ${metalType.toUpperCase()}`,
