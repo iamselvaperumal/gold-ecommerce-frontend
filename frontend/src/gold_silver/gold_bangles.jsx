@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logo from '../assets/logo.png'
+import { addToCart } from '../collection/card_section'
 
 const PARTICLES = Array.from({ length: 12 }, (_, i) => ({
   id: i, size: Math.random() * 50 + 8, x: Math.random() * 100,
@@ -348,10 +349,58 @@ export default function GoldBangles() {
               </div>
 
 
-              <button onClick={() => { setSelectedBangle(null); navigate('/customer') }}
-                style={{ width:'100%', padding:'14px', background:'linear-gradient(90deg,#f59e0b,#fbbf24)', border:'none', borderRadius:'14px', color:'#000', fontWeight:900, fontSize:'14px', cursor:'pointer' }}>
-                🛒 Place Order on Dashboard
-              </button>
+           <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+  <button
+    onClick={() => {
+      addToCart({
+        id: selectedBangle.id,
+        name: selectedBangle.name,
+        desc: selectedBangle.desc,
+        img: selectedBangle.img,
+        tag: selectedBangle.tag,
+        metal: metalType,
+        metalLabel: metalType === 'gold_24k' ? 'Gold 24K' : 'Gold 22K',
+        ringType: 'Gold Bangle',
+      })
+
+      setSelectedBangle(null)
+      navigate('/cart')
+    }}
+    style={{
+      width:'100%',
+      padding:'14px',
+      background:'linear-gradient(90deg,#f59e0b,#fbbf24)',
+      border:'none',
+      borderRadius:'14px',
+      color:'#000',
+      fontWeight:900,
+      fontSize:'14px',
+      cursor:'pointer'
+    }}
+  >
+    🛒 Add to Cart
+  </button>
+
+  <button
+    onClick={() => {
+      setSelectedBangle(null)
+      navigate('/customer')
+    }}
+    style={{
+      width:'100%',
+      padding:'12px',
+      background:'rgba(251,191,36,0.08)',
+      border:'1px solid rgba(251,191,36,0.3)',
+      borderRadius:'14px',
+      color:'#fbbf24',
+      fontWeight:700,
+      fontSize:'13px',
+      cursor:'pointer'
+    }}
+  >
+    ⚡ Place Order on Dashboard
+  </button>
+</div>
             </div>
           </div>
         </div>

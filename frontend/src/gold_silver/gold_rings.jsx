@@ -21,13 +21,16 @@ const WEIGHTS = [
   { label: '8 gm',   grams: 8    },
 ]
 
-const GOLD_RINGS = [
-  { id: 1, name: 'Blossom Ring', desc: 'Floral petal design with a vintage soul', img: '/img/gold/gold-ring-1.png', tag: 'Bestseller' },
-  { id: 2, name: 'Solitaire Twist', desc: 'Classic twisted shank with a brilliant center stone', img: '/img/gold/gold-ring-2.png', tag: 'Bridal' },
-  { id: 3, name: 'Eternity Band', desc: 'Seamless band with continuous diamond-cut detailing', img: '/img/gold/gold-ring-3.png', tag: 'Premium' },
-  { id: 4, name: 'Crown Solitaire', desc: 'Six-prong crown setting for the statement piece', img: '/img/gold/gold-ring-4.png', tag: 'Statement' },
-  { id: 5, name: 'Duo Stack Ring', desc: 'Double-band stackable ring for everyday elegance', img: '/img/gold/gold-ring-5.png', tag: 'Stackable' },
-]
+// const GOLD_RINGS = [
+//   { id: 1, name: 'Blossom Ring', desc: 'Floral petal design with a vintage soul', img: '/img/gold/gold-ring-1.png', tag: 'Bestseller' },
+//   { id: 2, name: 'Solitaire Twist', desc: 'Classic twisted shank with a brilliant center stone', img: '/img/gold/gold-ring-2.png', tag: 'Bridal' },
+//   { id: 3, name: 'Eternity Band', desc: 'Seamless band with continuous diamond-cut detailing', img: '/img/gold/gold-ring-3.png', tag: 'Premium' },
+//   { id: 4, name: 'Crown Solitaire', desc: 'Six-prong crown setting for the statement piece', img: '/img/gold/gold-ring-4.png', tag: 'Statement' },
+//   { id: 5, name: 'Duo Stack Ring', desc: 'Double-band stackable ring for everyday elegance', img: '/img/gold/gold-ring-5.png', tag: 'Stackable' },
+// ]
+
+
+
 
 const TAG_COLORS = {
   Bestseller: { bg: 'rgba(52,211,153,0.2)', border: 'rgba(52,211,153,0.5)', color: '#34d399' },
@@ -45,6 +48,8 @@ export default function GoldRings() {
   const [hoveredRing, setHoveredRing] = useState(null)
   const [metalType, setMetalType] = useState('22k')   // '22k' | '24k'
   const [metalPrices, setMetalPrices] = useState({ gold22k: null, gold24k: null })
+const [goldRings, setGoldRings] = useState([])
+const [loading, setLoading] = useState(true)
   const [selectedRing, setSelectedRing] = useState(null)
   const canvasRef = useRef(null)
 
@@ -62,16 +67,17 @@ export default function GoldRings() {
   const goldGlow  = metalType === '22k' ? 'rgba(251,191,36,0.3)' : 'rgba(255,215,0,0.3)'
 
   // Try to get prices from API (optional — works even without)
-  useEffect(() => {
-    import('../api').then(({ default: api }) => {
-      api.get('/metal-rates/').then(res => {
-        setMetalPrices({
-          gold22k: parseFloat(res.data.gold_22k),
-          gold24k: parseFloat(res.data.gold_24k),
-        })
-      }).catch(() => {})
-    }).catch(() => {})
-  }, [])
+// Add this useEffect in GoldRings.jsx (after the metalPrices useEffect)
+useEffect(() => {
+  import('../api').then(({ default: api }) => {
+    api.get('/jewelry-products/?category=rings&metal=gold')
+      .then(res => {
+        setGoldRings(res.data)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  })
+}, [])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -208,7 +214,7 @@ export default function GoldRings() {
             <h1 style={{ margin: 0, fontSize: '36px', fontWeight: 900, letterSpacing: '-0.5px' }}>
               🏅 <span style={{ background: `linear-gradient(90deg,#f59e0b,#fbbf24,#ffd700)`, backgroundSize: '200% auto', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', animation: 'goldShimmer 3s linear infinite' }}>Gold Rings</span>
             </h1>
-            <p style={{ color: subtext, fontSize: '13px', margin: '8px 0 0', fontWeight: 500 }}>5 exclusive designs · Handcrafted excellence</p>
+            <p style={{ color: subtext, fontSize: '13px', margin: '8px 0 0', fontWeight: 500 }}>{goldRings.length} exclusive designs · Handcrafted excellence</p>
           </div>
 
           {/* Rate + Controls Panel */}
@@ -246,7 +252,17 @@ export default function GoldRings() {
 
         {/* Ring Cards Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '18px' }}>
-          {GOLD_RINGS.map((ring) => {
+{loading ? (
+  <div style={{ gridColumn: 'span 3', textAlign: 'center', 
+    color: subtext, padding: '60px 0', fontSize: '15px' }}>
+    ⏳ Loading products...
+  </div>
+) : goldRings.length === 0 ? (
+  <div style={{ gridColumn: 'span 3', textAlign: 'center', 
+    color: subtext, padding: '60px 0', fontSize: '15px' }}>
+    No gold rings added yet.
+  </div>
+) : goldRings.map((ring) => {
             const isHovered = hoveredRing === ring.id
             const tag = tagStyle(ring.tag)
             return (
@@ -275,7 +291,9 @@ export default function GoldRings() {
                 {/* Image */}
                 <div className="ring-img-wrap" style={{ position: 'relative', height: '200px', background: dark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.04)' }}>
                   <img
-                    src={ring.img}
+                    src={ring.images?.[0]?.image 
+  ? `https://bitbyte-backend-f66f.onrender.com${ring.images[0].image}` 
+  : '/img/gold/gold-ring-1.png'}
                     alt={ring.name}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
@@ -302,7 +320,7 @@ export default function GoldRings() {
                 {/* Content */}
                 <div style={{ padding: '14px 16px' }}>
                   <div style={{ color: isHovered ? goldColor : text, fontWeight: 800, fontSize: '13px', marginBottom: '4px', transition: 'color 0.3s' }}>{ring.name}</div>
-                  <div style={{ color: subtext, fontSize: '10px', lineHeight: '1.5', marginBottom: '10px' }}>{ring.desc}</div>
+                  <div style={{ color: subtext, fontSize: '10px', lineHeight: '1.5', marginBottom: '10px' }}>{ring.description}</div>
 
 
                 </div>
@@ -337,7 +355,9 @@ export default function GoldRings() {
 
             {/* Ring Image */}
             <div style={{ position: 'relative', height: '200px', overflow: 'hidden' }}>
-              <img src={selectedRing.img} alt={selectedRing.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              <img src={selectedRing.images?.[0]?.image 
+  ? `https://bitbyte-backend-f66f.onrender.com${selectedRing.images[0].image}` 
+  : '/img/gold/gold-ring-1.png'} alt={selectedRing.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(2,6,23,0.9) 0%, transparent 60%)' }} />
               <button onClick={() => setSelectedRing(null)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', borderRadius: '10px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px', backdropFilter: 'blur(8px)' }}>✕ Close</button>
               <div style={{ position: 'absolute', top: '16px', left: '16px', background: tagStyle(selectedRing.tag).bg, border: `1px solid ${tagStyle(selectedRing.tag).border}`, borderRadius: '20px', padding: '5px 14px', color: tagStyle(selectedRing.tag).color, fontSize: '11px', fontWeight: 800, backdropFilter: 'blur(8px)' }}>{selectedRing.tag}</div>
@@ -346,23 +366,25 @@ export default function GoldRings() {
             {/* Details */}
             <div style={{ padding: '28px 32px' }}>
               <div style={{ color: goldColor, fontWeight: 900, fontSize: '24px', marginBottom: '6px' }}>{selectedRing.name}</div>
-              <div style={{ color: subtext, fontSize: '13px', lineHeight: '1.6', marginBottom: '24px' }}>{selectedRing.desc}</div>
+              <div style={{ color: subtext, fontSize: '13px', lineHeight: '1.6', marginBottom: '24px' }}>{selectedRing.description}</div>
 
 
 
               <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
                 <button
                   onClick={() => {
-                    addToCart({
-                      id: selectedRing.id,
-                      name: selectedRing.name,
-                      desc: selectedRing.desc,
-                      img: selectedRing.img,
-                      tag: selectedRing.tag,
-                      metal: metalType,
-                      metalLabel: `Gold ${metalType.toUpperCase()}`,
-                      ringType: 'Gold Ring',
-                    })
+                 addToCart({
+  id: selectedRing.id,
+  name: selectedRing.name,
+  desc: selectedRing.description,
+  img: selectedRing.images?.[0]?.image 
+    ? `https://bitbyte-backend-f66f.onrender.com${selectedRing.images[0].image}` 
+    : '/img/gold/gold-ring-1.png',
+  tag: selectedRing.tag,
+  metal: metalType,
+  metalLabel: `Gold ${metalType.toUpperCase()}`,
+  ringType: 'Gold Ring',
+})
                     setSelectedRing(null)
                     navigate('/cart')
                   }}
