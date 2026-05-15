@@ -304,12 +304,14 @@ useEffect(() => {
             const tag = tagStyle(item.tag)
 
             return (
-              <div
-                key={item.id}
-                className="se-card"
-                onClick={() => setSelectedItem(item)}
-                onMouseEnter={() => setHoveredItem(item.id)}
-                onMouseLeave={() => setHoveredItem(null)}
+            <div
+  key={item.id}
+className="se-card"
+onClick={() =>
+  navigate(`/product-display?category=earrings&metal=silver&id=${item.id}`)
+}
+  onMouseEnter={() => setHoveredItem(item.id)}
+  onMouseLeave={() => setHoveredItem(null)}
                 style={{
                   borderRadius: '20px',
                   overflow: 'hidden',

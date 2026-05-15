@@ -299,12 +299,14 @@ useEffect(() => {
             const tag = tagStyle(item.tag)
 
             return (
-              <div
-                key={item.id}
-                className="gn-card"
-                onClick={() => setSelectedItem(item)}
-                onMouseEnter={() => setHoveredItem(item.id)}
-                onMouseLeave={() => setHoveredItem(null)}
+            <div
+  key={item.id}
+  className="gn-card"
+  onClick={() =>
+    navigate(`/product-display?category=necklaces&metal=gold&id=${item.id}`)
+  }
+  onMouseEnter={() => setHoveredItem(item.id)}
+  onMouseLeave={() => setHoveredItem(null)}
                 style={{
                   borderRadius: '20px',
                   overflow: 'hidden',

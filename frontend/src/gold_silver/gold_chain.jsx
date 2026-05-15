@@ -300,16 +300,18 @@ useEffect(() => {
 
             return (
               <div
-                key={item.id}
-                className="gc-card"
-                onClick={() => setSelectedItem(item)}
-                onMouseEnter={() => setHoveredItem(item.id)}
-                onMouseLeave={() => setHoveredItem(null)}
-                style={{
-                  borderRadius: '20px',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  position: 'relative',
+  key={item.id}
+  className="gc-card"
+  onClick={() =>
+    navigate(`/product-display?category=chains&metal=gold&id=${item.id}`)
+  }
+  onMouseEnter={() => setHoveredItem(item.id)}
+  onMouseLeave={() => setHoveredItem(null)}
+  style={{
+    borderRadius: '20px',
+    overflow: 'hidden',
+    cursor: 'pointer',
+    position: 'relative',
                   border: `1px solid ${isHovered ? 'rgba(251,191,36,0.55)' : 'rgba(251,191,36,0.18)'}`,
                   background: isHovered ? 'rgba(251,191,36,0.07)' : cardBg,
                   transform: isHovered ? 'translateY(-10px) scale(1.02)' : 'translateY(0) scale(1)',

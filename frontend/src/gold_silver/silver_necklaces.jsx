@@ -300,11 +300,13 @@ useEffect(() => {
 
             return (
               <div
-                key={item.id}
-                className="sn-card"
-                onClick={() => setSelectedItem(item)}
-                onMouseEnter={() => setHoveredItem(item.id)}
-                onMouseLeave={() => setHoveredItem(null)}
+  key={item.id}
+  className="sn-card"
+  onClick={() =>
+    navigate(`/product-display?category=necklaces&metal=silver&id=${item.id}`)
+  }
+  onMouseEnter={() => setHoveredItem(item.id)}
+  onMouseLeave={() => setHoveredItem(null)}
                 style={{
                   borderRadius: '20px',
                   overflow: 'hidden',
