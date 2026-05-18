@@ -247,6 +247,36 @@ const productImages = useMemo(() => {
   }, [dark, metal])
 
 
+const loadRazorpay = () => new Promise(resolve => {
+  const script = document.createElement('script')
+  script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+  script.onload = () => resolve(true)
+  script.onerror = () => resolve(false)
+  document.body.appendChild(script)
+})
+
+const handleBuy = async () => {
+  if (!product || !displayPrice) return
+  const loaded = await loadRazorpay()
+  if (!loaded) { alert('Razorpay load failed'); return }
+
+  const options = {
+    key: 'rzp_test_SqmXZHA3RWz5ua',
+    amount: Math.round(displayPrice * qty * 100),
+    currency: 'INR',
+    name: 'BitByte Jewellers',
+    description: productName,
+    handler: function(response) {
+      alert('✅ Payment Successful! ID: ' + response.razorpay_payment_id)
+    },
+    prefill: { name: '', email: '', contact: '' },
+    theme: { color: accentColor },
+  }
+  const rzp = new window.Razorpay(options)
+  rzp.open()
+}  
+
+
   const basePrice =
     Number(product?.price) ||
     Number(product?.selling_price) ||
@@ -895,6 +925,12 @@ const productImages = useMemo(() => {
                 {displayPrice ? `₹${displayPrice.toLocaleString('en-IN')}` : 'Contact for Price'}
               </div>
 
+              {!product.is_active && (
+  <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '12px', padding: '10px 16px', marginBottom: '16px', color: '#f87171', fontWeight: 700, fontSize: '13px', textAlign: 'center' }}>
+    ⚠️ Currently Unavailable
+  </div>
+)}
+
               <div style={{ color: subtext, marginTop: 6, fontSize: 13 }}>
                 Final price may vary based on live metal rate, making charge and selected weight.
               </div>
@@ -997,24 +1033,21 @@ const productImages = useMemo(() => {
                 {showAdded ? '✓ Added to Cart' : '🛒 Add to Cart'}
               </button>
 
-              <button
-                className="action-btn"
-                onClick={() => navigate('/cart')}
-                style={{
-                  flex: '1 1 180px',
-                  border: `1px solid ${border}`,
-                  borderRadius: 999,
-                  padding: '16px 24px',
-                  background: inputBg,
-                  color: text,
-                  fontWeight: 950,
-                  fontSize: 15,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                View Cart
-              </button>
+<button
+  className="action-btn"
+  onClick={handleBuy}
+  disabled={!product.is_active}
+  style={{
+    flex: '1 1 180px', border: 'none', borderRadius: 999,
+    padding: '16px 24px',
+    background: product.is_active ? `linear-gradient(135deg, #22c55e, #16a34a)` : 'rgba(100,100,100,0.3)',
+    color: '#fff', fontWeight: 950, fontSize: 15,
+    cursor: product.is_active ? 'pointer' : 'not-allowed',
+    transition: 'all 0.2s ease',
+  }}
+>
+  💳 Buy
+</button>
             </div>
           </div>
         </section>

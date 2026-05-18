@@ -139,13 +139,30 @@ export default function AddProduct() {
     setEditSaving(false)
   }
 
-  // ── DELETE IMAGE ──
+  // ── DELETE IMAGE ── 
   const deleteImage = async imgId => {
     try {
       await api.delete(`/jewelry-product-images/${imgId}/`)
       setEditProduct(prev => ({ ...prev, images: prev.images.filter(i => i.id !== imgId) }))
     } catch { setEditMsg('❌ Image delete failed') }
   }
+
+
+  const handleToggleHide = async (p) => {
+  try {
+    await api.patch(`/jewelry-products/${p.id}/`, { is_active: !p.is_active })
+    fetchProducts()
+  } catch { alert('Failed to update') }
+}
+
+const handleDelete = async (id) => {
+  if (!window.confirm('Delete this product permanently?')) return
+  try {
+    await api.delete(`/jewelry-products/${id}/`)
+    fetchProducts()
+  } catch { alert('Delete failed') }
+}
+
 
   return (
     <div style={{ minHeight: '100vh', background: bg, color: text, fontFamily: '"Inter",system-ui,sans-serif' }}>
@@ -329,20 +346,35 @@ export default function AddProduct() {
                   onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(167,139,250,0.2)' }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
                 >
-                  {/* Image area */}
-                  <div style={{ height: '165px', background: dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.03)', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {firstImg
-                      ? <img src={firstImg} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.currentTarget.style.display = 'none'} />
-                      : <div style={{ fontSize: '44px' }}>{CATEGORIES.find(c => c.key === p.category)?.emoji || '💍'}</div>
-                    }
-                    {/* Hover overlay + Edit btn */}
-                    <div className="ap-hover" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.58)', opacity: 0, transition: 'opacity 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <button className="ap-edit-btn" onClick={() => openEdit(p)}
-                        style={{ padding: '9px 22px', background: 'linear-gradient(90deg,#a78bfa,#22d3ee)', border: 'none', borderRadius: '20px', color: '#1a0040', fontWeight: 900, fontSize: '13px', cursor: 'pointer', opacity: 0, transform: 'translateY(8px)', transition: 'all 0.2s' }}>
-                        ✏️ Edit
-                      </button>
-                    </div>
-                  </div>
+{/* Image area */}
+<div style={{ height: '165px', background: dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.03)', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+  {firstImg
+    ? <img src={firstImg} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.currentTarget.style.display = 'none'} />
+    : <div style={{ fontSize: '44px' }}>{CATEGORIES.find(c => c.key === p.category)?.emoji || '💍'}</div>
+  }
+
+  {/* Hover overlay — position absolute so it floats over the image */}
+  <div className="ap-hover" style={{
+    position: 'absolute', inset: 0,
+    background: 'rgba(0,0,0,0.65)',
+    display: 'flex', flexDirection: 'column',
+    gap: '8px', alignItems: 'center', justifyContent: 'center',
+    opacity: 0, transition: 'opacity 0.2s ease'
+  }}>
+    <button onClick={() => openEdit(p)}
+      style={{ padding: '7px 18px', background: 'linear-gradient(90deg,#a78bfa,#22d3ee)', border: 'none', borderRadius: '20px', color: '#1a0040', fontWeight: 900, fontSize: '12px', cursor: 'pointer' }}>
+      ✏️ Edit
+    </button>
+    <button onClick={() => handleToggleHide(p)}
+      style={{ padding: '7px 18px', background: p.is_active ? 'rgba(251,191,36,0.2)' : 'rgba(74,222,128,0.2)', border: `1px solid ${p.is_active ? '#fbbf24' : '#4ade80'}`, borderRadius: '20px', color: p.is_active ? '#fbbf24' : '#4ade80', fontWeight: 800, fontSize: '11px', cursor: 'pointer' }}>
+      {p.is_active ? '🙈 Hide' : '👁 Show'}
+    </button>
+    <button onClick={() => handleDelete(p.id)}
+      style={{ padding: '7px 18px', background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.5)', borderRadius: '20px', color: '#f87171', fontWeight: 800, fontSize: '11px', cursor: 'pointer' }}>
+      🗑 Remove
+    </button>
+  </div>
+</div>
 
                   {/* Info */}
                   <div style={{ padding: '12px 14px' }}>

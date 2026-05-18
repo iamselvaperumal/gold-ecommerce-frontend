@@ -788,6 +788,16 @@ class JewelryProductDetailView(APIView):
         serializer = JewelryProductSerializer(product, context={'request': request})
         return Response(serializer.data)
 
+    def delete(self, request, pk):
+        if request.user.role != 'super_admin':  # ✅ 8 spaces
+            return Response({'error': 'Permission denied'}, status=403)
+        try:
+            product = JewelryProduct.objects.get(id=pk)
+            product.delete()
+            return Response({'message': 'Product deleted'})
+        except JewelryProduct.DoesNotExist:
+            return Response({'error': 'Not found'}, status=404) 
+
 
 class JewelryProductImageDeleteView(APIView):
     permission_classes = [IsAuthenticated]
@@ -801,7 +811,7 @@ class JewelryProductImageDeleteView(APIView):
             img.delete()
             return Response({'message': 'Image deleted'})
         except JewelryProductImage.DoesNotExist:
-            return Response({'error': 'Not found'}, status=404)        
+            return Response({'error': 'Not found'}, status=404)
 
 
 @api_view(['GET'])
