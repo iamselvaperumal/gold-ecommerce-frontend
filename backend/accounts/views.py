@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
-from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder, JewelryProduct, JewelryProductImage
+from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder, JewelryProduct, JewelryProductImage, HomeBanner
 from .serializers import *
 from django.utils import timezone
 from datetime import timedelta
@@ -812,6 +812,69 @@ class JewelryProductImageDeleteView(APIView):
             return Response({'message': 'Image deleted'})
         except JewelryProductImage.DoesNotExist:
             return Response({'error': 'Not found'}, status=404)
+
+
+
+class HomeBannerView(APIView):
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+    def get(self, request):
+        banners = HomeBanner.objects.filter(is_active=True).order_by('slot')
+        serializer = HomeBannerSerializer(banners, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def post(self, request):
+        if request.user.role != 'super_admin':
+            return Response({'error': 'Permission denied'}, status=403)
+        slot = request.data.get('slot')
+        image = request.FILES.get('image')
+        if not slot or not image:
+            return Response({'error': 'slot and image required'}, status=400)
+        existing = HomeBanner.objects.filter(slot=slot).first()
+        if existing:
+            existing.image.delete(save=False)
+            existing.image = image
+            existing.is_active = True
+            existing.save()
+            serializer = HomeBannerSerializer(existing, context={'request': request})
+            return Response(serializer.data)
+        banner = HomeBanner.objects.create(slot=slot, image=image)
+        serializer = HomeBannerSerializer(banner, context={'request': request})
+        return Response(serializer.data, status=201)
+
+
+class HomeBannerDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        if request.user.role != 'super_admin':
+            return Response({'error': 'Permission denied'}, status=403)
+        try:
+            banner = HomeBanner.objects.get(id=pk)
+        except HomeBanner.DoesNotExist:
+            return Response({'error': 'Not found'}, status=404)
+        if 'image' in request.FILES:
+            banner.image.delete(save=False)
+            banner.image = request.FILES['image']
+        if 'is_active' in request.data:
+            banner.is_active = request.data['is_active'] in [True, 'true', '1']
+        banner.save()
+        serializer = HomeBannerSerializer(banner, context={'request': request})
+        return Response(serializer.data)
+
+    def delete(self, request, pk):
+        if request.user.role != 'super_admin':
+            return Response({'error': 'Permission denied'}, status=403)
+        try:
+            banner = HomeBanner.objects.get(id=pk)
+            banner.image.delete(save=False)
+            banner.delete()
+            return Response({'message': 'Banner deleted'})
+        except HomeBanner.DoesNotExist:
+            return Response({'error': 'Not found'}, status=404)            
 
 
 @api_view(['GET'])

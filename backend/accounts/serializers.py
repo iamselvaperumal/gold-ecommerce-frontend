@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder,JewelryProduct, JewelryProductImage
+from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder,JewelryProduct, JewelryProductImage, HomeBanner
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -452,3 +452,10 @@ class JewelryProductSerializer(serializers.ModelSerializer):
         for i, img in enumerate(uploaded_images):
             JewelryProductImage.objects.create(product=product, image=img, order=i)
         return product            
+
+
+class HomeBannerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HomeBanner
+        fields = ['id', 'slot', 'image', 'is_active', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']        

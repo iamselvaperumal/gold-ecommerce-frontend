@@ -53,6 +53,10 @@ export default function ProductDisplay() {
   const [qty, setQty] = useState(1)
   const [mainImage, setMainImage] = useState(null)
   const [showAdded, setShowAdded] = useState(false)
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 })
+const [showZoom, setShowZoom] = useState(false)
+const [zoomPixel, setZoomPixel] = useState({ x: 0, y: 0 })
+const imageRef = useRef(null)
 
   const isGold = metal === 'gold'
   const accentColor = isGold ? '#fbbf24' : '#c0c0c0'
@@ -301,6 +305,18 @@ const handleBuy = async () => {
     color: text,
   }
 
+const handleMouseMove = (e) => {
+  const rect = imageRef.current?.getBoundingClientRect()
+  if (!rect) return
+  const px = e.clientX - rect.left
+  const py = e.clientY - rect.top
+  setZoomPos({
+    x: Math.max(0, Math.min(100, (px / rect.width) * 100)),
+    y: Math.max(0, Math.min(100, (py / rect.height) * 100)),
+  })
+  setZoomPixel({ x: px, y: py })
+}
+
   const handleAddToCart = () => {
     if (!product) return
 
@@ -387,7 +403,13 @@ const handleBuy = async () => {
             This product is not available now. Please go back and select another product.
           </p>
           <button
-            onClick={() => navigate(-1)}
+onClick={() => {
+  const role = localStorage.getItem('role')
+  if (role === 'customer') navigate('/customer')
+  else if (role === 'admin') navigate('/admin')
+  else if (role === 'super_admin') navigate('/super-admin')
+  else navigate('/')
+}}
             style={{
               border: 'none',
               borderRadius: 999,
@@ -728,14 +750,19 @@ const handleBuy = async () => {
             />
 
             <div
-              style={{
-                position: 'relative',
-                height: 430,
-                display: 'grid',
-                placeItems: 'center',
-                padding: 30,
-              }}
-            >
+  ref={imageRef}
+  onMouseMove={handleMouseMove}
+  onMouseEnter={() => setShowZoom(true)}
+  onMouseLeave={() => setShowZoom(false)}
+  style={{
+    position: 'relative',
+    height: 430,
+    display: 'grid',
+    placeItems: 'center',
+    padding: 30,
+    cursor: 'none',
+  }}
+>
 <img
   className="pd-main-img"
   src={mainImage || ''}
@@ -748,6 +775,25 @@ const handleBuy = async () => {
                   transition: 'transform 0.55s cubic-bezier(0.34,1.56,0.64,1)',
                 }}
               />
+
+              {showZoom && mainImage && (
+  <div style={{
+    position: 'absolute',
+    left: zoomPixel.x - 100,
+    top: zoomPixel.y - 100,
+    width: 200,
+    height: 200,
+    borderRadius: '50%',
+    border: `3px solid ${accentColor}`,
+    boxShadow: `0 0 0 2px ${dark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)'}, 0 8px 32px rgba(0,0,0,0.6)`,
+    backgroundImage: `url(${mainImage})`,
+    backgroundSize: '400%',
+    backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
+    backgroundRepeat: 'no-repeat',
+    pointerEvents: 'none',
+    zIndex: 20,
+  }} />
+)}
             </div>
 
             <div
@@ -1052,6 +1098,56 @@ const handleBuy = async () => {
           </div>
         </section>
       </main>
+
+      {/* Zoom Panel */}
+{showZoom && mainImage && (
+  <div
+    style={{
+      position: 'fixed',
+      top: '50%',
+      right: 160,
+      transform: 'translateY(-50%)',
+      width: 470,
+      height: 470,
+      borderRadius: 24,
+      border: `1px solid ${accentColor}55`,
+      background: glass,
+      backdropFilter: 'blur(18px)',
+      overflow: 'hidden',
+      boxShadow: `0 24px 80px ${accentGlow}, 0 0 0 1px ${border}`,
+      zIndex: 100,
+      pointerEvents: 'none',
+    }}
+  >
+    {/* Zoom label */}
+    <div style={{
+      position: 'absolute', top: 12, left: 12, zIndex: 2,
+      background: accentSoft, border: `1px solid ${accentColor}44`,
+      borderRadius: 999, padding: '4px 12px',
+      color: accentColor, fontSize: 11, fontWeight: 800,
+      letterSpacing: '0.08em', textTransform: 'uppercase',
+    }}>
+      🔍 Zoom View
     </div>
+
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        backgroundImage: `url(${mainImage})`,
+        backgroundSize: '300%',
+        backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
+        backgroundRepeat: 'no-repeat',
+        transition: 'background-position 0.05s ease',
+      }}
+    />
+
+
+    
+  </div>
+)}
+    </div>
+
+    
   )
 }

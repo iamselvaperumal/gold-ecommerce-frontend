@@ -4,7 +4,7 @@ from .views import (
     LoginView, CreateAdminView, CreateDealerView,
     CreateSubDealerView, CreatePromotorView, CreateCustomerView,
     DashboardView, AdminListForAdminView, DealerListForDealerView,
-    SubDealerListForView, PromotorListForView,  FullHierarchyView, AnnouncementView, AnnouncementReplyView, ProfileUpdateRequestView, ProfileUpdateApproveView,MetalRateView,MetalOrderView, MetalOrderSummaryView, JewelryProductView, JewelryProductDetailView, JewelryProductImageDeleteView, ping
+    SubDealerListForView, PromotorListForView,  FullHierarchyView, AnnouncementView, AnnouncementReplyView, ProfileUpdateRequestView, ProfileUpdateApproveView,MetalRateView,MetalOrderView, MetalOrderSummaryView, JewelryProductView, JewelryProductDetailView, JewelryProductImageDeleteView, HomeBannerView, HomeBannerDetailView, ping
 )
 
 urlpatterns = [
@@ -32,6 +32,8 @@ urlpatterns = [
     path('jewelry-products/', JewelryProductView.as_view()),
     path('jewelry-products/<int:pk>/', JewelryProductDetailView.as_view()),
     path('jewelry-product-images/<int:pk>/', JewelryProductImageDeleteView.as_view()),
+    path('home-banners/', HomeBannerView.as_view()),
+    path('home-banners/<int:pk>/', HomeBannerDetailView.as_view()),
     
 ]
 

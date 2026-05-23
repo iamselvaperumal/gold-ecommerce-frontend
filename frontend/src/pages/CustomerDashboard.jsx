@@ -10,14 +10,88 @@ import silverCoin from '../assets/silver-coin-transparent.png'
 
 import { getCartCount, addToCart } from '../collection/card_section'
 
-const PARTICLES = Array.from({ length: 15 }, (_, i) => ({
-  id: i, size: Math.random() * 60 + 10, x: Math.random() * 100,
-  delay: Math.random() * 8, duration: Math.random() * 12 + 15, opacity: Math.random() * 0.2 + 0.05,
-}))
+// const PARTICLES = Array.from({ length: 15 }, (_, i) => ({
+//   id: i, size: Math.random() * 60 + 10, x: Math.random() * 100,
+//   delay: Math.random() * 8, duration: Math.random() * 12 + 15, opacity: Math.random() * 0.2 + 0.05,
+// }))
+
+
+
+// ── BANNER SLIDER COMPONENT ──
+function HomeBannerSlider() {
+  const [banners, setBanners] = useState([])
+  const [current, setCurrent] = useState(0)
+  const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
+
+  const getUrl = img => {
+    if (!img) return null
+    if (img.startsWith('http://') || img.startsWith('https://')) return img
+    return `${API_BASE}/${img.replace(/^\/+/, '')}`
+  }
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/home-banners/`)
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data) && data.length) setBanners(data) })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (banners.length < 2) return
+    const timer = setInterval(() => {
+      setCurrent(c => (c + 1) % banners.length)
+    }, 3000)
+    return () => clearInterval(timer)
+  }, [banners])
+
+  if (!banners.length) return null
+
+  return (
+    <div style={{ width: '100%', overflow: 'hidden', position: 'relative', height: '320px', background: '#f5f0e8' }}>
+      <style>{`
+        @keyframes slideLeft {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-100%); }
+        }
+        @keyframes slideInRight {
+          from { transform: translateX(100%); }
+          to   { transform: translateX(0); }
+        }
+        .bb-banner-exit  { animation: slideLeft    0.6s ease forwards; position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .bb-banner-enter { animation: slideInRight 0.6s ease forwards; position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+      `}</style>
+
+      {banners.map((b, i) => {
+        const url = getUrl(b.image)
+        if (!url) return null
+        const isActive = i === current
+        const isPrev   = i === (current - 1 + banners.length) % banners.length
+
+        return (
+          <div
+            key={b.id}
+            className={isActive ? 'bb-banner-enter' : isPrev ? 'bb-banner-exit' : ''}
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: (isActive || isPrev) ? 1 : 0, zIndex: isActive ? 2 : isPrev ? 1 : 0 }}
+          >
+            <img src={url} alt={`Banner ${b.slot}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          </div>
+        )
+      })}
+
+      {/* Dots */}
+      <div style={{ position: 'absolute', bottom: '14px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', zIndex: 10 }}>
+        {banners.map((_, i) => (
+          <div key={i} onClick={() => setCurrent(i)}
+            style={{ width: i === current ? '24px' : '8px', height: '8px', borderRadius: '20px', background: i === current ? '#8B1A1A' : 'rgba(255,255,255,0.6)', cursor: 'pointer', transition: 'all 0.3s ease' }} />
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function CustomerDashboard() {
   const navigate = useNavigate()
-  const [dark, setDark] = useState(true)
+  const [dark, setDark] = useState(false)
   const [profile, setProfile] = useState(null)
   const [showAnnouncements, setShowAnnouncements] = useState(false)
   const [updateMessage, setUpdateMessage] = useState('')
@@ -59,9 +133,12 @@ export default function CustomerDashboard() {
   const [msgType, setMsgType] = useState('')
   const [hoveredJewel, setHoveredJewel] = useState(null)
   const [cartCount, setCartCount] = useState(getCartCount())
-  const canvasRef = useRef(null)
+  const [showDropdown, setShowDropdown] = useState(false)
+  const [activeFilter, setActiveFilter] = useState('category')
+  const [activeCategory, setActiveCategory] = useState('all')
+  // const canvasRef = useRef(null)
 
-  const bg = dark ? '#020617' : '#f8fafc'
+  const bg = '#FDF5EE' 
   const text = dark ? '#f8fafc' : '#020617'
   const subtext = dark ? '#94a3b8' : '#64748b'
   const accent = dark ? '#22d3ee' : '#2563eb'
@@ -75,79 +152,79 @@ export default function CustomerDashboard() {
   const selectInput = { width: '100%', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '10px', padding: '12px 16px', color: text, fontSize: '14px', outline: 'none', boxSizing: 'border-box', cursor: 'pointer' }
 
 
-  useEffect(() => {
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    let animationFrameId, particlesArray = []
-    const mouse = { x: null, y: null, radius: 150 }
-    const handleResize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight }
-    const handleMouseMove = (e) => { mouse.x = e.x; mouse.y = e.y }
-    window.addEventListener('resize', handleResize)
-    window.addEventListener('mousemove', handleMouseMove)
-    handleResize()
-    class Particle {
-      constructor() {
-        this.x = Math.random() * canvas.width
-        this.y = Math.random() * canvas.height
-        this.size = Math.random() * 4 + 2
-        this.speedX = (Math.random() - 0.5) * 0.3
-        this.speedY = (Math.random() - 0.5) * 0.3
-      }
+  // useEffect(() => {
+  //   const canvas = canvasRef.current
+  //   const ctx = canvas.getContext('2d')
+  //   let animationFrameId, particlesArray = []
+  //   const mouse = { x: null, y: null, radius: 150 }
+  //   const handleResize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight }
+  //   const handleMouseMove = (e) => { mouse.x = e.x; mouse.y = e.y }
+  //   window.addEventListener('resize', handleResize)
+  //   window.addEventListener('mousemove', handleMouseMove)
+  //   handleResize()
+  //   class Particle {
+  //     constructor() {
+  //       this.x = Math.random() * canvas.width
+  //       this.y = Math.random() * canvas.height
+  //       this.size = Math.random() * 4 + 2
+  //       this.speedX = (Math.random() - 0.5) * 0.3
+  //       this.speedY = (Math.random() - 0.5) * 0.3
+  //     }
 
-      update() {
-        this.x += this.speedX
-        this.y += this.speedY
-        if (this.x > canvas.width || this.x < 0) this.speedX *= -1
-        if (this.y > canvas.height || this.y < 0) this.speedY *= -1
+  //     update() {
+  //       this.x += this.speedX
+  //       this.y += this.speedY
+  //       if (this.x > canvas.width || this.x < 0) this.speedX *= -1
+  //       if (this.y > canvas.height || this.y < 0) this.speedY *= -1
 
-        if (mouse.x !== null && mouse.y !== null) {
-          let dx = mouse.x - this.x
-          let dy = mouse.y - this.y
-          let distance = Math.sqrt(dx * dx + dy * dy)
-          if (distance < mouse.radius) {
-            const forceDirectionX = dx / distance
-            const forceDirectionY = dy / distance
-            const force = (mouse.radius - distance) / mouse.radius
-            this.x += forceDirectionX * force * 2
-            this.y += forceDirectionY * force * 2
-          }
-        }
-      }                          // ← update() ends here
+  //       if (mouse.x !== null && mouse.y !== null) {
+  //         let dx = mouse.x - this.x
+  //         let dy = mouse.y - this.y
+  //         let distance = Math.sqrt(dx * dx + dy * dy)
+  //         if (distance < mouse.radius) {
+  //           const forceDirectionX = dx / distance
+  //           const forceDirectionY = dy / distance
+  //           const force = (mouse.radius - distance) / mouse.radius
+  //           this.x += forceDirectionX * force * 2
+  //           this.y += forceDirectionY * force * 2
+  //         }
+  //       }
+  //     }                          // ← update() ends here
 
-      draw() {
-        ctx.fillStyle = dark ? 'rgba(34, 211, 238, 0.9)' : 'rgba(37, 99, 235, 0.8)'
-        ctx.save()
-        ctx.translate(this.x, this.y)
-        ctx.beginPath()
+  //     draw() {
+  //       ctx.fillStyle = dark ? 'rgba(34, 211, 238, 0.9)' : 'rgba(37, 99, 235, 0.8)'
+  //       ctx.save()
+  //       ctx.translate(this.x, this.y)
+  //       ctx.beginPath()
 
-        const spikes = 5
-        const outerRadius = this.size * 1
-        const innerRadius = this.size * 0.4
+  //       const spikes = 5
+  //       const outerRadius = this.size * 1
+  //       const innerRadius = this.size * 0.4
 
-        for (let i = 0; i < spikes * 2; i++) {
-          const radius = i % 2 === 0 ? outerRadius : innerRadius
-          const angle = (i * Math.PI) / spikes - Math.PI / 2
-          if (i === 0) ctx.moveTo(Math.cos(angle) * radius, Math.sin(angle) * radius)
-          else ctx.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius)
-        }
+  //       for (let i = 0; i < spikes * 2; i++) {
+  //         const radius = i % 2 === 0 ? outerRadius : innerRadius
+  //         const angle = (i * Math.PI) / spikes - Math.PI / 2
+  //         if (i === 0) ctx.moveTo(Math.cos(angle) * radius, Math.sin(angle) * radius)
+  //         else ctx.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius)
+  //       }
 
-        ctx.closePath()
-        ctx.fill()
-        ctx.restore()
-      }
+  //       ctx.closePath()
+  //       ctx.fill()
+  //       ctx.restore()
+  //     }
 
-    }
-    function init() { particlesArray = []; for (let i = 0; i < 60; i++)particlesArray.push(new Particle()) }
-    function connect() {
-      for (let a = 0; a < particlesArray.length; a++) for (let b = a; b < particlesArray.length; b++) {
-        let dx = particlesArray[a].x - particlesArray[b].x, dy = particlesArray[a].y - particlesArray[b].y, d = Math.sqrt(dx * dx + dy * dy)
-        if (d < 150) { ctx.strokeStyle = dark ? `rgba(34,211,238,${1 - d / 150})` : `rgba(37,99,235,${0.5 - d / 300})`; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(particlesArray[a].x, particlesArray[a].y); ctx.lineTo(particlesArray[b].x, particlesArray[b].y); ctx.stroke() }
-      }
-    }
-    function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particlesArray.forEach(p => { p.update(); p.draw() }); connect(); animationFrameId = requestAnimationFrame(animate) }
-    init(); animate()
-    return () => { window.removeEventListener('resize', handleResize); window.removeEventListener('mousemove', handleMouseMove); cancelAnimationFrame(animationFrameId) }
-  }, [dark])
+  //   }
+  //   function init() { particlesArray = []; for (let i = 0; i < 60; i++)particlesArray.push(new Particle()) }
+  //   function connect() {
+  //     for (let a = 0; a < particlesArray.length; a++) for (let b = a; b < particlesArray.length; b++) {
+  //       let dx = particlesArray[a].x - particlesArray[b].x, dy = particlesArray[a].y - particlesArray[b].y, d = Math.sqrt(dx * dx + dy * dy)
+  //       if (d < 150) { ctx.strokeStyle = dark ? `rgba(34,211,238,${1 - d / 150})` : `rgba(37,99,235,${0.5 - d / 300})`; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(particlesArray[a].x, particlesArray[a].y); ctx.lineTo(particlesArray[b].x, particlesArray[b].y); ctx.stroke() }
+  //     }
+  //   }
+  //   function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particlesArray.forEach(p => { p.update(); p.draw() }); connect(); animationFrameId = requestAnimationFrame(animate) }
+  //   init(); animate()
+  //   return () => { window.removeEventListener('resize', handleResize); window.removeEventListener('mousemove', handleMouseMove); cancelAnimationFrame(animationFrameId) }
+  // }, [dark])
 
 
   useEffect(() => {
@@ -448,72 +525,576 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 
 
 
-      <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, pointerEvents: 'none', zIndex: 1, opacity: 0.45 }} />
+      {/* <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, pointerEvents: 'none', zIndex: 1, opacity: 0.45 }} />
       <div style={{ position: 'absolute', borderRadius: '50%', filter: 'blur(80px)', animation: 'float-orb 20s infinite ease-in-out', zIndex: 0, top: '8%', left: '8%', width: '380px', height: '380px', background: dark ? 'rgba(52,211,153,0.08)' : 'rgba(16,185,129,0.08)' }} />
-      <div style={{ position: 'absolute', borderRadius: '50%', filter: 'blur(80px)', animation: 'float-orb 20s infinite ease-in-out', zIndex: 0, bottom: '10%', right: '4%', width: '460px', height: '460px', background: dark ? 'rgba(110,231,183,0.06)' : 'rgba(52,211,153,0.06)', animationDelay: '-5s' }} />
+      <div style={{ position: 'absolute', borderRadius: '50%', filter: 'blur(80px)', animation: 'float-orb 20s infinite ease-in-out', zIndex: 0, bottom: '10%', right: '4%', width: '460px', height: '460px', background: dark ? 'rgba(110,231,183,0.06)' : 'rgba(52,211,153,0.06)', animationDelay: '-5s' }} /> */}
 
-      {PARTICLES.map(p => (
+      {/* {PARTICLES.map(p => (
         <div key={p.id} style={{ position: 'absolute', left: `${p.x}%`, bottom: '-100px', width: p.size, height: p.size, borderRadius: '40% 60% 60% 40% / 40% 40% 60% 60%', border: `1px solid ${accent}44`, opacity: p.opacity, animation: `antigravity ${p.duration}s ${p.delay}s infinite linear`, '--op': p.opacity, pointerEvents: 'none', zIndex: 0 }} />
-      ))}
+      ))} */}
 
-      {/* Navbar */}
-      <div style={{ position: 'relative', zIndex: 10, background: glass, borderBottom: `1px solid ${border}`, padding: '18px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backdropFilter: 'blur(16px)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: '10px' }}>
-          <img
-            src={logo}
-            alt="BitByte Logo"
-            style={{ width: 60, height: 50, borderRadius: '10px', objectFit: 'contain' }}
-          />
-          <span style={{ color: '#6ee7b7', fontWeight: 700, fontSize: '14px' }}>👤 Customer Dashboard</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div
-            onClick={() => setShowProfile(true)}
-            style={{ cursor: 'pointer', width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg,rgba(52,211,153,0.25),rgba(34,211,238,0.15))', border: '2px solid rgba(52,211,153,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', transition: 'all 0.25s ease' }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(52,211,153,0.3)'; e.currentTarget.style.borderColor = 'rgba(52,211,153,0.9)' }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(52,211,153,0.5)' }}
-            title="View Profile"
-          >👤</div>
+{/* TOP NAV */}
+{/* TOP NAV */}
+<div
+  style={{
+    background: '#fff',
+    borderBottom: '0.5px solid #e5e7eb',
+    padding: '18px 40px',
+    display: 'grid',
+    gridTemplateColumns: '260px 1fr 260px',
+    alignItems: 'center',
+    gap: '24px'
+  }}
+>
+  {/* Logo */}
+  <div
+    style={{
+      color: '#8B1A1A',
+      fontWeight: 800,
+      fontSize: '24px',
+      letterSpacing: '3px'
+    }}
+  >
+    BitByte Jewels
+  </div>
 
-          {/* 📢 Announcement Bell */}
-          <div
-            onClick={() => { setShowAnnouncements(true); localStorage.setItem('customerAnnouncementSeen', Date.now().toString()); setUnreadCount(0) }}
-            style={{ position: 'relative', cursor: 'pointer', padding: '6px', borderRadius: '10px', border: '1px solid rgba(52,211,153,0.35)', background: 'rgba(52,211,153,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.25s ease' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(52,211,153,0.25)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(52,211,153,0.1)'; e.currentTarget.style.transform = 'translateY(0)' }}
-          >
-            <span style={{ fontSize: '18px', lineHeight: 1 }}>📢</span>
-            {unreadCount > 0 && (
-              <div style={{ position: 'absolute', top: '-7px', right: '-7px', background: 'linear-gradient(135deg,#34d399,#22d3ee)', color: '#000', borderRadius: '50%', minWidth: '18px', height: '18px', fontSize: '9px', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px', boxShadow: '0 2px 8px rgba(52,211,153,0.5)', border: '1.5px solid #020617' }}>
-                {unreadCount > 99 ? '99+' : unreadCount}
+  {/* Center Search bar */}
+  <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+    <div style={{ width: '100%', maxWidth: 680, position: 'relative' }}>
+      <span
+        style={{
+          position: 'absolute',
+          left: 18,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          color: '#8B1A1A',
+          fontSize: 18
+        }}
+      >
+        🔍
+      </span>
+
+      <input
+        placeholder="Search gold & diamond jewellery..."
+        style={{
+          width: '100%',
+          border: '1px solid #d1d5db',
+          borderRadius: 28,
+          padding: '14px 18px 14px 48px',
+          fontSize: 15,
+          outline: 'none',
+          color: '#374151',
+          boxSizing: 'border-box'
+        }}
+      />
+    </div>
+  </div>
+
+  {/* Right space / icons later */}
+  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 22, color: '#8B1A1A', fontSize: 22 }}>
+    <span>♡</span>
+    <span>👤</span>
+    <span>🛒</span>
+  </div>
+</div>
+
+{/* CATEGORY NAV WITH DROPDOWN */}
+<div style={{ position: 'relative' }} onMouseLeave={() => { setShowDropdown(false) }}>
+
+  {/* Top category bar */}
+<div
+  style={{
+    borderBottom: '0.5px solid #f0f0f0',
+    padding: '0 40px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    background: '#fff',
+    minHeight: 64,
+    width: '100%',
+    boxSizing: 'border-box'
+  }}
+>
+    {[
+
+  { name: '💎 All Jewellery', key: 'all' },
+  { name: '🥇 Gold', key: 'gold' },
+  { name: '💍 Diamond', key: 'diamond' },
+  { name: '🪞 Earrings', key: 'earrings' },
+  { name: '💫 Rings', key: 'rings' },
+  { name: '♾️ Daily Wear', key: 'dailywear' },
+  { name: '🏷️ Offers', key: 'offers' },
+  { name: '💒 Wedding', key: 'wedding' },
+  { name: '🎁 Gifting', key: 'gifting' },
+
+    ].map(cat => (
+      <div
+        key={cat.key}
+        onMouseEnter={() => {
+          setShowDropdown(true)
+          setActiveCategory(cat.key)
+          // Set default filter for each category
+const defaults = { all: 'category', gold: 'category', diamond: 'category', earrings: 'category', rings: 'category', dailywear: 'category', wedding: 'category', gifting: 'giftsfor', offers: 'alloffers' }
+          setActiveFilter(defaults[cat.key] || 'category')
+        }}
+style={{
+  padding: '20px 18px',
+  fontSize: 18,
+  cursor: 'pointer',
+  whiteSpace: 'nowrap',
+  color: (showDropdown && activeCategory === cat.key) ? '#8B1A1A' : '#374151',
+  borderBottom: (showDropdown && activeCategory === cat.key) ? '3px solid #8B1A1A' : '3px solid transparent',
+  fontWeight: (showDropdown && activeCategory === cat.key) ? 600 : 500,
+  transition: 'all 0.15s',
+}}
+      >{cat.name}</div>
+    ))}
+  </div>
+
+  {/* Dropdown panel */}
+  {showDropdown && (() => {
+
+    // ── CONFIG for each category ──
+    const DROPDOWN_CONFIG = {
+      all: {
+        filters: ['Category', 'Price', 'Occasion', 'Gender'],
+        filterKeys: ['category', 'price', 'occasion', 'gender'],
+        panels: {
+          category: {
+            type: 'icon-grid',
+            items: ['All Jewellery','Earrings','Pendants','Finger Rings','Mangalsutra','Chains','Nose Pin','Necklaces','Necklace Set','Bangles','Bracelets','Pendant Set'],
+          },
+          price: {
+            type: 'price-grid',
+            items: [{ label: '< ₹25K', emoji: '🪙' },{ label: '₹25K – ₹50K', emoji: '💛' },{ label: '₹50K – ₹1L', emoji: '💎' },{ label: '₹1L & Above', emoji: '👑' }],
+          },
+          occasion: {
+            type: 'occasion-grid',
+            items: [{ label: 'Office Wear', emoji: '💼' },{ label: 'Modern Wear', emoji: '🚗' },{ label: 'Casual Wear', emoji: '☀️' },{ label: 'Traditional Wear', emoji: '🪔' }],
+          },
+          gender: {
+            type: 'gender-grid',
+            items: [{ label: 'Women', emoji: '👩' },{ label: 'Men', emoji: '👨' },{ label: 'Kids & Teens', emoji: '👧' }],
+          },
+        }
+      },
+      gold: {
+        filters: ['Category', 'Price', 'Occasion', 'Gold Coin', 'Men', 'Metal'],
+        filterKeys: ['category', 'price', 'occasion', 'goldcoin', 'men', 'metal'],
+        panels: {
+          category: {
+            type: 'icon-grid',
+            items: ['All Gold','Gold Bangles','Gold Bracelets','Gold Earrings','Gold Chains','Gold Pendants','Gold Rings','Gold Engagement Rings','Gold Necklaces','Gold Nose Pins','Gold Kadas','Gold Mangalsutras'],
+          },
+          price: {
+            type: 'price-grid',
+            items: [{ label: '< ₹25K', emoji: '🪙' },{ label: '₹25K – ₹50K', emoji: '💛' },{ label: '₹50K – ₹1L', emoji: '💎' },{ label: '₹1L & Above', emoji: '👑' }],
+          },
+          occasion: {
+            type: 'occasion-grid',
+            items: [{ label: 'Office Wear', emoji: '💼' },{ label: 'Modern Wear', emoji: '🚗' },{ label: 'Casual Wear', emoji: '☀️' },{ label: 'Traditional Wear', emoji: '🪔' }],
+          },
+          goldcoin: {
+            type: 'icon-grid',
+            items: ['Special Coins','1 Gram','2 Gram','4 Gram','5 Gram','8 Gram','10 Gram','25 Gram','50 Gram','100 Gram'],
+            icon: '🥇',
+          },
+          men: {
+            type: 'icon-grid',
+            items: ['Men\'s Rings','Men\'s Chains','Men\'s Bracelets','Men\'s Kadas'],
+            icon: '👨',
+          },
+          metal: {
+            type: 'icon-grid',
+            items: ['Yellow Gold','Rose Gold','White Gold'],
+            icon: '⚙️',
+          },
+        }
+      },
+      wedding: {
+        filters: ['Category', 'Community', 'Metal'],
+        filterKeys: ['category', 'community', 'metal'],
+        panels: {
+          category: {
+            type: 'image-grid',
+            items: [
+              { label: 'All Rivaah', emoji: '💍' },
+              { label: 'Wedding Choker', emoji: '📿' },
+              { label: 'Wedding Haram', emoji: '✨' },
+              { label: 'Wedding Bangles', emoji: '💛' },
+              { label: 'Wedding Diamond', emoji: '💎' },
+              { label: 'Wedding Mangalsutra', emoji: '🕌' },
+              { label: 'Accessories', emoji: '🌸' },
+            ],
+          },
+          community: {
+            type: 'community-grid',
+            items: ['Bengali Bride','Bihari Bride','Gujarati Bride','Kannada Bride','Marathi Bride','Odia Bride','Punjabi Bride','Tamil Bride','Telugu Bride','UP Bride'],
+          },
+          metal: {
+            type: 'icon-grid',
+            items: ['Yellow Gold','Rose Gold','White Gold','Silver'],
+            icon: '⚙️',
+          },
+        }
+      },
+      gifting: {
+        filters: ['Gifts for', 'Gift Card', 'Price', 'Occasion', 'Corporate Gifting'],
+        filterKeys: ['giftsfor', 'giftcard', 'price', 'occasion', 'corporate'],
+        panels: {
+          giftsfor: {
+            type: 'gender-grid',
+            items: [{ label: 'Her', emoji: '👩' },{ label: 'Him', emoji: '👨' },{ label: 'Kids', emoji: '👧' }],
+          },
+          giftcard: {
+            type: 'giftcard-grid',
+            items: [{ label: 'BitByte Gift Card', emoji: '🎁' },{ label: 'BitByte E-Gift Card', emoji: '💌' }],
+          },
+          price: {
+            type: 'price-grid',
+            items: [{ label: '< ₹25K', emoji: '🪙' },{ label: '₹25K – ₹50K', emoji: '💛' },{ label: '₹50K – ₹1L', emoji: '💎' },{ label: '₹1L & Above', emoji: '👑' }],
+          },
+          occasion: {
+            type: 'occasion-grid',
+            items: [{ label: 'Wedding', emoji: '💍' },{ label: 'Birthday', emoji: '🎂' },{ label: 'Anniversary', emoji: '❤️' },{ label: 'Auspicious', emoji: '🪔' }],
+          },
+          corporate: {
+            type: 'icon-grid',
+            items: ['Corporate Gifts','Bulk Orders','Custom Engraving'],
+            icon: '🏢',
+          },
+        }
+      },
+
+      diamond: {
+        filters: ['Category', 'Price', 'Occasion', 'Gender'],
+        filterKeys: ['category', 'price', 'occasion', 'gender'],
+        panels: {
+          category: {
+            type: 'icon-grid',
+            items: ['All Diamond','Diamond Earrings','Diamond Rings','Diamond Necklaces','Diamond Pendants','Diamond Bangles','Diamond Bracelets','Diamond Nose Pins','Diamond Mangalsutra','Solitaire Rings','Diamond Kadas','Diamond Sets'],
+            icon: '💎',
+          },
+          price: {
+            type: 'price-grid',
+            items: [{ label: '< ₹25K', emoji: '🪙' },{ label: '₹25K – ₹50K', emoji: '💛' },{ label: '₹50K – ₹1L', emoji: '💎' },{ label: '₹1L & Above', emoji: '👑' }],
+          },
+          occasion: {
+            type: 'occasion-grid',
+            items: [{ label: 'Office Wear', emoji: '💼' },{ label: 'Modern Wear', emoji: '🚗' },{ label: 'Casual Wear', emoji: '☀️' },{ label: 'Traditional Wear', emoji: '🪔' }],
+          },
+          gender: {
+            type: 'gender-grid',
+            items: [{ label: 'Women', emoji: '👩' },{ label: 'Men', emoji: '👨' },{ label: 'Kids & Teens', emoji: '👧' }],
+          },
+        }
+      },
+
+      earrings: {
+        filters: ['Category', 'Price', 'Occasion', 'Gender', 'Metal & Stones'],
+        filterKeys: ['category', 'price', 'occasion', 'gender', 'metal'],
+        panels: {
+          category: {
+            type: 'icon-grid',
+            items: ['All Earrings','Drop & Danglers','Hoop & Huggies','Jhumkas','Studs & Tops'],
+            icon: '💍',
+          },
+          price: {
+            type: 'price-grid',
+            items: [{ label: '< ₹25K', emoji: '🪙' },{ label: '₹25K – ₹50K', emoji: '💛' },{ label: '₹50K – ₹1L', emoji: '💎' },{ label: '₹1L & Above', emoji: '👑' }],
+          },
+          occasion: {
+            type: 'occasion-grid',
+            items: [{ label: 'Office Wear', emoji: '💼' },{ label: 'Modern Wear', emoji: '🚗' },{ label: 'Casual Wear', emoji: '☀️' },{ label: 'Traditional Wear', emoji: '🪔' }],
+          },
+          gender: {
+            type: 'gender-grid',
+            items: [{ label: 'Women', emoji: '👩' },{ label: 'Men', emoji: '👨' },{ label: 'Kids & Teens', emoji: '👧' }],
+          },
+          metal: {
+            type: 'icon-grid',
+            items: ['Yellow Gold','Rose Gold','White Gold','Silver','Platinum'],
+            icon: '⚙️',
+          },
+        }
+      },
+
+      rings: {
+        filters: ['Category', 'Price', 'Occasion', 'Gender', 'Metal & Stones'],
+        filterKeys: ['category', 'price', 'occasion', 'gender', 'metal'],
+        panels: {
+          category: {
+            type: 'icon-grid',
+            items: ['All Rings','Casual Rings','Couple Rings','Diamond Engagement Rings','Engagement Rings','Gold Engagement Rings','Men\'s Rings','Platinum Engagement Rings'],
+            icon: '💍',
+          },
+          price: {
+            type: 'price-grid',
+            items: [{ label: '< ₹25K', emoji: '🪙' },{ label: '₹25K – ₹50K', emoji: '💛' },{ label: '₹50K – ₹1L', emoji: '💎' },{ label: '₹1L & Above', emoji: '👑' }],
+          },
+          occasion: {
+            type: 'occasion-grid',
+            items: [{ label: 'Office Wear', emoji: '💼' },{ label: 'Modern Wear', emoji: '🚗' },{ label: 'Casual Wear', emoji: '☀️' },{ label: 'Traditional Wear', emoji: '🪔' }],
+          },
+          gender: {
+            type: 'gender-grid',
+            items: [{ label: 'Women', emoji: '👩' },{ label: 'Men', emoji: '👨' },{ label: 'Kids & Teens', emoji: '👧' }],
+          },
+          metal: {
+            type: 'icon-grid',
+            items: ['Yellow Gold','Rose Gold','White Gold','Silver','Platinum','Diamond'],
+            icon: '⚙️',
+          },
+        }
+      },
+
+      dailywear: {
+        filters: ['Category', 'Price', 'Style'],
+        filterKeys: ['category', 'price', 'style'],
+        panels: {
+          category: {
+            type: 'icon-grid',
+            items: ['Dailywear Jewellery','Dailywear Chains','Dailywear Earrings','Dailywear Rings','Dailywear Mangalsutra','Dailywear Pendants'],
+            icon: '🌟',
+          },
+          price: {
+            type: 'price-grid',
+            items: [{ label: '< ₹25K', emoji: '🪙' },{ label: '₹25K – ₹50K', emoji: '💛' },{ label: '₹50K – ₹1L', emoji: '💎' },{ label: '₹1L & Above', emoji: '👑' }],
+          },
+          style: {
+            type: 'occasion-grid',
+            items: [{ label: 'Office Wear', emoji: '💼' },{ label: 'Modern Wear', emoji: '🚗' },{ label: 'Casual Wear', emoji: '☀️' },{ label: 'Traditional Wear', emoji: '🪔' }],
+          },
+        }
+      },
+
+      offers: {
+        filters: ['All Offers', 'Gold Offers', 'Diamond Offers', 'Festive Deals'],
+        filterKeys: ['alloffers', 'goldoffers', 'diamondoffers', 'festive'],
+        panels: {
+          alloffers: {
+            type: 'offers-grid',
+            items: [
+              { label: 'Making Charge Off', emoji: '🏷️', badge: 'UPTO 20%' },
+              { label: 'Exchange Bonus', emoji: '🔄', badge: 'EXTRA ₹500' },
+              { label: 'New Arrivals', emoji: '✨', badge: 'FRESH STOCK' },
+              { label: 'Clearance Sale', emoji: '🔥', badge: 'LIMITED' },
+            ],
+          },
+          goldoffers: {
+            type: 'offers-grid',
+            items: [
+              { label: 'Gold Making Off', emoji: '🥇', badge: 'UPTO 15%' },
+              { label: 'Gold Exchange', emoji: '🔄', badge: 'BONUS ₹300' },
+              { label: 'BIS Hallmark Gold', emoji: '✅', badge: 'CERTIFIED' },
+              { label: 'Gold Coins Deal', emoji: '🪙', badge: 'SPECIAL PRICE' },
+            ],
+          },
+          diamondoffers: {
+            type: 'offers-grid',
+            items: [
+              { label: 'Diamond Making Off', emoji: '💎', badge: 'UPTO 25%' },
+              { label: 'Solitaire Special', emoji: '💍', badge: 'EXCLUSIVE' },
+              { label: 'Certified Diamond', emoji: '✅', badge: 'IGI/GIA' },
+              { label: 'Buy 1 Get 1', emoji: '🎁', badge: 'LIMITED' },
+            ],
+          },
+          festive: {
+            type: 'offers-grid',
+            items: [
+              { label: 'Akshaya Tritiya', emoji: '🪔', badge: 'SPECIAL' },
+              { label: 'Dhanteras Offer', emoji: '🏮', badge: 'DIWALI' },
+              { label: 'Wedding Season', emoji: '💒', badge: 'BRIDAL' },
+              { label: 'Anniversary Deals', emoji: '❤️', badge: 'COUPLE' },
+            ],
+          },
+        }
+      },
+    }
+
+    const cfg = DROPDOWN_CONFIG[activeCategory] || DROPDOWN_CONFIG['all']
+    const panel = cfg.panels[activeFilter] || cfg.panels[cfg.filterKeys[0]]
+
+
+    
+
+    const renderPanel = () => {
+      if (!panel) return null
+
+      if (panel.type === 'icon-grid') return (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
+          {panel.items.map(item => (
+            <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', transition: 'background 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#fdf2f2'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+              <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#f5f0e8', border: '0.5px solid #e8e0d0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 14 }}>
+                {panel.icon || '💍'}
               </div>
-            )}
-          </div>
-
-          <div
-            onClick={() => navigate('/cart')}
-            style={{ position: 'relative', cursor: 'pointer', padding: '6px', borderRadius: '10px', border: '1px solid rgba(52,211,153,0.35)', background: 'rgba(52,211,153,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.25s ease' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(52,211,153,0.25)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(52,211,153,0.1)'; e.currentTarget.style.transform = 'translateY(0)' }}
-            title="My Cart"
-          >
-            <span style={{ fontSize: '18px', lineHeight: 1 }}>🛒</span>
-            {cartCount > 0 && (
-              <div style={{ position: 'absolute', top: '-7px', right: '-7px', background: 'linear-gradient(135deg,#f59e0b,#fbbf24)', color: '#000', borderRadius: '50%', minWidth: '18px', height: '18px', fontSize: '9px', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px', boxShadow: '0 2px 8px rgba(251,191,36,0.5)', border: '1.5px solid #020617' }}>
-                {cartCount > 99 ? '99+' : cartCount}
-              </div>
-            )}
-          </div>
-
-
-          <button onClick={() => setDark(!dark)} style={{ padding: '8px 16px', borderRadius: '16px', border: `1px solid ${border}`, background: 'transparent', color: text, cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>
-            {dark ? '☀️ Light' : '🌙 Dark'}
-          </button>
-          <button onClick={() => { localStorage.clear(); navigate('/login') }} style={{ padding: '8px 18px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '10px', fontSize: '13px', cursor: 'pointer' }}>
-            Logout
-          </button>
+              <span style={{ fontSize: 13, color: '#1f2937' }}>{item}</span>
+            </div>
+          ))}
         </div>
+      )
+
+      if (panel.type === 'price-grid') return (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }}>
+          {panel.items.map(p => (
+            <div key={p.label} style={{ textAlign: 'center', cursor: 'pointer' }}
+              onMouseEnter={e => { e.currentTarget.querySelector('.ph-box').style.borderColor = '#8B1A1A'; e.currentTarget.querySelector('.ph-label').style.color = '#8B1A1A' }}
+              onMouseLeave={e => { e.currentTarget.querySelector('.ph-box').style.borderColor = '#e8e0d0'; e.currentTarget.querySelector('.ph-label').style.color = '#1f2937' }}>
+              <div className="ph-box" style={{ width: '100%', aspectRatio: '1', borderRadius: 12, background: '#f5f0e8', border: '0.5px solid #e8e0d0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 34, marginBottom: 8, transition: 'border-color 0.15s' }}>
+                {p.emoji}
+              </div>
+              <div className="ph-label" style={{ fontSize: 13, color: '#1f2937', transition: 'color 0.15s' }}>{p.label}</div>
+            </div>
+          ))}
+        </div>
+      )
+
+      if (panel.type === 'occasion-grid') return (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }}>
+          {panel.items.map(o => (
+            <div key={o.label} style={{ textAlign: 'center', cursor: 'pointer' }}
+              onMouseEnter={e => { e.currentTarget.querySelector('.oh-box').style.borderColor = '#8B1A1A' }}
+              onMouseLeave={e => { e.currentTarget.querySelector('.oh-box').style.borderColor = '#e8e0d0' }}>
+              <div className="oh-box" style={{ width: '100%', aspectRatio: '0.85', borderRadius: 12, background: '#f5f0e8', border: '0.5px solid #e8e0d0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, marginBottom: 8, transition: 'border-color 0.15s' }}>
+                {o.emoji}
+              </div>
+              <div style={{ fontSize: 13, color: '#1f2937' }}>{o.label}</div>
+            </div>
+          ))}
+        </div>
+      )
+
+      if (panel.type === 'gender-grid') return (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, maxWidth: 460 }}>
+          {panel.items.map(g => (
+            <div key={g.label} style={{ textAlign: 'center', cursor: 'pointer' }}
+              onMouseEnter={e => { e.currentTarget.querySelector('.gh-box').style.borderColor = '#8B1A1A' }}
+              onMouseLeave={e => { e.currentTarget.querySelector('.gh-box').style.borderColor = '#e8e0d0' }}>
+              <div className="gh-box" style={{ width: '100%', aspectRatio: '0.85', borderRadius: 12, background: '#f5f0e8', border: '0.5px solid #e8e0d0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48, marginBottom: 8, transition: 'border-color 0.15s' }}>
+                {g.emoji}
+              </div>
+              <div style={{ fontSize: 13, color: '#1f2937' }}>{g.label}</div>
+            </div>
+          ))}
+        </div>
+      )
+
+      if (panel.type === 'image-grid') return (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }}>
+          {panel.items.map(item => (
+            <div key={item.label} style={{ textAlign: 'center', cursor: 'pointer' }}
+              onMouseEnter={e => { e.currentTarget.querySelector('.wh-box').style.borderColor = '#8B1A1A' }}
+              onMouseLeave={e => { e.currentTarget.querySelector('.wh-box').style.borderColor = '#e8e0d0' }}>
+              <div className="wh-box" style={{ width: '100%', aspectRatio: '0.85', borderRadius: 12, background: '#f5f0e8', border: '0.5px solid #e8e0d0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, marginBottom: 8, transition: 'border-color 0.15s' }}>
+                {item.emoji}
+              </div>
+              <div style={{ fontSize: 13, color: '#1f2937' }}>{item.label}</div>
+            </div>
+          ))}
+        </div>
+      )
+
+      if (panel.type === 'community-grid') return (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 12 }}>
+          {panel.items.map(item => (
+            <div key={item} style={{ textAlign: 'center', cursor: 'pointer' }}
+              onMouseEnter={e => { e.currentTarget.querySelector('.ch-box').style.borderColor = '#8B1A1A'; e.currentTarget.querySelector('.ch-label').style.color = '#8B1A1A' }}
+              onMouseLeave={e => { e.currentTarget.querySelector('.ch-box').style.borderColor = '#e8e0d0'; e.currentTarget.querySelector('.ch-label').style.color = '#1f2937' }}>
+              <div className="ch-box" style={{ width: '100%', aspectRatio: '0.75', borderRadius: 10, background: 'linear-gradient(135deg,#fdf2f2,#f5f0e8)', border: '0.5px solid #e8e0d0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, marginBottom: 6, transition: 'border-color 0.15s' }}>
+                👰
+              </div>
+              <div className="ch-label" style={{ fontSize: 11, color: '#1f2937', transition: 'color 0.15s', lineHeight: 1.3 }}>{item}</div>
+            </div>
+          ))}
+        </div>
+      )
+
+      if (panel.type === 'giftcard-grid') return (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 16, maxWidth: 360 }}>
+          {panel.items.map(item => (
+            <div key={item.label} style={{ cursor: 'pointer' }}
+              onMouseEnter={e => { e.currentTarget.querySelector('.gc-box').style.borderColor = '#8B1A1A' }}
+              onMouseLeave={e => { e.currentTarget.querySelector('.gc-box').style.borderColor = '#c9a0a0' }}>
+              <div className="gc-box" style={{ width: '100%', aspectRatio: '1.6', borderRadius: 12, background: 'linear-gradient(135deg,#6b0f0f,#8B1A1A)', border: '2px solid #c9a0a0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 8, transition: 'border-color 0.15s' }}>
+                <span style={{ fontSize: 28 }}>{item.emoji}</span>
+                <span style={{ fontSize: 11, color: '#fff', fontStyle: 'italic', letterSpacing: '0.5px', fontWeight: 300 }}>BitByte</span>
+              </div>
+              <div style={{ fontSize: 13, color: '#1f2937', textAlign: 'center' }}>{item.label}</div>
+            </div>
+          ))}
+        </div>
+      )
+
+      if (panel.type === 'offers-grid') return (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 14 }}>
+          {panel.items.map(o => (
+            <div key={o.label} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 12, background: '#fdf2f2', border: '0.5px solid #f3d5d5', cursor: 'pointer', transition: 'all 0.15s' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#f7e0e0'; e.currentTarget.style.borderColor = '#8B1A1A' }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#fdf2f2'; e.currentTarget.style.borderColor = '#f3d5d5' }}>
+              <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', border: '1px solid #f3d5d5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
+                {o.emoji}
+              </div>
+              <div>
+                <div style={{ fontSize: 13, color: '#1f2937', fontWeight: 500 }}>{o.label}</div>
+                <div style={{ fontSize: 10, color: '#8B1A1A', fontWeight: 700, letterSpacing: '0.5px', marginTop: 3, background: '#fce8e8', display: 'inline-block', padding: '2px 8px', borderRadius: 20 }}>{o.badge}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )
+
+ 
+
+      return null
+    }
+
+    // Section title map
+const sectionTitles = {
+      category: 'Browse by Category', price: 'Shop by Price', occasion: 'Shop by Occasion',
+      gender: 'Shop by Gender', goldcoin: 'Gold Coins by Weight', men: 'For Men',
+      metal: 'By Metal & Stones', community: 'Shop by Community', giftsfor: 'Gifts for',
+      giftcard: 'Gift Cards', corporate: 'Corporate Gifting', wedding: 'Wedding Collections',
+      style: 'Shop by Style', alloffers: 'All Offers', goldoffers: 'Gold Offers',
+      diamondoffers: 'Diamond Offers', festive: 'Festive Deals',
+    }
+
+    return (
+      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200, background: '#fff', borderBottom: '0.5px solid #e5e7eb', boxShadow: '0 8px 24px rgba(0,0,0,0.08)', display: 'flex', minHeight: '260px' }}>
+
+        {/* Left filter tabs */}
+        <div style={{ width: 190, borderRight: '0.5px solid #f3f4f6', padding: '20px 0', flexShrink: 0 }}>
+          {cfg.filters.map((f, i) => (
+            <div
+              key={cfg.filterKeys[i]}
+              onMouseEnter={() => setActiveFilter(cfg.filterKeys[i])}
+              style={{
+                padding: '11px 22px', fontSize: 13, cursor: 'pointer',
+                margin: '2px 10px', borderRadius: 8,
+                color: activeFilter === cfg.filterKeys[i] ? '#8B1A1A' : '#4b5563',
+                background: activeFilter === cfg.filterKeys[i] ? '#fdf2f2' : 'transparent',
+                fontWeight: activeFilter === cfg.filterKeys[i] ? 600 : 400,
+                transition: 'all 0.15s',
+              }}
+            >{f}</div>
+          ))}
+        </div>
+
+        {/* Right panel */}
+        <div style={{ flex: 1, padding: '24px 28px', overflowY: 'auto', maxHeight: '420px' }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#8B1A1A', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 16, paddingBottom: 8, borderBottom: '0.5px solid #fce8e8' }}>
+            {sectionTitles[activeFilter] || activeFilter}
+          </div>
+          {renderPanel()}
+        </div>
+
       </div>
+    )
+  })()}
+</div>
+
+<HomeBannerSlider />
 
       <div style={{ position: 'relative', zIndex: 10, padding: '36px 40px', maxWidth: '1400px', margin: '0 auto' }}>
 

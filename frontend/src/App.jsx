@@ -25,6 +25,8 @@ import SilverNecklaces from './gold_silver/silver_necklaces'
 import CardSection from './collection/card_section'
 import ProductDisplay from './collection/product_display'
 import AddProduct from './Products/add_product'
+import AddBanners from './Products/banners/add_banners'
+import HomeBanner from './Products/banners/home_banner'
 
 
 function ProtectedRoute({ children, role }) {
@@ -95,6 +97,13 @@ export default function App() {
        <Route path="/product-display" element={<ProductDisplay />} />
 <Route path="/add-product" element={
   <ProtectedRoute role="super_admin"><AddProduct /></ProtectedRoute>
+} />
+
+<Route path="/add-banners" element={
+  <ProtectedRoute role="super_admin"><AddBanners /></ProtectedRoute>
+} />
+<Route path="/home-banner" element={
+  <ProtectedRoute role="super_admin"><HomeBanner /></ProtectedRoute>
 } />
 
 

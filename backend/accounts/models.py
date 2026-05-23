@@ -528,4 +528,21 @@ class JewelryProductImage(models.Model):
         ordering = ['order']
 
     def __str__(self):
-        return f"Image for {self.product.name}"                      
+        return f"Image for {self.product.name}"        
+
+
+
+
+class HomeBanner(models.Model):
+    SLOT_CHOICES = [(i, f'Banner {i}') for i in range(1, 6)]
+    slot = models.IntegerField(choices=SLOT_CHOICES, unique=True)
+    image = models.ImageField(upload_to='home_banners/')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['slot']
+
+    def __str__(self):
+        return f"Banner {self.slot}"                      
