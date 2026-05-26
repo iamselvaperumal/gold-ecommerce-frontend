@@ -16,6 +16,12 @@ const CATEGORIES = [
 
 const TAGS = ['Bestseller', 'Bridal', 'Premium', 'Statement', 'Stackable', 'New', 'Limited']
 
+const OCCASIONS = ['Wedding', 'Birthday', 'Anniversary', 'Auspicious', 'Office Wear', 'Modern Wear', 'Casual Wear', 'Traditional Wear']
+
+const WEDDING_CATEGORIES = ['Wedding Ring', 'Wedding Necklaces', 'Wedding Chain', 'Wedding Bangles', 'Wedding Earring']
+
+const GENDERS = ['all', 'women', 'men', 'kids']
+
 
 const SUBCATEGORIES = {
   rings: {
@@ -68,7 +74,8 @@ export default function AddProduct() {
   const [productMsg, setProductMsg]   = useState('')
   const [productForm, setProductForm] = useState({
   category: '', metal: '', grade: '', name: '', description: '',
-  cross_weight: '', stone_weight: '', making_charge: '', stone_value: '', tag: ''
+  cross_weight: '', stone_weight: '', making_charge: '', stone_value: '',
+  tag: '', occasion: '', wedding_category: '', gender: 'all', wastage_charge: ''
 })
 const [productSaving, setProductSaving] = useState(false)
 const [livePrice, setLivePrice] = useState(null)   // final price with tax
@@ -118,10 +125,11 @@ const [baseMetalAmt, setBaseMetalAmt] = useState(null) // netWeight × rate
     setLoadingProducts(false)
   }
 
-const calcAll = (crossW, stoneW, metal, grade, makingCharge, stoneVal) => {
+const calcAll = (crossW, stoneW, metal, grade, makingCharge, wastageCharge, stoneVal) => {
   const cw = parseFloat(crossW) || 0
   const sw = parseFloat(stoneW) || 0
   const mc = parseFloat(makingCharge) || 0
+  const wc = parseFloat(wastageCharge) || 0
   const sv = parseFloat(stoneVal) || 0
 
   if (!cw || cw <= 0 || !metal) {
@@ -138,7 +146,7 @@ const calcAll = (crossW, stoneW, metal, grade, makingCharge, stoneVal) => {
   if (!rate) { setNetWeight(nw); setBaseMetalAmt(null); setLivePrice(null); return }
 
   const base = nw * rate                        // net weight × today rate
-  const sub  = base + mc + sv                   // + making charge + stone value
+  const sub  = base + mc + wc + sv                   // + making charge + westage charge +stone value
   const total = (sub * 1.03).toFixed(2)         // + 3% tax
 
   setNetWeight(nw)
@@ -341,15 +349,39 @@ const handleDelete = async (id) => {
       </div>
     )}
   </div>
-              <div>
-                <label style={lblStyle}>Tag</label>
-                <select value={productForm.tag} onChange={e => setProductForm(f => ({ ...f, tag: e.target.value }))} style={{ ...inpStyle, cursor: 'pointer' }}>
-                  <option value="" style={{ background: optionBg }}>-- None --</option>
-                  {TAGS.map(t => <option key={t} value={t} style={{ background: optionBg }}>{t}</option>)}
-                </select>
-              </div>
-            </div>
+  <div>
+    <label style={lblStyle}>Tag</label>
+    <select value={productForm.tag} onChange={e => setProductForm(f => ({ ...f, tag: e.target.value }))} style={{ ...inpStyle, cursor: 'pointer' }}>
+      <option value="" style={{ background: optionBg }}>-- None --</option>
+      {TAGS.map(t => <option key={t} value={t} style={{ background: optionBg }}>{t}</option>)}
+    </select>
+  </div>
+</div>
 
+{/* Row 3 - Occasion + Wedding Category + Gender */}
+<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+  <div>
+    <label style={lblStyle}>Occasion</label>
+    <select value={productForm.occasion} onChange={e => setProductForm(f => ({ ...f, occasion: e.target.value }))} style={{ ...inpStyle, cursor: 'pointer' }}>
+      <option value="" style={{ background: optionBg }}>-- None --</option>
+      {OCCASIONS.map(o => <option key={o} value={o} style={{ background: optionBg }}>{o}</option>)}
+    </select>
+  </div>
+  <div>
+    <label style={lblStyle}>Wedding Category</label>
+    <select value={productForm.wedding_category} onChange={e => setProductForm(f => ({ ...f, wedding_category: e.target.value }))} style={{ ...inpStyle, cursor: 'pointer' }}>
+      <option value="" style={{ background: optionBg }}>-- None --</option>
+      {WEDDING_CATEGORIES.map(w => <option key={w} value={w} style={{ background: optionBg }}>{w}</option>)}
+    </select>
+  </div>
+  <div>
+    <label style={lblStyle}>Gender</label>
+    <select value={productForm.gender} onChange={e => setProductForm(f => ({ ...f, gender: e.target.value }))} style={{ ...inpStyle, cursor: 'pointer' }}>
+      {GENDERS.map(g => <option key={g} value={g} style={{ background: optionBg }}>{g.charAt(0).toUpperCase() + g.slice(1)}</option>)}
+    </select>
+  </div>
+</div>
+  
             {/* Description */}
             <div style={{ marginBottom: '14px' }}>
               <label style={lblStyle}>Description</label>
@@ -365,7 +397,7 @@ const handleDelete = async (id) => {
       onChange={e => {
         const v = e.target.value
         setProductForm(f => ({ ...f, cross_weight: v }))
-        calcAll(v, productForm.stone_weight, productForm.metal, productForm.grade, productForm.making_charge, productForm.stone_value)
+       calcAll(v, productForm.stone_weight, productForm.metal, productForm.grade, productForm.making_charge, productForm.wastage_charge, productForm.stone_value)
       }}
       placeholder="e.g. 10" style={inpStyle} />
   </div>
@@ -377,7 +409,7 @@ const handleDelete = async (id) => {
       onChange={e => {
         const v = e.target.value
         setProductForm(f => ({ ...f, stone_weight: v }))
-        calcAll(productForm.cross_weight, v, productForm.metal, productForm.grade, productForm.making_charge, productForm.stone_value)
+        calcAll(productForm.cross_weight, v, productForm.metal, productForm.grade, productForm.making_charge, productForm.wastage_charge, productForm.stone_value)
       }}
       placeholder="e.g. 2 (0 if none)" style={inpStyle} />
   </div>
@@ -399,7 +431,7 @@ const handleDelete = async (id) => {
 </div>
 
 {/* Making Charge + Stone Value + Final Price */}
-<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '14px', marginBottom: '16px' }}>
   {/* Making Charge */}
   <div>
     <label style={lblStyle}>Making Charge (₹)</label>
@@ -407,9 +439,21 @@ const handleDelete = async (id) => {
       onChange={e => {
         const v = e.target.value
         setProductForm(f => ({ ...f, making_charge: v }))
-        calcAll(productForm.cross_weight, productForm.stone_weight, productForm.metal, productForm.grade, v, productForm.stone_value)
+        calcAll(productForm.cross_weight, productForm.stone_weight, productForm.metal, productForm.grade, v, productForm.wastage_charge, productForm.stone_value)
       }}
       placeholder="e.g. 1800" style={inpStyle} />
+  </div>
+
+    {/* Wastage Charge */}
+  <div>
+    <label style={lblStyle}>Wastage Charge (₹)</label>
+    <input type="number" step="1" value={productForm.wastage_charge}
+      onChange={e => {
+        const v = e.target.value
+        setProductForm(f => ({ ...f, wastage_charge: v }))
+        calcAll(productForm.cross_weight, productForm.stone_weight, productForm.metal, productForm.grade, productForm.making_charge, v, productForm.stone_value)
+      }}
+      placeholder="e.g. 1500" style={inpStyle} />
   </div>
 
   {/* Stone Value */}
@@ -419,7 +463,7 @@ const handleDelete = async (id) => {
       onChange={e => {
         const v = e.target.value
         setProductForm(f => ({ ...f, stone_value: v }))
-        calcAll(productForm.cross_weight, productForm.stone_weight, productForm.metal, productForm.grade, productForm.making_charge, v)
+        calcAll(productForm.cross_weight, productForm.stone_weight, productForm.metal, productForm.grade, productForm.making_charge, productForm.wastage_charge, v)
       }}
       placeholder="e.g. 2000" style={inpStyle} />
   </div>

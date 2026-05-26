@@ -510,10 +510,19 @@ class JewelryProduct(models.Model):
     stone_weight = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True, default=0)
     net_weight   = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
     making_charge = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0)
+    wastage_charge = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0)
     stone_value   = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0)
     tax_percent   = models.DecimalField(max_digits=5, decimal_places=2, default=3.00)
     price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     tag = models.CharField(max_length=50, blank=True)
+    occasion = models.CharField(max_length=50, blank=True)
+    wedding_category = models.CharField(max_length=50, blank=True)
+    gender = models.CharField(
+    max_length=10,
+    choices=[('men', 'Men'), ('women', 'Women'), ('kids', 'Kids'), ('all', 'All')],
+    default='all',
+    blank=True
+)
     is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -27,6 +27,7 @@ import ProductDisplay from './collection/product_display'
 import AddProduct from './Products/add_product'
 import AddBanners from './Products/banners/add_banners'
 import HomeBanner from './Products/banners/home_banner'
+import AllCollection from './collection/all_collection'
 
 
 function ProtectedRoute({ children, role }) {
@@ -106,6 +107,8 @@ export default function App() {
   <ProtectedRoute role="super_admin"><HomeBanner /></ProtectedRoute>
 } />
 
+
+<Route path="/collection/all" element={<AllCollection />} />
 
       </Routes>
     </BrowserRouter>

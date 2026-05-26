@@ -752,9 +752,16 @@ class JewelryProductView(APIView):
         
         qs = JewelryProduct.objects.filter(is_active=True).prefetch_related('images')
         if category:
-            qs = qs.filter(category=category)
+           qs = qs.filter(category=category)
         if metal:
-            qs = qs.filter(metal=metal)
+           qs = qs.filter(metal=metal)
+
+        gender = request.query_params.get('gender')
+        occasion = request.query_params.get('occasion')
+        if gender and gender != 'all':
+           qs = qs.filter(gender=gender)
+        if occasion:
+           qs = qs.filter(occasion=occasion)
         
         serializer = JewelryProductSerializer(qs, many=True, context={'request': request})
         return Response(serializer.data)

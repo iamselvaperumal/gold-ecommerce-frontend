@@ -795,7 +795,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   { name: '💎 Diamond', key: 'diamond' },
   { name: '🪞 Earrings', key: 'earrings' },
   { name: '💍 Rings', key: 'rings' },
-  { name: '♾️ Daily Wear', key: 'dailywear' },
+  { name: '🥈 Silver', key: 'silver' },
   { name: '🏷️ Offers', key: 'offers' },
   { name: '💒 Wedding', key: 'wedding' },
   { name: '🎁 Gifting', key: 'gifting' },
@@ -808,7 +808,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
           setShowDropdown(true)
           setActiveCategory(cat.key)
           // Set default filter for each category
-const defaults = { all: 'category', gold: 'category', diamond: 'category', earrings: 'category', rings: 'category', dailywear: 'category', wedding: 'category', gifting: 'giftsfor', offers: 'alloffers' }
+          const defaults = { all: 'category', gold: 'category', diamond: 'category', earrings: 'category', rings: 'category', silver: 'category', wedding: 'category', gifting: 'giftsfor', offers: 'alloffers' }
           setActiveFilter(defaults[cat.key] || 'category')
         }}
 style={{
@@ -836,7 +836,7 @@ style={{
         panels: {
 category: {
   type: 'icon-grid',
-  items: ['All Jewellery','Earrings','Finger Rings',
+  items: ['Earrings','Finger Rings',
           'Chains','Necklaces','Bangles','Bracelets'],
 },
           price: {
@@ -859,7 +859,7 @@ category: {
         panels: {
 category: {
   type: 'icon-grid',
-  items: ['All Gold','Gold Bangles','Gold Bracelets','Gold Earrings','Gold Chains','Gold Rings','Gold Engagement Rings','Gold Necklaces'],
+  items: ['Gold Bracelets','Gold Earrings','Gold Chains','Gold Rings','Gold Bangles','Gold Necklaces'],
 },
           price: {
             type: 'price-grid',
@@ -935,7 +935,7 @@ community: {
         panels: {
 category: {
   type: 'icon-grid',
-  items: ['All Diamond','Diamond Earrings','Diamond Rings','Diamond Necklaces','Diamond Bangles','Diamond Bracelets'],
+  items: ['Diamond Earrings','Diamond Rings','Diamond Necklaces','Diamond Bangles','Diamond Bracelets'],
   icon: '💎',
 },
           price: {
@@ -959,7 +959,7 @@ category: {
         panels: {
  category: {
   type: 'icon-grid',
-  items: ['All Earrings','Men\'s Gold Earring','Women\'s Gold Earring','Kids Gold Earring','Gold Stud Earring','Gold Hoop Earring','Gold Drop Earring','Gold Stone Earring','Gold Plain Earring'],
+  items: ['Men\'s Gold Earring','Women\'s Gold Earring','Kids Gold Earring','Gold Stud Earring','Gold Hoop Earring','Gold Drop Earring','Gold Stone Earring','Gold Plain Earring'],
   icon: '💍',
 },
           price: {
@@ -983,7 +983,7 @@ category: {
         panels: {
           category: {
             type: 'icon-grid',
-            items: ['All Rings','Casual Rings','Couple Rings','Diamond Engagement Rings','Engagement Rings','Gold Engagement Rings','Men\'s Rings','Platinum Engagement Rings'],
+            items: ['Casual Rings','Couple Rings','Diamond Engagement Rings','Engagement Rings','Gold Engagement Rings','Men\'s Rings','Platinum Engagement Rings'],
             icon: '💍',
           },
           price: {
@@ -1001,22 +1001,30 @@ category: {
         }
       },
 
-      dailywear: {
-        filters: ['Category', 'Price', 'Style'],
-        filterKeys: ['category', 'price', 'style'],
+silver: {
+        filters: ['Category', 'Price', 'Occasion', 'Silver Coin', 'Gender'],
+        filterKeys: ['category', 'price', 'occasion', 'silvercoin', 'gender'],
         panels: {
-category: {
-  type: 'icon-grid',
-  items: ['Dailywear Jewellery','Dailywear Chains','Dailywear Earrings','Dailywear Rings','Dailywear Bangles','Dailywear Necklaces'],
-  icon: '🌟',
-},
+          category: {
+            type: 'icon-grid',
+            items: ['Silver Bangles','Silver Bracelets','Silver Earrings','Silver Chains','Silver Rings','Silver Necklaces','Silver Anklets'],
+            icon: '🥈',
+          },
           price: {
             type: 'price-grid',
             items: [{ label: '< ₹25K', emoji: '🪙' },{ label: '₹25K – ₹50K', emoji: '💛' },{ label: '₹50K – ₹1L', emoji: '💎' },{ label: '₹1L & Above', emoji: '👑' }],
           },
-          style: {
+          occasion: {
             type: 'occasion-grid',
             items: [{ label: 'Office Wear', emoji: '💼' },{ label: 'Modern Wear', emoji: '🚗' },{ label: 'Casual Wear', emoji: '☀️' },{ label: 'Traditional Wear', emoji: '🪔' }],
+          },
+          silvercoin: {
+            type: 'silver-coin-grid',
+            items: ['500 mg','1 gm','2 gm','5 gm','10 gm','20 gm','50 gm','100 gm'],
+          },
+          gender: {
+            type: 'gender-grid',
+            items: [{ label: 'Women', emoji: '👩' },{ label: 'Men', emoji: '👨' },{ label: 'Kids & Teens', emoji: '👧' }],
           },
         }
       },
@@ -1081,6 +1089,7 @@ if (panel.type === 'icon-grid') {
     'Necklaces': '/collection/necklaces',
     'Bangles': '/collection/bangles',
     'Finger Rings': '/collection/rings',
+    
   }
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
@@ -1108,6 +1117,74 @@ if (panel.type === 'icon-grid') {
   )
 }
 
+if (panel.type === 'silver-coin-grid') {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
+      {panel.items.map(item => {
+        const w = WEIGHTS_SILVER.find(x => x.label === item)
+        const price = w && metalPrices.silver != null ? (w.grams * metalPrices.silver).toFixed(2) : null
+        return (
+          <div key={item}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+              padding: '10px 8px', borderRadius: 12, cursor: 'pointer',
+              border: '1px solid rgba(192,192,192,0.25)',
+              background: 'rgba(192,192,192,0.05)',
+              transition: 'all 0.2s' }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(192,192,192,0.18)'
+              e.currentTarget.style.borderColor = 'rgba(192,192,192,0.85)'
+              e.currentTarget.style.transform = 'translateY(-4px) scale(1.04)'
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(192,192,192,0.35)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(192,192,192,0.05)'
+              e.currentTarget.style.borderColor = 'rgba(192,192,192,0.25)'
+              e.currentTarget.style.transform = 'translateY(0) scale(1)'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
+          >
+            <img src={silverCoin} alt={item}
+              style={{ width: 54, height: 54, objectFit: 'contain',
+                filter: 'drop-shadow(0 2px 6px rgba(192,192,192,0.6))',
+                transition: 'all 0.25s' }} />
+            <div style={{ fontSize: 10, fontWeight: 800, color: '#c0c0c0',
+              background: 'rgba(192,192,192,0.12)', border: '1px solid rgba(192,192,192,0.3)',
+              borderRadius: 20, padding: '2px 8px' }}>{item}</div>
+            <div style={{ color: '#d1d5db', fontWeight: 700, fontSize: 11, fontFamily: 'monospace' }}>
+              {price ? `₹${price}` : '—'}
+            </div>
+            <div style={{ display: 'flex', gap: 4, width: '100%' }}>
+              <button
+                onClick={e => {
+                  e.stopPropagation()
+                  if (w) addMetalToCart('silver_999', 'Silver 999', w, price, silverCoin)
+                  setShowDropdown(false)
+                }}
+                style={{ flex: 1, padding: '4px 0', background: 'rgba(192,192,192,0.15)',
+                  border: '1px solid rgba(192,192,192,0.45)', borderRadius: 7,
+                  color: '#c0c0c0', fontSize: 9, fontWeight: 800, cursor: 'pointer' }}
+              >🪙 Cart</button>
+              <button
+                onClick={e => {
+                  e.stopPropagation()
+                  setOrderMetal('silver_999'); setOrderWeight(item)
+                  setOrderCount(1); setOrderMsg(''); setOrderPopup(true)
+                  setShowDropdown(false)
+                }}
+                style={{ flex: 1, padding: '4px 0', background: 'linear-gradient(90deg,#9ca3af,#e5e7eb)',
+                  border: 'none', borderRadius: 7,
+                  color: '#000', fontSize: 9, fontWeight: 900, cursor: 'pointer' }}
+              >🛒 Buy</button>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+
+
 if (panel.type === 'price-grid') {
   const priceImgMap = {
     '< ₹25K':      '/25k below.jpg',
@@ -1121,8 +1198,16 @@ if (panel.type === 'price-grid') {
         const imgSrc = priceImgMap[p.label]
         return (
           <div key={p.label} style={{ textAlign: 'center', cursor: 'pointer' }}
-            onMouseEnter={e => { e.currentTarget.querySelector('.ph-box').style.borderColor = '#8B1A1A'; e.currentTarget.querySelector('.ph-label').style.color = '#8B1A1A' }}
-            onMouseLeave={e => { e.currentTarget.querySelector('.ph-box').style.borderColor = '#e8e0d0'; e.currentTarget.querySelector('.ph-label').style.color = '#1f2937' }}>
+  onMouseEnter={e => { e.currentTarget.querySelector('.ph-box').style.borderColor = '#8B1A1A'; e.currentTarget.querySelector('.ph-label').style.color = '#8B1A1A' }}
+  onMouseLeave={e => { e.currentTarget.querySelector('.ph-box').style.borderColor = '#e8e0d0'; e.currentTarget.querySelector('.ph-label').style.color = '#1f2937' }}
+  onClick={() => {
+    const priceMap = { '< ₹25K': 'below25k', '₹25K – ₹50K': '25k-50k', '₹50K – ₹1L': '50k-1L', '₹1L & Above': 'above1L' }
+    const metalMap = { gold: 'gold', silver: 'silver', diamond: 'gold', earrings: '', rings: '', all: '' }
+    const priceKey = priceMap[p.label]
+    const metalParam = metalMap[activeCategory] ? `&metal=${metalMap[activeCategory]}` : ''
+    setShowDropdown(false)
+    navigate(`/collection/all?price=${priceKey}${metalParam}`)
+  }}>
             <div className="ph-box" style={{
               width: '90%', height: '190px', borderRadius: 12,
               background: '#f5f0e8', border: '0.5px solid #e8e0d0',
@@ -1194,8 +1279,13 @@ if (panel.type === 'gender-grid') return (
       const imgSrc = genderImgMap[g.label]
       return (
         <div key={g.label} style={{ textAlign: 'center', cursor: 'pointer' }}
-          onMouseEnter={e => { e.currentTarget.querySelector('.gh-box').style.borderColor = '#8B1A1A' }}
-          onMouseLeave={e => { e.currentTarget.querySelector('.gh-box').style.borderColor = '#e8e0d0' }}>
+  onMouseEnter={e => { e.currentTarget.querySelector('.gh-box').style.borderColor = '#8B1A1A' }}
+  onMouseLeave={e => { e.currentTarget.querySelector('.gh-box').style.borderColor = '#e8e0d0' }}
+  onClick={() => {
+    const gMap = { 'Women': 'women', 'Her': 'women', 'Men': 'men', 'Him': 'men', 'Kids & Teens': 'kids', 'Kids': 'kids' }
+    const g2 = gMap[g.label]
+    if (g2) { setShowDropdown(false); navigate(`/collection/all?gender=${g2}`) }
+  }}>
           <div className="gh-box" style={{
             width: '100%', aspectRatio: '0.85', borderRadius: 12,
             background: '#f5f0e8', border: '0.5px solid #e8e0d0',
@@ -1310,7 +1400,7 @@ if (panel.type === 'image-grid') {
     // Section title map
 const sectionTitles = {
       category: 'Browse by Category', price: 'Shop by Price', occasion: 'Shop by Occasion',
-      gender: 'Shop by Gender', goldcoin: 'Gold Coins by Weight', men: 'For Men',
+      gender: 'Shop by Gender', goldcoin: 'Gold Coins by Weight', silvercoin: 'Silver Coins by Weight', men: 'For Men',
       metal: 'By Metal & Stones', community: 'Shop by Community', giftsfor: 'Gifts for',
       giftcard: 'Gift Cards', corporate: 'Corporate Gifting', wedding: 'Wedding Collections',
       style: 'Shop by Style', alloffers: 'All Offers', goldoffers: 'Gold Offers',
@@ -2650,23 +2740,24 @@ const sectionTitles = {
           <div style={{ fontSize: 14, color: '#7c5c4a', marginBottom: 28 }}>Find Jewelry for Women, Men, and Kids</div>
 
          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 24, maxWidth: 1300, margin: '0 auto', padding: '0 40px', alignItems: 'start' }}>
-            {[
-              { label: "Women's Jewellery", img: "/Woman's Jewlley.jpg" },
-              { label: "Men's Jewellery",   img: "/Men's Jewellery.jpg" },
-              { label: "Kid's Jewellery",   img: "/Kids Jewllery.jpg" },
-            ].map((item, i) => (
-              <div
-                key={item.label}
-                style={{ cursor: 'pointer', textAlign: 'center' }}
-                onMouseEnter={e => {
-                  e.currentTarget.querySelector('.sbg-img').style.transform = 'scale(1.03)'
-                  e.currentTarget.querySelector('.sbg-label').style.color = '#8B1A1A'
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.querySelector('.sbg-img').style.transform = 'scale(1)'
-                  e.currentTarget.querySelector('.sbg-label').style.color = '#b8860b'
-                }}
-              >
+         {[
+  { label: "Women's Jewellery", img: "/Woman's Jewlley.jpg", gender: 'women' },
+  { label: "Men's Jewellery",   img: "/Men's Jewellery.jpg", gender: 'men' },
+  { label: "Kid's Jewellery",   img: "/Kids Jewllery.jpg",   gender: 'kids' },
+].map((item, i) => (
+  <div
+    key={item.label}
+    style={{ cursor: 'pointer', textAlign: 'center' }}
+    onClick={() => navigate(`/collection/all?gender=${item.gender}`)}
+    onMouseEnter={e => {
+      e.currentTarget.querySelector('.sbg-img').style.transform = 'scale(1.03)'
+      e.currentTarget.querySelector('.sbg-label').style.color = '#8B1A1A'
+    }}
+    onMouseLeave={e => {
+      e.currentTarget.querySelector('.sbg-img').style.transform = 'scale(1)'
+      e.currentTarget.querySelector('.sbg-label').style.color = '#b8860b'
+    }}
+  >
 <div style={{
                   borderRadius: 16, overflow: 'hidden',
                   border: '1px solid #e8ddd5',
