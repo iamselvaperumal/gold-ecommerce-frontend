@@ -487,6 +487,7 @@ class JewelryProduct(models.Model):
         ('rings', 'Rings'),
         ('necklaces', 'Necklaces'),
         ('bangles', 'Bangles'),
+        ('bracelets', 'Bracelets'),
         ('earrings', 'Earrings'),
         ('chains', 'Chains'),
         ('coins', 'Coins'),
@@ -494,11 +495,13 @@ class JewelryProduct(models.Model):
     METAL_CHOICES = [
         ('gold', 'Gold'),
         ('silver', 'Silver'),
+        ('diamond', 'Diamond'),
     ]
     GRADE_CHOICES = [
         ('22k', '22K'),
         ('24k', '24K'),
         ('999', '999'),
+        ('', 'N/A'),
     ]
 
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)

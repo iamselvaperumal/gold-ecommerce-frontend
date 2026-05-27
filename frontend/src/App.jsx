@@ -28,6 +28,9 @@ import AddProduct from './Products/add_product'
 import AddBanners from './Products/banners/add_banners'
 import HomeBanner from './Products/banners/home_banner'
 import AllCollection from './collection/all_collection'
+import BraceletsCollection from './collection/bracelets_collection'
+import GoldBracelets from './gold_silver/gold_bracelets'
+import SilverBracelets from './gold_silver/silver_bracelets'
 
 
 function ProtectedRoute({ children, role }) {
@@ -107,8 +110,11 @@ export default function App() {
   <ProtectedRoute role="super_admin"><HomeBanner /></ProtectedRoute>
 } />
 
-
 <Route path="/collection/all" element={<AllCollection />} />
+
+<Route path="/collection/bracelets" element={<BraceletsCollection />} />
+<Route path="/gold-bracelets" element={<GoldBracelets />} />
+<Route path="/silver-bracelets" element={<SilverBracelets />} />
 
       </Routes>
     </BrowserRouter>

@@ -1089,6 +1089,9 @@ if (panel.type === 'icon-grid') {
     'Necklaces': '/collection/necklaces',
     'Bangles': '/collection/bangles',
     'Finger Rings': '/collection/rings',
+    'Bracelets': '/collection/bracelets',
+'Gold Bracelets': '/collection/bracelets',
+'Silver Bracelets': '/collection/bracelets',
     
   }
   return (

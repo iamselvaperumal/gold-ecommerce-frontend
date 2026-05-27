@@ -6,12 +6,13 @@ import logo from '../assets/logo.png'
 const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
 
 const CATEGORIES = [
-  { key: 'rings',     label: 'Rings',     emoji: '💍' },
-  { key: 'necklaces', label: 'Necklaces', emoji: '📿' },
-  { key: 'bangles',   label: 'Bangles',   emoji: '⭕' },
-  { key: 'earrings',  label: 'Earrings',  emoji: '✨' },
-  { key: 'chains',    label: 'Chains',    emoji: '⛓️' },
-  { key: 'coins',     label: 'Coins',     emoji: '🪙' },
+  { key: 'rings',      label: 'Rings',      emoji: '💍' },
+  { key: 'necklaces',  label: 'Necklaces',  emoji: '📿' },
+  { key: 'bangles',    label: 'Bangles',    emoji: '⭕' },
+  { key: 'bracelets',  label: 'Bracelets',  emoji: '💎' },
+  { key: 'earrings',   label: 'Earrings',   emoji: '✨' },
+  { key: 'chains',     label: 'Chains',     emoji: '⛓️' },
+  { key: 'coins',      label: 'Coins',      emoji: '🪙' },
 ]
 
 const TAGS = ['Bestseller', 'Bridal', 'Premium', 'Statement', 'Stackable', 'New', 'Limited']
@@ -27,26 +28,37 @@ const SUBCATEGORIES = {
   rings: {
     gold: ["Men's Gold Ring","Women's Gold Ring","Couple Gold Ring","Kids Gold Ring","Gold Engagement Ring","Gold Wedding Ring","Gold Stone Ring","Gold Plain Ring"],
     silver: ["Men's Silver Ring","Women's Silver Ring","Couple Silver Ring","Kids Silver Ring","Silver Engagement Ring","Silver Wedding Ring","Silver Stone Ring","Silver Plain Ring"],
+    diamond: ["Men's Diamond Ring","Women's Diamond Ring","Couple Diamond Ring","Kids Diamond Ring","Diamond Engagement Ring","Diamond Wedding Ring","Diamond Solitaire Ring","Diamond Eternity Ring"],
   },
   necklaces: {
     gold: ["Men's Gold Necklace","Women's Gold Necklace","Couple Gold Necklace","Kids Gold Necklace","Gold Bridal Necklace","Gold Wedding Necklace","Gold Stone Necklace","Gold Plain Necklace"],
     silver: ["Men's Silver Necklace","Women's Silver Necklace","Couple Silver Necklace","Kids Silver Necklace","Silver Bridal Necklace","Silver Wedding Necklace","Silver Stone Necklace","Silver Plain Necklace"],
+    diamond: ["Women's Diamond Necklace","Diamond Bridal Necklace","Diamond Pendant Necklace","Diamond Wedding Necklace","Diamond Statement Necklace","Diamond Plain Necklace"],
   },
   bangles: {
     gold: ["Men's Gold Bangle","Women's Gold Bangle","Couple Gold Bangle","Kids Gold Bangle","Gold Bridal Bangle","Gold Wedding Bangle","Gold Stone Bangle","Gold Plain Bangle"],
     silver: ["Men's Silver Bangle","Women's Silver Bangle","Couple Silver Bangle","Kids Silver Bangle","Silver Bridal Bangle","Silver Wedding Bangle","Silver Stone Bangle","Silver Plain Bangle"],
+    diamond: ["Women's Diamond Bangle","Diamond Bridal Bangle","Diamond Wedding Bangle","Diamond Stone Bangle","Diamond Plain Bangle"],
+  },
+  bracelets: {
+    gold: ["Men's Gold Bracelet","Women's Gold Bracelet","Couple Gold Bracelet","Kids Gold Bracelet","Gold Bridal Bracelet","Gold Wedding Bracelet","Gold Stone Bracelet","Gold Plain Bracelet","Gold Charm Bracelet","Gold Kada Bracelet"],
+    silver: ["Men's Silver Bracelet","Women's Silver Bracelet","Couple Silver Bracelet","Kids Silver Bracelet","Silver Bridal Bracelet","Silver Wedding Bracelet","Silver Stone Bracelet","Silver Plain Bracelet","Silver Charm Bracelet","Silver Kada Bracelet"],
+    diamond: ["Women's Diamond Bracelet","Diamond Tennis Bracelet","Diamond Bridal Bracelet","Diamond Wedding Bracelet","Diamond Charm Bracelet","Diamond Plain Bracelet"],
   },
   earrings: {
     gold: ["Men's Gold Earring","Women's Gold Earring","Kids Gold Earring","Gold Stud Earring","Gold Hoop Earring","Gold Drop Earring","Gold Stone Earring","Gold Plain Earring"],
     silver: ["Men's Silver Earring","Women's Silver Earring","Kids Silver Earring","Silver Stud Earring","Silver Hoop Earring","Silver Drop Earring","Silver Stone Earring","Silver Plain Earring"],
+    diamond: ["Women's Diamond Earring","Diamond Stud Earring","Diamond Hoop Earring","Diamond Drop Earring","Diamond Jhumka Earring","Diamond Plain Earring"],
   },
   chains: {
     gold: ["Men's Gold Chain","Women's Gold Chain","Kids Gold Chain","Gold Wedding Chain","Gold Rope Chain","Gold Box Chain","Gold Stone Chain","Gold Plain Chain"],
     silver: ["Men's Silver Chain","Women's Silver Chain","Kids Silver Chain","Silver Wedding Chain","Silver Rope Chain","Silver Box Chain","Silver Stone Chain","Silver Plain Chain"],
+    diamond: ["Men's Diamond Chain","Women's Diamond Chain","Diamond Pendant Chain","Diamond Wedding Chain","Diamond Plain Chain"],
   },
   coins: {
     gold: ["Gold 1 Gram Coin","Gold 2 Gram Coin","Gold 5 Gram Coin","Gold 10 Gram Coin","Gold Lakshmi Coin","Gold Ganesha Coin","Gold Plain Coin","Gold Gift Coin"],
     silver: ["Silver 1 Gram Coin","Silver 2 Gram Coin","Silver 5 Gram Coin","Silver 10 Gram Coin","Silver Lakshmi Coin","Silver Ganesha Coin","Silver Plain Coin","Silver Gift Coin"],
+    diamond: [],
   },
 }
 
@@ -301,36 +313,46 @@ const handleDelete = async (id) => {
               </div>
             )}
 
-            {/* Row 1 - category/metal/grade */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', marginBottom: '14px' }}>
-              <div>
-                <label style={lblStyle}>Product *</label>
-                <select value={productForm.category} onChange={e => setProductForm(f => ({ ...f, category: e.target.value }))} style={{ ...inpStyle, cursor: 'pointer' }}>
-                  <option value="" style={{ background: optionBg }}>-- Select --</option>
-                  {CATEGORIES.map(c => <option key={c.key} value={c.key} style={{ background: optionBg }}>{c.emoji} {c.label}</option>)}
-                </select>
-              </div>
-              <div>
-                <label style={lblStyle}>Metal *</label>
-                <select value={productForm.metal} onChange={e => setProductForm(f => ({ ...f, metal: e.target.value, grade: '' }))} style={{ ...inpStyle, cursor: 'pointer' }}>
-                  <option value="" style={{ background: optionBg }}>-- Select --</option>
-                  <option value="gold" style={{ background: optionBg }}>🏅 Gold</option>
-                  <option value="silver" style={{ background: optionBg }}>🥈 Silver</option>
-                </select>
-              </div>
-              <div>
-                <label style={lblStyle}>Grade *</label>
-                <select value={productForm.grade} onChange={e => setProductForm(f => ({ ...f, grade: e.target.value }))} style={{ ...inpStyle, cursor: 'pointer' }}>
-                  <option value="" style={{ background: optionBg }}>-- Select --</option>
-                  {(productForm.metal === 'gold' ? ['22k', '24k'] : productForm.metal === 'silver' ? ['999'] : []).map(g => (
-                    <option key={g} value={g} style={{ background: optionBg }}>{g.toUpperCase()}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
+ {/* Row 1 - category / Wedding Category / metal / grade */}
+<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+  <div>
+    <label style={lblStyle}>Product *</label>
+    <select value={productForm.category} onChange={e => setProductForm(f => ({ ...f, category: e.target.value }))} style={{ ...inpStyle, cursor: 'pointer' }}>
+      <option value="" style={{ background: optionBg }}>-- Select --</option>
+      {CATEGORIES.map(c => <option key={c.key} value={c.key} style={{ background: optionBg }}>{c.emoji} {c.label}</option>)}
+    </select>
+  </div>
+  <div>
+    <label style={lblStyle}>Wedding Category</label>
+    <select value={productForm.wedding_category} onChange={e => setProductForm(f => ({ ...f, wedding_category: e.target.value }))} style={{ ...inpStyle, cursor: 'pointer' }}>
+      <option value="" style={{ background: optionBg }}>-- None --</option>
+      {WEDDING_CATEGORIES.map(w => <option key={w} value={w} style={{ background: optionBg }}>{w}</option>)}
+    </select>
+  </div>
+  <div>
+    <label style={lblStyle}>Metal *</label>
+    <select value={productForm.metal} onChange={e => setProductForm(f => ({ ...f, metal: e.target.value, grade: '' }))} style={{ ...inpStyle, cursor: 'pointer' }}>
+      <option value="" style={{ background: optionBg }}>-- Select --</option>
+      <option value="gold" style={{ background: optionBg }}>🏅 Gold</option>
+      <option value="silver" style={{ background: optionBg }}>🥈 Silver</option>
+      <option value="diamond" style={{ background: optionBg }}>💎 Diamond</option>
+    </select>
+  </div>
+  {productForm.metal !== 'diamond' && (
+    <div>
+      <label style={lblStyle}>Grade *</label>
+      <select value={productForm.grade} onChange={e => setProductForm(f => ({ ...f, grade: e.target.value }))} style={{ ...inpStyle, cursor: 'pointer' }}>
+        <option value="" style={{ background: optionBg }}>-- Select --</option>
+        {(productForm.metal === 'gold' ? ['22k', '24k'] : productForm.metal === 'silver' ? ['999'] : []).map(g => (
+          <option key={g} value={g} style={{ background: optionBg }}>{g.toUpperCase()}</option>
+        ))}
+      </select>
+    </div>
+  )}
+</div>
 
-{/* Row 2 - name/tag */}
-<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+{/* Row 2 - Product Name / Occasion / Tag */}
+<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', marginBottom: '14px' }}>
   <div>
     <label style={lblStyle}>Product Name *</label>
     <select
@@ -343,11 +365,13 @@ const handleDelete = async (id) => {
         <option key={n} value={n} style={{ background: optionBg }}>{n}</option>
       ))}
     </select>
-    {(!productForm.category || !productForm.metal) && (
-      <div style={{ color: '#f59e0b', fontSize: '11px', marginTop: '4px' }}>
-        ⚠️ First select Product & Metal above
-      </div>
-    )}
+  </div>
+  <div>
+    <label style={lblStyle}>Occasion</label>
+    <select value={productForm.occasion} onChange={e => setProductForm(f => ({ ...f, occasion: e.target.value }))} style={{ ...inpStyle, cursor: 'pointer' }}>
+      <option value="" style={{ background: optionBg }}>-- None --</option>
+      {OCCASIONS.map(o => <option key={o} value={o} style={{ background: optionBg }}>{o}</option>)}
+    </select>
   </div>
   <div>
     <label style={lblStyle}>Tag</label>
@@ -358,22 +382,8 @@ const handleDelete = async (id) => {
   </div>
 </div>
 
-{/* Row 3 - Occasion + Wedding Category + Gender */}
+{/* Row 3 - Gender only */}
 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', marginBottom: '14px' }}>
-  <div>
-    <label style={lblStyle}>Occasion</label>
-    <select value={productForm.occasion} onChange={e => setProductForm(f => ({ ...f, occasion: e.target.value }))} style={{ ...inpStyle, cursor: 'pointer' }}>
-      <option value="" style={{ background: optionBg }}>-- None --</option>
-      {OCCASIONS.map(o => <option key={o} value={o} style={{ background: optionBg }}>{o}</option>)}
-    </select>
-  </div>
-  <div>
-    <label style={lblStyle}>Wedding Category</label>
-    <select value={productForm.wedding_category} onChange={e => setProductForm(f => ({ ...f, wedding_category: e.target.value }))} style={{ ...inpStyle, cursor: 'pointer' }}>
-      <option value="" style={{ background: optionBg }}>-- None --</option>
-      {WEDDING_CATEGORIES.map(w => <option key={w} value={w} style={{ background: optionBg }}>{w}</option>)}
-    </select>
-  </div>
   <div>
     <label style={lblStyle}>Gender</label>
     <select value={productForm.gender} onChange={e => setProductForm(f => ({ ...f, gender: e.target.value }))} style={{ ...inpStyle, cursor: 'pointer' }}>
@@ -430,8 +440,26 @@ const handleDelete = async (id) => {
   </div>
 </div>
 
-{/* Making Charge + Stone Value + Final Price */}
+{/* Diamond Price — only show when metal is diamond */}
+{productForm.metal === 'diamond' && (
+  <div style={{ marginBottom: '14px' }}>
+    <label style={lblStyle}>Diamond Product Price (₹) *</label>
+    <input
+      type="number"
+      step="1"
+      value={livePrice || ''}
+      onChange={e => setLivePrice(e.target.value)}
+      placeholder="Enter diamond product price manually"
+      style={{ ...inpStyle, color: '#a78bfa', fontWeight: 800, border: '1px solid rgba(167,139,250,0.5)' }}
+    />
+    <div style={{ fontSize: '10px', color: '#a78bfa', marginTop: '4px' }}>💎 Diamond price enter pannunga manually</div>
+  </div>
+)}
+
+{/* Making Charge + Stone Value + Final Price — hide for diamond */}
+{productForm.metal !== 'diamond' && (
 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+  
   {/* Making Charge */}
   <div>
     <label style={lblStyle}>Making Charge (₹)</label>
@@ -486,6 +514,8 @@ const handleDelete = async (id) => {
     )}
   </div>
 </div>
+)}
+
             {/* Images */}
             <div style={{ marginBottom: '18px' }}>
               <label style={lblStyle}>Product Images</label>
