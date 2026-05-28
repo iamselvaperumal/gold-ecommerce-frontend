@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
-from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder, JewelryProduct, JewelryProductImage, HomeBanner, CartItem
+from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder, JewelryProduct, JewelryProductImage, HomeBanner, CartItem, Wishlist
 from .serializers import *
 from django.utils import timezone
 from datetime import timedelta
@@ -765,7 +765,9 @@ class JewelryProductView(APIView):
         wedding_category = request.query_params.get('wedding_category')
         if wedding_category:
            qs = qs.filter(wedding_category=wedding_category)   
-        
+        grade = request.query_params.get('grade')
+        if grade:
+           qs = qs.filter(grade=grade)
         serializer = JewelryProductSerializer(qs, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -954,7 +956,40 @@ class CartItemQtyView(APIView):
         serializer = CartItemSerializer(item, context={'request': request})
         return Response(serializer.data)                     
 
+class WishlistView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        items = Wishlist.objects.filter(user=request.user).select_related('product').prefetch_related('product__images')
+        serializer = WishlistItemSerializer(items, many=True, context={'request': request})
+        return Response({'count': items.count(), 'items': serializer.data})
+
+    def post(self, request):
+        """Toggle wishlist — add if not exists, remove if exists"""
+        product_id = request.data.get('product_id')
+        if not product_id:
+            return Response({'error': 'product_id required'}, status=400)
+        try:
+            product = JewelryProduct.objects.get(id=product_id, is_active=True)
+        except JewelryProduct.DoesNotExist:
+            return Response({'error': 'Product not found'}, status=404)
+
+        existing = Wishlist.objects.filter(user=request.user, product=product).first()
+        if existing:
+            existing.delete()
+            return Response({'action': 'removed', 'message': 'Removed from wishlist'})
+        else:
+            Wishlist.objects.create(user=request.user, product=product)
+            return Response({'action': 'added', 'message': 'Added to wishlist'}, status=201)
+
+    def delete(self, request):
+        product_id = request.data.get('product_id')
+        if not product_id:
+            return Response({'error': 'product_id required'}, status=400)
+        Wishlist.objects.filter(user=request.user, product_id=product_id).delete()
+        return Response({'message': 'Removed from wishlist'})
+
+        
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def ping(request):

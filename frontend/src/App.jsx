@@ -34,6 +34,7 @@ import SilverBracelets from './gold_silver/silver_bracelets'
 import CoinsCollection from './collection/coins_collection'
 import GoldCoins from './gold_silver/gold_coins'
 import SilverCoins from './gold_silver/silver_coins'
+import WishlistPage from './collection/WishlistPage'
 
 
 function ProtectedRoute({ children, role }) {
@@ -121,6 +122,10 @@ export default function App() {
 <Route path="/collection/bracelets" element={<BraceletsCollection />} />
 <Route path="/gold-bracelets" element={<GoldBracelets />} />
 <Route path="/silver-bracelets" element={<SilverBracelets />} />
+
+<Route path="/wishlist" element={
+  <ProtectedRoute role="customer"><WishlistPage /></ProtectedRoute>
+} />
 
       </Routes>
     </BrowserRouter>

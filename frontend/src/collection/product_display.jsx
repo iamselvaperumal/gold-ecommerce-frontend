@@ -56,6 +56,7 @@ export default function ProductDisplay() {
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 })
 const [showZoom, setShowZoom] = useState(false)
 const [zoomPixel, setZoomPixel] = useState({ x: 0, y: 0 })
+ const [wishlisted, setWishlisted] = useState(false)
 const imageRef = useRef(null)
 
   const isGold = metal === 'gold'
@@ -81,10 +82,21 @@ const getImageUrl = img => {
   return `${API_BASE}/${imagePath.replace(/^\/+/, '')}`
 }
 
+useEffect(() => {
+    if (!productId) return
+    import('../api').then(({ default: api }) => {
+      api.get('/wishlist/').then(res => {
+        const found = res.data.items.find(i => i.product_id === parseInt(productId))
+        setWishlisted(!!found)
+      }).catch(() => {})
+    })
+  }, [productId])
+
   useEffect(() => {
     setLoading(true)
 
     import('../api').then(({ default: api }) => {
+
       api
         .get(`/jewelry-products/?category=${category}&metal=${metal}`)
         .then(res => {
@@ -320,7 +332,7 @@ const handleAddToCart = async () => {
       setTimeout(() => setShowAdded(false), 1600)
     }
   }
-  
+
 
   if (loading) {
     return (
@@ -833,22 +845,48 @@ onClick={() => {
               boxShadow: `0 24px 80px ${dark ? 'rgba(0,0,0,0.28)' : 'rgba(15,23,42,0.10)'}`,
             }}
           >
-            <div
-              style={{
-                display: 'inline-flex',
-                padding: '8px 14px',
-                borderRadius: 999,
-                background: tagStyle.bg,
-                border: `1px solid ${tagStyle.border}`,
-                color: tagStyle.color,
-                fontWeight: 950,
-                fontSize: 12,
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                marginBottom: 18,
-              }}
-            >
-              {productTag}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  padding: '8px 14px',
+                  borderRadius: 999,
+                  background: tagStyle.bg,
+                  border: `1px solid ${tagStyle.border}`,
+                  color: tagStyle.color,
+                  fontWeight: 950,
+                  fontSize: 12,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                }}
+              >
+                {productTag}
+              </div>
+
+              {/* Heart / Wishlist button */}
+              <button
+                onClick={async () => {
+                  if (!product) return
+                  const api = (await import('../api')).default
+                  try {
+                    const res = await api.post('/wishlist/', { product_id: product.id })
+                    setWishlisted(res.data.action === 'added')
+                    window.dispatchEvent(new Event('bb_wishlist_update'))
+                  } catch (err) { console.error(err) }
+                }}
+                style={{
+                  width: 42, height: 42, borderRadius: '50%',
+                  border: wishlisted ? '1.5px solid #e11d48' : `1.5px solid ${border}`,
+                  background: wishlisted ? 'rgba(225,29,72,0.15)' : inputBg,
+                  backdropFilter: 'blur(8px)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', fontSize: '20px', transition: 'all 0.2s ease',
+                  flexShrink: 0,
+                }}
+                title={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+              >
+                {wishlisted ? '❤️' : '🤍'}
+              </button>
             </div>
 
             <h1

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder,JewelryProduct, JewelryProductImage, HomeBanner, CartItem
+from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder,JewelryProduct, JewelryProductImage, HomeBanner, CartItem, Wishlist
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -485,3 +485,24 @@ class CartItemSerializer(serializers.ModelSerializer):
         if first_image and request:
             return request.build_absolute_uri(first_image.image.url)
         return None               
+
+
+class WishlistItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    product_image = serializers.SerializerMethodField()
+    product_price = serializers.DecimalField(source='product.price', max_digits=12, decimal_places=2, read_only=True)
+    product_metal = serializers.CharField(source='product.metal', read_only=True)
+    product_category = serializers.CharField(source='product.category', read_only=True)
+    product_id = serializers.IntegerField(source='product.id', read_only=True)
+
+    class Meta:
+        model = Wishlist
+        fields = ['id', 'product_id', 'product_name', 'product_image', 'product_price', 'product_metal', 'product_category', 'added_at']
+        read_only_fields = ['added_at']
+
+    def get_product_image(self, obj):
+        request = self.context.get('request')
+        first_image = obj.product.images.first()
+        if first_image and request:
+            return request.build_absolute_uri(first_image.image.url)
+        return None

@@ -55,10 +55,10 @@ export default function GoldCoins() {
   }, [])
 
   // Fetch products
-  useEffect(() => {
+useEffect(() => {
     setLoading(true)
-    let url = `${API_BASE}/api/jewelry-products/?category=coins&metal=gold`
-    if (gradeFilter) url += `&grade=${gradeFilter}`
+    const grade = gradeFilter || metalType
+    let url = `${API_BASE}/api/jewelry-products/?category=coins&metal=gold&grade=${grade}`
     fetch(url)
       .then(r => r.json())
       .then(data => {
@@ -75,7 +75,7 @@ export default function GoldCoins() {
         setLoading(false)
       })
       .catch(() => { setProducts([]); setLoading(false) })
-  }, [weightFilter, gradeFilter])
+  }, [weightFilter, gradeFilter, metalType])
 
   // Particle canvas
   useEffect(() => {
@@ -214,7 +214,12 @@ export default function GoldCoins() {
           <div style={{ display:'flex', flexDirection:'column', gap:'12px', alignItems:'flex-end' }}>
             <div style={{ display:'flex', background:inpBg, border:`1px solid ${inpBorder}`, borderRadius:'12px', overflow:'hidden' }}>
               {[{ val:'22k', label:'🏅 22K' }, { val:'24k', label:'🥇 24K' }].map(({ val, label }) => (
-                <button key={val} onClick={() => setMetalType(val)}
+                <button key={val} onClick={() => {
+  setMetalType(val)
+  let url = `/gold-coins?grade=${val}`
+  if (weightFilter) url += `&weight=${weightFilter}`
+  navigate(url)
+}}
                   style={{ padding:'9px 20px', border:'none', background: metalType===val ? (val==='22k' ? 'linear-gradient(90deg,#f59e0b,#fbbf24)' : 'linear-gradient(90deg,#d97706,#ffd700)') : 'transparent', color: metalType===val ? '#000' : subtext, fontWeight:800, fontSize:'12px', cursor:'pointer', transition:'all 0.25s ease' }}
                 >{label}</button>
               ))}

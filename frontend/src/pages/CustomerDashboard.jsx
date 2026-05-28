@@ -139,6 +139,7 @@ export default function CustomerDashboard() {
   const [showOrderSummary, setShowOrderSummary] = useState(false)
   const [showTodayRate, setShowTodayRate] = useState(false)
   const [showChatWidget, setShowChatWidget] = useState(true)
+  const [wishlistCount, setWishlistCount] = useState(0)
   // const canvasRef = useRef(null)
 
   const bg = '#FDF5EE'
@@ -239,6 +240,21 @@ useEffect(() => {
     const handler = () => updateCount()
     window.addEventListener('bb_cart_update', handler)
     return () => window.removeEventListener('bb_cart_update', handler)
+  }, [])
+
+
+
+  useEffect(() => {
+    const updateWishCount = async () => {
+      try {
+        const res = await api.get('/wishlist/')
+        setWishlistCount(res.data.count)
+      } catch {}
+    }
+    updateWishCount()
+    const handler = () => updateWishCount()
+    window.addEventListener('bb_wishlist_update', handler)
+    return () => window.removeEventListener('bb_wishlist_update', handler)
   }, [])
 
 
@@ -418,10 +434,12 @@ useEffect(() => {
   }
 
 const addMetalToCart = async (metalType, metalLabel, weightObj, price, img) => {
-    // Metal coins - product id இல்லாததால் DB cart support இல்ல
-    // Future-ல metal coin product create பண்ணா id கொடுக்கலாம்
-    setMsg(`ℹ️ Metal coins - Place Order button use பண்ணுங்க`)
-    setMsgType('info')
+    // Coin cart click → Order popup திற
+    setOrderMetal(metalType)
+    setOrderWeight(weightObj.label)
+    setOrderCount(1)
+    setOrderMsg('')
+    setOrderPopup(true)
   }
 
 
@@ -753,7 +771,25 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
           >
             🏆 Order Summary
           </button>
-          <span style={{ cursor: 'pointer' }}>♡</span>
+          <span
+  style={{ cursor: 'pointer', position: 'relative', fontSize: 22 }}
+  onClick={() => navigate('/wishlist')}
+>
+  {wishlistCount > 0 ? '❤️' : '♡'}
+  {wishlistCount > 0 && (
+    <span style={{
+      position: 'absolute', top: '-6px', right: '-8px',
+      background: '#e11d48', color: '#fff',
+      borderRadius: '50%', width: '16px', height: '16px',
+      fontSize: '9px', fontWeight: 900,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      lineHeight: 1,
+    }}>
+      {wishlistCount}
+    </span>
+  )}
+</span>
+
           <span style={{ cursor: 'pointer' }}>👤</span>
           <span
             style={{ cursor: 'pointer', position: 'relative' }}
@@ -847,8 +883,8 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
               }
             },
             gold: {
-              filters: ['Category', 'Price', 'Occasion', 'Men'],
-              filterKeys: ['category', 'price', 'occasion', 'men'],
+              filters: ['Category', 'Price', 'Occasion', 'Gender'],
+              filterKeys: ['category', 'price', 'occasion', 'gender'],
               panels: {
                 category: {
                   type: 'icon-grid',
@@ -862,11 +898,10 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
                   type: 'occasion-grid',
                   items: [{ label: 'Office Wear', emoji: '💼' }, { label: 'Modern Wear', emoji: '🚗' }, { label: 'Casual Wear', emoji: '☀️' }, { label: 'Traditional Wear', emoji: '🪔' }],
                 },
-                men: {
-                  type: 'icon-grid',
-                  items: ['Men\'s Rings', 'Men\'s Chains', 'Men\'s Bracelets', 'Men\'s Kadas'],
-                  icon: '👨',
-                },
+                gender: {                          // 'men' block முழுவதும் இதை replace பண்ணு
+      type: 'gender-grid',
+      items: [{ label: 'Women', emoji: '👩' }, { label: 'Men', emoji: '👨' }, { label: 'Kids & Teens', emoji: '👧' }],
+    },
               }
             },
             wedding: {
@@ -881,6 +916,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
                     { label: 'Wedding Chain', emoji: '✨' },
                     { label: 'Wedding Bangles', emoji: '💛' },
                     { label: 'Wedding Earring', emoji: '👂' },
+                    
                   ],
                 },
                 community: {
@@ -1308,8 +1344,12 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
                     const imgSrc = occasionImgMap[o.label]
                     return (
                       <div key={o.label} style={{ textAlign: 'center', cursor: 'pointer' }}
-                        onMouseEnter={e => { e.currentTarget.querySelector('.oh-box').style.borderColor = '#8B1A1A' }}
-                        onMouseLeave={e => { e.currentTarget.querySelector('.oh-box').style.borderColor = '#e8e0d0' }}>
+            onMouseEnter={e => { e.currentTarget.querySelector('.oh-box').style.borderColor = '#8B1A1A' }}
+            onMouseLeave={e => { e.currentTarget.querySelector('.oh-box').style.borderColor = '#e8e0d0' }}
+            onClick={() => {
+              setShowDropdown(false)
+              navigate(`/collection/all?occasion=${encodeURIComponent(o.label)}`)
+            }}>
                         <div className="oh-box" style={{
                           width: '100%',
                           height: '190px',
@@ -1459,15 +1499,21 @@ if (panel.type === 'image-grid') {
                       }}
                       onMouseEnter={e => e.currentTarget.style.background = '#fdf2f2'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                      onClick={() => {
-                        setShowDropdown(false)
-                        if (panel.metal === 'silver') {
-                          navigate(item.grams ? `/silver-coins?weight=${encodeURIComponent(item.label)}` : '/silver-coins')
-                        } else {
-                          const grade = panel.metal === 'gold24k' ? '24k' : '22k'
-                          navigate(item.grams ? `/gold-coins?weight=${encodeURIComponent(item.label)}&grade=${grade}` : `/gold-coins?grade=${grade}`)
-                        }
-                      }}
+                      // coin-nav-grid onClick-ல
+onClick={() => {
+  setShowDropdown(false)
+  if (panel.metal === 'silver') {
+    navigate(item.grams ? `/silver-coins?weight=${encodeURIComponent(item.label)}` : '/silver-coins')
+  } else {
+    const grade = panel.metal === 'gold24k' ? '24k' : '22k'
+    if (item.grams) {
+      navigate(`/gold-coins?weight=${encodeURIComponent(item.label)}&grade=${grade}`)
+    } else {
+      // "All Gold" — grade pass பண்ணு
+      navigate(`/gold-coins?grade=${grade}`)
+    }
+  }
+}}
                     >
                       <div style={{
                         width: 34, height: 34, borderRadius: '50%',
@@ -2578,6 +2624,10 @@ if (panel.type === 'image-grid') {
             })()}
           </div>
         </div>
+
+ 
+
+
 
         {/* ── BHARATHY WORLD SECTION ── */}
         <div style={{ marginBottom: '40px', marginTop: '40px', textAlign: 'center' }}>

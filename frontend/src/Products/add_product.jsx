@@ -19,7 +19,7 @@ const TAGS = ['Bestseller', 'Bridal', 'Premium', 'Statement', 'Stackable', 'New'
 
 const OCCASIONS = ['Wedding', 'Birthday', 'Anniversary', 'Auspicious', 'Office Wear', 'Modern Wear', 'Casual Wear', 'Traditional Wear']
 
-const WEDDING_CATEGORIES = ['Wedding Ring', 'Wedding Necklaces', 'Wedding Chain', 'Wedding Bangles', 'Wedding Earring']
+const WEDDING_CATEGORIES = ['Wedding Ring', 'Wedding Necklaces', 'Wedding Chain', 'Wedding Bangles', 'Wedding Earring', ]
 
 const GENDERS = ['all', 'women', 'men', 'kids']
 
