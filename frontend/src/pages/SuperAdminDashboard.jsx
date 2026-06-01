@@ -2231,23 +2231,25 @@ setOrderPopupState({
           >
             <div
               onClick={e => e.stopPropagation()}
-              style={{
+             style={{
                 background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc',
                 border: '1px solid rgba(255,215,0,0.35)',
                 borderRadius: '24px',
                 width: '95%', maxWidth: '460px',
-                padding: '32px',
+                maxHeight: '85vh',
+                overflowY: 'auto',
+                padding: '20px 24px',
                 boxShadow: '0 32px 80px rgba(0,0,0,0.7)',
                 animation: 'fadeIn 0.3s cubic-bezier(0.22,1,0.36,1)',
               }}
             >
               {/* Header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{
-                    width: '42px', height: '42px', borderRadius: '12px',
+                    width: '36px', height: '36px', borderRadius: '10px',
                     background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.4)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px'
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px'
                   }}>💰</div>
                   <div>
                     <div style={{ color: '#ffd700', fontWeight: 800, fontSize: '15px' }}>ENTER METAL RATES</div>
@@ -2277,8 +2279,8 @@ setOrderPopupState({
               )}
 
               {/* Date */}
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', color: subtext, fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div style={{ marginBottom: '8px' }}>
+                <label style={{ display: 'block', color: subtext, fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
                   📅 Date *
                 </label>
                 <input
@@ -2292,8 +2294,8 @@ setOrderPopupState({
               </div>
 
               {/* 22K */}
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', color: '#fbbf24', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div style={{ marginBottom: '8px' }}>
+                <label style={{ display: 'block', color: '#fbbf24', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
                   🏅 Gold 22K — Rate per gram (₹) *
                 </label>
                 <input
@@ -2313,8 +2315,8 @@ setOrderPopupState({
               </div>
 
               {/* 24K */}
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', color: '#ffd700', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div style={{ marginBottom: '8px' }}>
+                <label style={{ display: 'block', color: '#ffd700', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
                   🥇 Gold 24K — Rate per gram (₹) *
                 </label>
                 <input
@@ -2334,8 +2336,8 @@ setOrderPopupState({
               </div>
 
             {/* Silver */}
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', color: '#c0c0c0', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div style={{ marginBottom: '8px' }}>
+                <label style={{ display: 'block', color: '#c0c0c0', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
                   🥈 Silver 999 — Rate per gram (₹) *
                 </label>
                 <input
@@ -2355,8 +2357,8 @@ setOrderPopupState({
               </div>
 
               {/* Diamond 18K */}
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', color: '#67e8f9', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div style={{ marginBottom: '8px' }}>
+                <label style={{ display: 'block', color: '#67e8f9', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
                   💎 Diamond 18K — Rate per gram (₹)
                 </label>
                 <input
@@ -2376,8 +2378,8 @@ setOrderPopupState({
               </div>
 
               {/* Diamond 22K */}
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', color: '#a5f3fc', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div style={{ marginBottom: '8px' }}>
+                <label style={{ display: 'block', color: '#a5f3fc', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
                   💎 Diamond 22K — Rate per gram (₹)
                 </label>
                 <input
@@ -2397,8 +2399,8 @@ setOrderPopupState({
               </div>
 
               {/* Platinum 92 */}
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', color: '#e2e8f0', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+             <div style={{ marginBottom: '10px' }}>
+                <label style={{ display: 'block', color: '#e2e8f0', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
                   🔘 Platinum 92 — Rate per gram (₹)
                 </label>
                 <input
@@ -2406,7 +2408,7 @@ setOrderPopupState({
                   placeholder="e.g. 3200"
                   value={rateForm.platinum_92}
                   onChange={e => setRateForm({ ...rateForm, platinum_92: e.target.value })}
-                  style={{ width: '100%', background: inpBg, border: `1px solid rgba(226,232,240,0.4)`, borderRadius: '10px', padding: '12px 16px', color: '#e2e8f0', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
+                  style={{ width: '100%', background: inpBg, border: `1px solid rgba(226,232,240,0.4)`, borderRadius: '10px', padding: '8px 12px', color: '#e2e8f0', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
                   onFocus={e => e.target.style.borderColor = '#e2e8f0'}
                   onBlur={e => e.target.style.borderColor = 'rgba(226,232,240,0.4)'}
                 />

@@ -1323,7 +1323,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
                 'Silver Bracelets': '/collection/bracelets',
                 // Gold category routes
                 'Gold Earrings': '/gold-earrings',
-                'Gold Chains': '/gold-chains',
+                'Gold Chains': '/gold-chain',
                 'Gold Rings': '/gold-rings',
                 'Gold Bangles': '/gold-bangles',
                 'Gold Necklaces': '/gold-necklaces',

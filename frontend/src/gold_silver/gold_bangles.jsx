@@ -35,7 +35,7 @@ const TAG_COLORS = {
 
 export default function GoldBangles() {
   const navigate = useNavigate()
-  const [dark, setDark]                     = useState(true)
+  
   const [selectedWeight, setSelectedWeight] = useState('All Weights')
   const [hoveredBangle, setHoveredBangle]   = useState(null)
   const [goldPrice, setGoldPrice]           = useState(null)
@@ -44,18 +44,17 @@ export default function GoldBangles() {
 const [loading, setLoading] = useState(true)
   const [metalType, setMetalType]           = useState('gold_22k') // '22k' | '24k'
   const [wishlistedIds, setWishlistedIds] = useState(new Set())
-  const canvasRef = useRef(null)
+ 
 
-  /* ── theme tokens ── */
-  const bg        = dark ? '#020617'                   : '#f8fafc'
-  const text      = dark ? '#f8fafc'                   : '#020617'
-  const subtext   = dark ? '#94a3b8'                   : '#64748b'
-  const border    = dark ? 'rgba(255,255,255,0.1)'     : 'rgba(0,0,0,0.1)'
-  const glass     = dark ? 'rgba(15,23,42,0.65)'       : 'rgba(255,255,255,0.7)'
-  const cardBg    = dark ? 'rgba(255,255,255,0.03)'    : 'rgba(0,0,0,0.03)'
-  const inpBg     = dark ? 'rgba(255,255,255,0.05)'    : 'rgba(0,0,0,0.05)'
-  const inpBorder = dark ? '#374151'                   : '#d1d5db'
-  const optionBg  = dark ? '#1a2035'                   : '#ffffff'
+const bg        = '#fdf6f0'
+const text      = '#020617'
+const subtext   = '#64748b'
+const border    = 'rgba(0,0,0,0.1)'
+const glass     = 'rgba(255,255,255,0.7)'
+const cardBg    = 'rgba(0,0,0,0.03)'
+const inpBg     = 'rgba(0,0,0,0.05)'
+const inpBorder = '#d1d5db'
+const optionBg  = '#ffffff'
 
   const goldColor = metalType === 'gold_24k' ? '#ffd700' : '#fbbf24'
   const goldGlow  = metalType === 'gold_24k' ? 'rgba(255,215,0,0.28)' : 'rgba(251,191,36,0.28)'
@@ -108,69 +107,7 @@ useEffect(() => {
 
   
 
-  /* ── canvas particle animation ── */
-  useEffect(() => {
-    const canvas = canvasRef.current
-    const ctx    = canvas.getContext('2d')
-    let animId, particles = []
-    const mouse = { x: null, y: null, radius: 150 }
 
-    const resize    = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight }
-    const mouseMove = (e) => { mouse.x = e.x; mouse.y = e.y }
-    window.addEventListener('resize',    resize)
-    window.addEventListener('mousemove', mouseMove)
-    resize()
-
-    class Particle {
-      constructor() {
-        this.x = Math.random() * canvas.width
-        this.y = Math.random() * canvas.height
-        this.size   = Math.random() * 4 + 2
-        this.speedX = (Math.random() - 0.5) * 0.3
-        this.speedY = (Math.random() - 0.5) * 0.3
-      }
-      update() {
-        this.x += this.speedX; this.y += this.speedY
-        if (this.x > canvas.width  || this.x < 0) this.speedX *= -1
-        if (this.y > canvas.height || this.y < 0) this.speedY *= -1
-        if (mouse.x !== null) {
-          const dx = mouse.x - this.x, dy = mouse.y - this.y
-          const dist = Math.sqrt(dx*dx + dy*dy)
-          if (dist < mouse.radius) {
-            const f = (mouse.radius - dist) / mouse.radius
-            this.x += (dx/dist)*f*2; this.y += (dy/dist)*f*2
-          }
-        }
-      }
-      draw() {
-        ctx.fillStyle = dark ? 'rgba(251,191,36,0.75)' : 'rgba(180,130,20,0.6)'
-        ctx.save(); ctx.translate(this.x, this.y); ctx.beginPath()
-        const spikes = 5, outerR = this.size, innerR = this.size * 0.4
-        for (let i = 0; i < spikes*2; i++) {
-          const r = i%2===0 ? outerR : innerR
-          const a = (i*Math.PI)/spikes - Math.PI/2
-          if (i===0) ctx.moveTo(Math.cos(a)*r, Math.sin(a)*r)
-          else       ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r)
-        }
-        ctx.closePath(); ctx.fill(); ctx.restore()
-      }
-    }
-
-    function init()    { particles = []; for (let i=0;i<60;i++) particles.push(new Particle()) }
-    function connect() {
-      for (let a=0;a<particles.length;a++) for (let b=a;b<particles.length;b++) {
-        const dx=particles[a].x-particles[b].x, dy=particles[a].y-particles[b].y, d=Math.sqrt(dx*dx+dy*dy)
-        if (d<150) {
-          ctx.strokeStyle=`rgba(251,191,36,${(1-d/150)*0.3})`
-          ctx.lineWidth=0.5; ctx.beginPath()
-          ctx.moveTo(particles[a].x,particles[a].y); ctx.lineTo(particles[b].x,particles[b].y); ctx.stroke()
-        }
-      }
-    }
-    function animate() { ctx.clearRect(0,0,canvas.width,canvas.height); particles.forEach(p=>{p.update();p.draw()}); connect(); animId=requestAnimationFrame(animate) }
-    init(); animate()
-    return () => { window.removeEventListener('resize',resize); window.removeEventListener('mousemove',mouseMove); cancelAnimationFrame(animId) }
-  }, [dark])
 
   /* ── helpers ── */
   const selectedW  = WEIGHTS.find(w => w.label === selectedWeight)
@@ -212,15 +149,9 @@ useEffect(() => {
         input[type=number] { -moz-appearance:textfield; appearance:textfield; }
       `}</style>
 
-      <canvas ref={canvasRef} style={{ position:'fixed', top:0, left:0, pointerEvents:'none', zIndex:1, opacity:0.4 }} />
+      
 
-      {/* orbs */}
-      <div style={{ position:'absolute', borderRadius:'50%', filter:'blur(90px)', animation:'float-orb 20s infinite ease-in-out', zIndex:0, top:'5%', left:'5%', width:'420px', height:'420px', background:'rgba(251,191,36,0.07)' }} />
-      <div style={{ position:'absolute', borderRadius:'50%', filter:'blur(90px)', animation:'float-orb 20s infinite ease-in-out', zIndex:0, bottom:'5%', right:'5%', width:'500px', height:'500px', background:'rgba(255,215,0,0.05)', animationDelay:'-7s' }} />
-
-      {PARTICLES.map(p => (
-        <div key={p.id} style={{ position:'absolute', left:`${p.x}%`, bottom:'-100px', width:p.size, height:p.size, borderRadius:'40% 60% 60% 40%/40% 40% 60% 60%', border:`1px solid ${goldColor}44`, opacity:p.opacity, animation:`antigravity ${p.duration}s ${p.delay}s infinite linear`, '--op':p.opacity, pointerEvents:'none', zIndex:0 }} />
-      ))}
+      
 
       {/* ── Navbar ── */}
 <CustomerNavbar />
@@ -293,7 +224,7 @@ useEffect(() => {
                 <div className="gb-shine" />
 
                 {/* Image */}
-                <div className="gb-img-wrap" style={{ position:'relative', height:'240px', background: dark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.04)' }}>
+                <div className="gb-img-wrap" style={{ position:'relative', height:'240px', background: 'rgba(0,0,0,0.04)' }}>
 <img
   src={getImageUrl(bangle.images?.[0]?.image)}
   alt={bangle.name}
@@ -369,7 +300,7 @@ useEffect(() => {
       {/* ── Detail Modal ── */}
       {selectedBangle && (
         <div onClick={() => setSelectedBangle(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.9)', backdropFilter:'blur(14px)', zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border:'1px solid rgba(251,191,36,0.35)', borderRadius:'28px', width:'95%', maxWidth:'560px', overflow:'hidden', boxShadow:'0 40px 100px rgba(0,0,0,0.8)', animation:'fadeInUp 0.3s ease' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#f8fafc', border:'1px solid rgba(251,191,36,0.35)', borderRadius:'28px', width:'95%', maxWidth:'560px', overflow:'hidden', boxShadow:'0 40px 100px rgba(0,0,0,0.8)', animation:'fadeInUp 0.3s ease' }}>
 
             {/* image */}
             <div style={{ position:'relative', height:'180px', overflow:'hidden' }}>
