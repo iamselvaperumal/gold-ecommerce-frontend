@@ -719,7 +719,11 @@ export default function SuperAdminDashboard() {
   const [repliedIds, setRepliedIds] = useState(new Set())
   const [annReplies, setAnnReplies] = useState({})
   const [replyPopupAnnId, setReplyPopupAnnId] = useState(null)
-  const [metalPrices, setMetalPrices] = useState({ gold24k: null, gold22k: null, silver: null })
+  const [metalPrices, setMetalPrices] = useState({
+  gold22k: null, gold24k: null, silver: null,
+  diamond18k: null, diamond22k: null, platinum92: null,
+})
+const [showTodayRates, setShowTodayRates] = useState(false)
   const [metalLoading, setMetalLoading] = useState(false)
   const [usdToInr, setUsdToInr] = useState(null)
 
@@ -741,6 +745,9 @@ export default function SuperAdminDashboard() {
     gold_22k: '',
     gold_24k: '',
     silver_999: '',
+    diamond_18k: '',
+    diamond_22k: '',
+    platinum_92: '',
   })
   const [rateMsg, setRateMsg] = useState('')
   const [rateSaving, setRateSaving] = useState(false)
@@ -1116,24 +1123,25 @@ export default function SuperAdminDashboard() {
     setHierarchyLoading(false)
   }
 
-  const fetchMetalPrices = async () => {
+const fetchMetalPrices = async () => {
     setMetalLoading(true)
     try {
       const res = await api.get('/metal-rates/')
       const d = res.data
       setMetalPrices({
-        gold22k: parseFloat(d.gold_22k),
-        gold24k: parseFloat(d.gold_24k),
-        silver: parseFloat(d.silver_999),
+        gold22k: d.gold_22k ? parseFloat(d.gold_22k) : null,
+        gold24k: d.gold_24k ? parseFloat(d.gold_24k) : null,
+        silver: d.silver_999 ? parseFloat(d.silver_999) : null,
+        diamond18k: d.diamond_18k ? parseFloat(d.diamond_18k) : null,
+        diamond22k: d.diamond_22k ? parseFloat(d.diamond_22k) : null,
+        platinum92: d.platinum_92 ? parseFloat(d.platinum_92) : null,
       })
       setDbRateDate(d.date)
     } catch (e) {
-      // No rate entered yet — leave as null
-      setMetalPrices({ gold22k: null, gold24k: null, silver: null })
+      setMetalPrices({ gold22k: null, gold24k: null, silver: null, diamond18k: null, diamond22k: null, platinum92: null })
       setDbRateDate(null)
-    }
-    finally {
-    setMetalLoading(false)
+    } finally {
+      setMetalLoading(false)
     }
   }
 
@@ -1601,6 +1609,25 @@ const buildHierarchyOrders = (period, metalKey) => {
           >
             <span style={{ fontSize: '18px', lineHeight: 1 }}>📬</span>
           </div>
+
+          {/* 📊 Today Rates Icon */}
+          <div
+            onClick={() => setShowTodayRates(true)}
+            title="Today's Metal Rates"
+            style={{
+              cursor: 'pointer', padding: '6px 12px', borderRadius: '10px',
+              border: '1px solid rgba(255,215,0,0.45)',
+              background: 'rgba(255,215,0,0.1)',
+              display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.25s ease',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,215,0,0.25)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,215,0,0.1)'; e.currentTarget.style.transform = 'translateY(0)' }}
+          >
+            <span style={{ fontSize: '16px', lineHeight: 1 }}>📊</span>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#ffd700' }}>Today Rates</span>
+          </div>
+
+          
 
           <button onClick={() => setDark(!dark)}
 
@@ -2306,8 +2333,8 @@ setOrderPopupState({
                 )}
               </div>
 
-              {/* Silver */}
-              <div style={{ marginBottom: '24px' }}>
+            {/* Silver */}
+              <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', color: '#c0c0c0', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
                   🥈 Silver 999 — Rate per gram (₹) *
                 </label>
@@ -2327,12 +2354,77 @@ setOrderPopupState({
                 )}
               </div>
 
+              {/* Diamond 18K */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', color: '#67e8f9', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+                  💎 Diamond 18K — Rate per gram (₹)
+                </label>
+                <input
+                  type="number"
+                  placeholder="e.g. 45000"
+                  value={rateForm.diamond_18k}
+                  onChange={e => setRateForm({ ...rateForm, diamond_18k: e.target.value })}
+                  style={{ width: '100%', background: inpBg, border: `1px solid rgba(103,232,249,0.4)`, borderRadius: '10px', padding: '12px 16px', color: '#67e8f9', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
+                  onFocus={e => e.target.style.borderColor = '#67e8f9'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(103,232,249,0.4)'}
+                />
+                {rateForm.diamond_18k && (
+                  <div style={{ color: '#67e8f9', fontSize: '11px', marginTop: '5px', opacity: 0.7 }}>
+                    Preview 1gm = ₹{parseFloat(rateForm.diamond_18k).toFixed(2)}
+                  </div>
+                )}
+              </div>
+
+              {/* Diamond 22K */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', color: '#a5f3fc', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+                  💎 Diamond 22K — Rate per gram (₹)
+                </label>
+                <input
+                  type="number"
+                  placeholder="e.g. 55000"
+                  value={rateForm.diamond_22k}
+                  onChange={e => setRateForm({ ...rateForm, diamond_22k: e.target.value })}
+                  style={{ width: '100%', background: inpBg, border: `1px solid rgba(165,243,252,0.4)`, borderRadius: '10px', padding: '12px 16px', color: '#a5f3fc', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
+                  onFocus={e => e.target.style.borderColor = '#a5f3fc'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(165,243,252,0.4)'}
+                />
+                {rateForm.diamond_22k && (
+                  <div style={{ color: '#a5f3fc', fontSize: '11px', marginTop: '5px', opacity: 0.7 }}>
+                    Preview 1gm = ₹{parseFloat(rateForm.diamond_22k).toFixed(2)}
+                  </div>
+                )}
+              </div>
+
+              {/* Platinum 92 */}
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', color: '#e2e8f0', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+                  🔘 Platinum 92 — Rate per gram (₹)
+                </label>
+                <input
+                  type="number"
+                  placeholder="e.g. 3200"
+                  value={rateForm.platinum_92}
+                  onChange={e => setRateForm({ ...rateForm, platinum_92: e.target.value })}
+                  style={{ width: '100%', background: inpBg, border: `1px solid rgba(226,232,240,0.4)`, borderRadius: '10px', padding: '12px 16px', color: '#e2e8f0', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
+                  onFocus={e => e.target.style.borderColor = '#e2e8f0'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(226,232,240,0.4)'}
+                />
+                {rateForm.platinum_92 && (
+                  <div style={{ color: '#e2e8f0', fontSize: '11px', marginTop: '5px', opacity: 0.7 }}>
+                    Preview 1gm = ₹{parseFloat(rateForm.platinum_92).toFixed(2)}
+                  </div>
+                )}
+              </div>
+
+              
+
               {/* Save Button */}
               <button
                 disabled={rateSaving}
                 onClick={async () => {
                   if (!rateForm.date || !rateForm.gold_22k || !rateForm.gold_24k || !rateForm.silver_999) {
-                    setRateMsg('❌ All fields are required.')
+                    setRateMsg('❌ Gold and Silver fields are required.')
                     return
                   }
                   setRateSaving(true)
@@ -2342,6 +2434,9 @@ setOrderPopupState({
                       gold_22k: rateForm.gold_22k,
                       gold_24k: rateForm.gold_24k,
                       silver_999: rateForm.silver_999,
+                      diamond_18k: rateForm.diamond_18k || 0,
+                      diamond_22k: rateForm.diamond_22k || 0,
+                      platinum_92: rateForm.platinum_92 || 0,
                     })
                     setRateMsg('✅ Rate saved successfully!')
                     fetchMetalPrices()   // refresh the table
@@ -3047,6 +3142,69 @@ setOrderPopupState({
             </div>
           </div>
         )}
+
+
+
+        {/* ── TODAY RATES MODAL ── */}
+        {showTodayRates && (
+          <div
+            onClick={() => setShowTodayRates(false)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', zIndex: 1300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: '1px solid rgba(255,215,0,0.35)', borderRadius: '24px', width: '95%', maxWidth: '480px', maxHeight: '88vh', overflowY: 'auto', padding: '32px', boxShadow: '0 32px 80px rgba(0,0,0,0.7)', animation: 'fadeIn 0.3s ease' }}
+            >
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>📊</div>
+                  <div>
+                    <div style={{ color: '#ffd700', fontWeight: 800, fontSize: '15px' }}>TODAY'S METAL RATES</div>
+                    <div style={{ color: subtext, fontSize: '11px', marginTop: '2px' }}>
+                      {dbRateDate ? `📅 ${new Date(dbRateDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}` : 'No rate entered yet'}
+                    </div>
+                  </div>
+                </div>
+                <button onClick={() => setShowTodayRates(false)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px' }}>✕ Close</button>
+              </div>
+
+              {/* Rate Cards */}
+              {[
+                { label: 'Gold 22K', icon: '🏅', color: '#fbbf24', rgb: '251,191,36', value: metalPrices.gold22k },
+                { label: 'Gold 24K', icon: '🥇', color: '#ffd700', rgb: '255,215,0', value: metalPrices.gold24k },
+                { label: 'Silver 999', icon: '🥈', color: '#c0c0c0', rgb: '192,192,192', value: metalPrices.silver },
+                { label: 'Diamond 18K', icon: '💎', color: '#67e8f9', rgb: '103,232,249', value: metalPrices.diamond18k },
+                { label: 'Diamond 22K', icon: '💎', color: '#a5f3fc', rgb: '165,243,252', value: metalPrices.diamond22k },
+                { label: 'Platinum 92', icon: '🔘', color: '#e2e8f0', rgb: '226,232,240', value: metalPrices.platinum92 },
+              ].map(item => (
+                <div key={item.label} style={{ background: `rgba(${item.rgb},0.06)`, border: `1px solid rgba(${item.rgb},0.3)`, borderRadius: '14px', padding: '16px 20px', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `rgba(${item.rgb},0.15)`, border: `1px solid rgba(${item.rgb},0.35)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>{item.icon}</div>
+                    <div>
+                      <div style={{ color: item.color, fontWeight: 800, fontSize: '13px' }}>{item.label}</div>
+                      <div style={{ color: subtext, fontSize: '10px', marginTop: '2px' }}>per gram</div>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ color: item.color, fontWeight: 900, fontSize: '20px', fontFamily: 'monospace' }}>
+                      {item.value ? `₹${item.value.toFixed(2)}` : <span style={{ color: subtext, fontSize: '13px' }}>Not set</span>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <button
+                onClick={() => { setShowTodayRates(false); setShowRatePopup(true); setRateMsg('') }}
+                style={{ width: '100%', marginTop: '8px', padding: '13px', background: 'linear-gradient(90deg,#fbbf24,#ffd700)', border: 'none', borderRadius: '12px', fontWeight: 800, color: '#431407', fontSize: '14px', cursor: 'pointer' }}
+              >
+                ✏️ Update Rates
+              </button>
+            </div>
+          </div>
+        )}
+
+
 
 
 {/* ── ORDER HIERARCHY POPUP ─────────────────────────────────────────── */}

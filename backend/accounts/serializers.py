@@ -396,7 +396,7 @@ class ProfileUpdateRequestSerializer(serializers.ModelSerializer):
 class MetalRateSerializer(serializers.ModelSerializer):
     class Meta:
         model = MetalRate
-        fields = ['id', 'date', 'gold_22k', 'gold_24k', 'silver_999', 'created_at', 'updated_at']
+        fields = ['id', 'date', 'gold_22k', 'gold_24k', 'silver_999','diamond_18k', 'diamond_22k','platinum_92', 'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at']
 
 class MetalOrderSerializer(serializers.ModelSerializer):
