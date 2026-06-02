@@ -3,157 +3,118 @@ import { useNavigate } from 'react-router-dom'
 import logo from '../assets/logo.png'
 import CustomerNavbar from './CustomerNavbar'
 
-const PARTICLES = Array.from({ length: 12 }, (_, i) => ({
-  id: i, size: Math.random() * 50 + 8, x: Math.random() * 100,
-  delay: Math.random() * 8, duration: Math.random() * 12 + 15, opacity: Math.random() * 0.18 + 0.04,
-}))
 
 export default function RingCollection() {
   const navigate = useNavigate()
-  const [dark, setDark] = useState(true)
   const [hoveredCard, setHoveredCard] = useState(null)
-  const canvasRef = useRef(null)
 
- const bg      = '#FDF5EE'
+
+const bg      = '#FDF5EE'
 const text    = '#020617'
 const subtext = '#64748b'
-const accent  = '#8B1A1A'
 const border  = 'rgba(0,0,0,0.1)'
-const glass   = 'rgba(255,255,255,0.85)'
 const cardBg  = 'rgba(0,0,0,0.03)'
-const cardBorder = '1px solid rgba(0,0,0,0.1)'
 
-  useEffect(() => {
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    let animationFrameId, particlesArray = []
-    const mouse = { x: null, y: null, radius: 150 }
-    const handleResize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight }
-    const handleMouseMove = (e) => { mouse.x = e.x; mouse.y = e.y }
-    window.addEventListener('resize', handleResize)
-    window.addEventListener('mousemove', handleMouseMove)
-    handleResize()
 
-    class Particle {
-      constructor() {
-        this.x = Math.random() * canvas.width
-        this.y = Math.random() * canvas.height
-        this.size = Math.random() * 4 + 2
-        this.speedX = (Math.random() - 0.5) * 0.3
-        this.speedY = (Math.random() - 0.5) * 0.3
-      }
-      update() {
-        this.x += this.speedX; this.y += this.speedY
-        if (this.x > canvas.width || this.x < 0) this.speedX *= -1
-        if (this.y > canvas.height || this.y < 0) this.speedY *= -1
-        if (mouse.x !== null && mouse.y !== null) {
-          let dx = mouse.x - this.x, dy = mouse.y - this.y
-          let distance = Math.sqrt(dx * dx + dy * dy)
-          if (distance < mouse.radius) {
-            const force = (mouse.radius - distance) / mouse.radius
-            this.x += (dx / distance) * force * 2
-            this.y += (dy / distance) * force * 2
-          }
-        }
-      }
-      draw() {
-        ctx.fillStyle = dark ? 'rgba(34,211,238,0.9)' : 'rgba(37,99,235,0.8)'
-        ctx.save(); ctx.translate(this.x, this.y); ctx.beginPath()
-        const spikes = 5, outerR = this.size, innerR = this.size * 0.4
-        for (let i = 0; i < spikes * 2; i++) {
-          const r = i % 2 === 0 ? outerR : innerR
-          const angle = (i * Math.PI) / spikes - Math.PI / 2
-          if (i === 0) ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r)
-          else ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r)
-        }
-        ctx.closePath(); ctx.fill(); ctx.restore()
-      }
-    }
 
-    function init() { particlesArray = []; for (let i = 0; i < 60; i++) particlesArray.push(new Particle()) }
-    function connect() {
-      for (let a = 0; a < particlesArray.length; a++) for (let b = a; b < particlesArray.length; b++) {
-        let dx = particlesArray[a].x - particlesArray[b].x, dy = particlesArray[a].y - particlesArray[b].y, d = Math.sqrt(dx*dx+dy*dy)
-        if (d < 150) { ctx.strokeStyle = dark ? `rgba(34,211,238,${1-d/150})` : `rgba(37,99,235,${0.5-d/300})`; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(particlesArray[a].x, particlesArray[a].y); ctx.lineTo(particlesArray[b].x, particlesArray[b].y); ctx.stroke() }
-      }
-    }
-    function animate() { ctx.clearRect(0,0,canvas.width,canvas.height); particlesArray.forEach(p=>{p.update();p.draw()}); connect(); animationFrameId = requestAnimationFrame(animate) }
-    init(); animate()
-    return () => { window.removeEventListener('resize', handleResize); window.removeEventListener('mousemove', handleMouseMove); cancelAnimationFrame(animationFrameId) }
-  }, [dark])
-
-  const collections = [
-    {
-      id: 'gold',
-      title: 'Gold Rings',
-      subtitle: '5 Exclusive Designs',
-      description: 'Handcrafted gold rings in 22K & 24K. Bridal, everyday, and statement pieces.',
-      color: '#fbbf24',
-      glow: 'rgba(251,191,36,0.35)',
-      border: 'rgba(251,191,36,0.4)',
-      bg: 'rgba(251,191,36,0.06)',
-      img: '/img/gold/gold-ring-2.png',
-      tag: '22K & 24K',
-      route: '/gold-rings',
-      shimmer: 'linear-gradient(90deg, transparent, rgba(251,191,36,0.15), transparent)',
-    },
-    {
-      id: 'silver',
-      title: 'Silver Rings',
-      subtitle: '5 Exclusive Designs',
-      description: 'Premium 999 silver rings with intricate craftsmanship. Modern and traditional styles.',
-      color: '#c0c0c0',
-      glow: 'rgba(192,192,192,0.25)',
-      border: 'rgba(192,192,192,0.4)',
-      bg: 'rgba(192,192,192,0.05)',
-      img: '/img/silver/silver-ring-3.png',
-      tag: 'Silver 999',
-      route: '/silver-rings',
-      shimmer: 'linear-gradient(90deg, transparent, rgba(192,192,192,0.15), transparent)',
-    },
-  ]
-
+const collections = [
+  {
+    id: 'gold',
+    title: 'Gold Rings',
+    subtitle: '5 Exclusive Designs',
+    description: 'Handcrafted gold rings in 22K & 24K. Bridal, everyday, and statement pieces.',
+    color: '#fbbf24',
+    glow: 'rgba(251,191,36,0.35)',
+    border: 'rgba(251,191,36,0.4)',
+    bg: 'rgba(251,191,36,0.06)',
+    img: '/img/gold/gold-ring-2.png',
+    tag: '22K & 24K',
+    route: '/gold-rings',
+    icon: '🏅',
+    shimmer: 'linear-gradient(90deg, transparent, rgba(251,191,36,0.15), transparent)',
+    iconBg: '251,191,36',
+  },
+  {
+    id: 'silver',
+    title: 'Silver Rings',
+    subtitle: '5 Exclusive Designs',
+    description: 'Premium 999 silver rings with intricate craftsmanship. Modern and traditional styles.',
+    color: '#c0c0c0',
+    glow: 'rgba(192,192,192,0.25)',
+    border: 'rgba(192,192,192,0.4)',
+    bg: 'rgba(192,192,192,0.05)',
+    img: '/img/silver/silver-ring-3.png',
+    tag: 'Silver 999',
+    route: '/silver-rings',
+    icon: '🥈',
+    shimmer: 'linear-gradient(90deg, transparent, rgba(192,192,192,0.15), transparent)',
+    iconBg: '192,192,192',
+  },
+  {
+    id: 'diamond',
+    title: 'Diamond Rings',
+    subtitle: '5 Exclusive Designs',
+    description: 'Stunning diamond rings with brilliant cuts and luxury craftsmanship.',
+    color: '#a5f3fc',
+    glow: 'rgba(165,243,252,0.3)',
+    border: 'rgba(165,243,252,0.4)',
+    bg: 'rgba(165,243,252,0.05)',
+    img: '/diamond_ring.jpg',
+    tag: 'VVS & VS1',
+    route: '/diamond-rings',
+    icon: '💎',
+    shimmer: 'linear-gradient(90deg, transparent, rgba(165,243,252,0.15), transparent)',
+    iconBg: '165,243,252',
+  },
+  {
+    id: 'platinum',
+    title: 'Platinum Rings',
+    subtitle: '5 Exclusive Designs',
+    description: 'Rare platinum rings with superior strength and timeless elegance.',
+    color: '#e2e8f0',
+    glow: 'rgba(226,232,240,0.25)',
+    border: 'rgba(226,232,240,0.4)',
+    bg: 'rgba(226,232,240,0.05)',
+    img: '/platinum_ring.jpg',
+    tag: 'Pt 950',
+    route: '/platinum-rings',
+    icon: '⭐',
+    shimmer: 'linear-gradient(90deg, transparent, rgba(226,232,240,0.15), transparent)',
+    iconBg: '226,232,240',
+  },
+]
   return (
-    <div style={{ minHeight: '100vh', background: bg, color: text, fontFamily: '"Inter",system-ui,sans-serif', position: 'relative', overflow: 'hidden', transition: 'background 0.8s ease, color 0.4s ease' }}>
-      <style>{`
-        @keyframes float-orb { 0%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-50px) scale(1.1)} 66%{transform:translate(-20px,20px) scale(0.9)} 100%{transform:translate(0,0) scale(1)} }
-        @keyframes antigravity { 0%{transform:translateY(110vh) rotate(0deg);opacity:0} 10%{opacity:var(--op)} 90%{opacity:var(--op)} 100%{transform:translateY(-20vh) rotate(360deg);opacity:0} }
-        @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(200%)} }
-        @keyframes pulse-ring { 0%,100%{opacity:0.4;transform:scale(1)} 50%{opacity:0.8;transform:scale(1.05)} }
-        @keyframes float-card { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-6px)} }
-        @keyframes sparkle { 0%,100%{opacity:0;transform:scale(0) rotate(0deg)} 50%{opacity:1;transform:scale(1) rotate(180deg)} }
-        .ring-card { animation: fadeInUp 0.6s ease both; }
-        .ring-card:nth-child(1) { animation-delay: 0.1s; }
-        .ring-card:nth-child(2) { animation-delay: 0.25s; }
-        .card-shimmer { position:absolute; top:0; left:-100%; width:60%; height:100%; background: var(--shimmer); transform:skewX(-15deg); animation: shimmer 2.5s ease infinite; opacity:0; transition:opacity 0.3s; }
-        .ring-card-wrap:hover .card-shimmer { opacity:1; }
-        .explore-btn { position:relative; overflow:hidden; }
-        .explore-btn::after { content:''; position:absolute; inset:0; background:rgba(255,255,255,0.1); transform:translateX(-100%); transition:transform 0.3s ease; }
-        .explore-btn:hover::after { transform:translateX(0); }
-        .sparkle-dot { animation: sparkle 2s ease infinite; }
+  <div style={{ minHeight: '100vh', background: bg, color: text, fontFamily: '"Inter",system-ui,sans-serif', position: 'relative', overflow: 'hidden' }}>
+    <style>{`
+      @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+      @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(200%)} }
+      @keyframes pulse-ring { 0%,100%{opacity:0.4;transform:scale(1)} 50%{opacity:0.8;transform:scale(1.05)} }
 
-        body { background: #FDF5EE; font-family: 'Inter','Segoe UI',system-ui,sans-serif; color: #3d2b1f; -webkit-font-smoothing: antialiased; }
-h1,h2,h3 { color: #1a0a0a; font-weight: 700; }
-p { color: #3d2b1f; line-height: 1.7; }
+      .ring-card { animation: fadeInUp 0.6s ease both; }
+      .ring-card:nth-child(1) { animation-delay: 0.1s; }
+      .ring-card:nth-child(2) { animation-delay: 0.2s; }
+      .ring-card:nth-child(3) { animation-delay: 0.3s; }
+      .ring-card:nth-child(4) { animation-delay: 0.4s; }
 
-      `}</style>
+      .card-shimmer {
+        position:absolute; top:0; left:-100%; width:60%; height:100%;
+        background:var(--shimmer); transform:skewX(-15deg);
+        animation:shimmer 2.5s ease infinite; opacity:0; transition:opacity 0.3s;
+      }
+      .ring-card-wrap:hover .card-shimmer { opacity:1; }
+      .explore-btn { position:relative; overflow:hidden; }
+      .explore-btn::after {
+        content:''; position:absolute; inset:0;
+        background:rgba(255,255,255,0.1);
+        transform:translateX(-100%); transition:transform 0.3s ease;
+      }
+      .explore-btn:hover::after { transform:translateX(0); }
+    `}</style>
 
-      <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, pointerEvents: 'none', zIndex: 1, opacity: 0.4 }} />
-
-      {/* Floating orbs */}
-      <div style={{ position: 'absolute', borderRadius: '50%', filter: 'blur(80px)', animation: 'float-orb 20s infinite ease-in-out', zIndex: 0, top: '8%', left: '8%', width: '380px', height: '380px', background: dark ? 'rgba(52,211,153,0.08)' : 'rgba(16,185,129,0.08)' }} />
-      <div style={{ position: 'absolute', borderRadius: '50%', filter: 'blur(80px)', animation: 'float-orb 20s infinite ease-in-out', zIndex: 0, bottom: '10%', right: '4%', width: '460px', height: '460px', background: dark ? 'rgba(251,191,36,0.06)' : 'rgba(251,191,36,0.06)', animationDelay: '-5s' }} />
-
-      {PARTICLES.map(p => (
-        <div key={p.id} style={{ position: 'absolute', left: `${p.x}%`, bottom: '-100px', width: p.size, height: p.size, borderRadius: '40% 60% 60% 40% / 40% 40% 60% 60%', border: `1px solid ${accent}44`, opacity: p.opacity, animation: `antigravity ${p.duration}s ${p.delay}s infinite linear`, '--op': p.opacity, pointerEvents: 'none', zIndex: 0 }} />
-      ))}
-
-      {/* Navbar */}
     <CustomerNavbar />
 
       {/* Main Content */}
-      <div style={{ position: 'relative', zIndex: 10, padding: '60px 40px', maxWidth: '1100px', margin: '0 auto' }}>
+      <div style={{ position: 'relative', zIndex: 10, padding: '60px 40px', maxWidth: '1700px', margin: '0 auto' }}>
 
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '60px', animation: 'fadeInUp 0.5s ease both' }}>
@@ -171,7 +132,7 @@ p { color: #3d2b1f; line-height: 1.7; }
         </div>
 
         {/* Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', maxWidth: '800px', margin: '0 auto' }}>
+       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', maxWidth: '1500px', margin: '0 auto' }}>
           {collections.map((col, idx) => (
             <div
               key={col.id}
@@ -200,7 +161,7 @@ p { color: #3d2b1f; line-height: 1.7; }
                 <div className="card-shimmer" />
 
                 {/* Image */}
-                <div style={{ position: 'relative', height: '280px', overflow: 'hidden', background: dark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)' }}>
+                <div style={{ position: 'relative', height: '420px', overflow: 'hidden', background: 'rgba(0,0,0,0.05)' }}>
                   <img
                     src={col.img}
                     alt={col.title}
@@ -216,7 +177,7 @@ p { color: #3d2b1f; line-height: 1.7; }
                   <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to top, rgba(2,6,23,0.85) 0%, rgba(2,6,23,0.1) 60%, transparent 100%)` }} />
 
                   {/* Tag */}
-                  <div style={{ position: 'absolute', top: '14px', right: '14px', background: `rgba(${col.id === 'gold' ? '251,191,36' : '192,192,192'},0.2)`, border: `1px solid ${col.border}`, borderRadius: '20px', padding: '4px 12px', color: col.color, fontSize: '10px', fontWeight: 800, letterSpacing: '1px', backdropFilter: 'blur(8px)' }}>
+                  <div style={{ position: 'absolute', top: '14px', right: '14px', background: `rgba(${col.iconBg},0.2)`, border: `1px solid ${col.border}`, borderRadius: '20px', padding: '4px 12px', color: col.color, fontSize: '10px', fontWeight: 800, letterSpacing: '1px', backdropFilter: 'blur(8px)' }}>
                     {col.tag}
                   </div>
 
@@ -235,13 +196,13 @@ p { color: #3d2b1f; line-height: 1.7; }
                       <div style={{ color: col.color, fontWeight: 900, fontSize: '20px', marginBottom: '3px' }}>{col.title}</div>
                       <div style={{ color: subtext, fontSize: '11px', fontWeight: 600, letterSpacing: '0.5px' }}>{col.subtitle}</div>
                     </div>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `rgba(${col.id === 'gold' ? '251,191,36' : '192,192,192'},0.12)`, border: `1px solid ${col.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>
-                      {col.id === 'gold' ? '🏅' : '🥈'}
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `rgba(${col.iconBg},0.12)`, border: `1px solid ${col.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>
+                      {col.icon}
                     </div>
                   </div>
 
-                  <p style={{ color: dark ? '#94a3b8' : '#64748b', fontSize: '12px', lineHeight: '1.6', margin: '0 0 18px' }}>
-                    {col.description}
+                  
+                  <p style={{ color: '#64748b', fontSize: '12px', lineHeight: '1.6', margin: '0 0 18px' }}>  {col.description}
                   </p>
 
                   <button
@@ -250,8 +211,8 @@ p { color: #3d2b1f; line-height: 1.7; }
                       width: '100%',
                       padding: '12px',
                       background: hoveredCard === col.id
-                        ? col.id === 'gold' ? 'linear-gradient(90deg,#f59e0b,#fbbf24)' : 'linear-gradient(90deg,#9ca3af,#e5e7eb)'
-                        : `rgba(${col.id === 'gold' ? '251,191,36' : '192,192,192'},0.1)`,
+                      ? `linear-gradient(90deg, ${col.color}, ${col.color}cc)`
+                      : `rgba(${col.iconBg},0.1)`,
                       border: `1px solid ${col.border}`,
                       borderRadius: '12px',
                       color: hoveredCard === col.id ? '#000' : col.color,

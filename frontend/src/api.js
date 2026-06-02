@@ -1,7 +1,10 @@
 import axios from 'axios'
 
+const BASE_URL_RAW = import.meta.env.VITE_BASE_URL || 'https://bitbyte-backend-f66f.onrender.com/api/'
+const BASE_URL = BASE_URL_RAW.replace(/\/+$/, '')
+
 const api = axios.create({
-  baseURL: 'https://bitbyte-backend-f66f.onrender.com/api/',
+  baseURL: BASE_URL,
 })
 
 api.interceptors.request.use((config) => {
@@ -20,9 +23,9 @@ api.interceptors.response.use(
         const refresh = localStorage.getItem('refresh')
         if (refresh) {
           const res = await axios.post(
-            'https://bitbyte-backend-f66f.onrender.com/api/login/refresh/',
+            `${BASE_URL}/login/refresh/`,
             { refresh }
-            )
+          )
           localStorage.setItem('token', res.data.access)
           original.headers.Authorization = `Bearer ${res.data.access}`
           return api(original)

@@ -28,24 +28,22 @@ export default function GoldCoins() {
   const weightFilter = searchParams.get('weight')   // e.g. "8 gm"
   const gradeFilter  = searchParams.get('grade')    // '22k' or '24k'
 
-  const [dark, setDark] = useState(true)
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [metalPrices, setMetalPrices] = useState({ gold22k: null, gold24k: null })
   const [hoveredId, setHoveredId] = useState(null)
   const [wishlistedIds, setWishlistedIds] = useState(new Set())
   const [metalType, setMetalType] = useState(gradeFilter === '24k' ? '24k' : '22k')
-  const canvasRef = useRef(null)
 
-  const bg      = dark ? '#020617' : '#f8fafc'
-  const text    = dark ? '#f8fafc' : '#020617'
-  const subtext = dark ? '#94a3b8' : '#64748b'
-  const border  = dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-  const glass   = dark ? 'rgba(15,23,42,0.65)' : 'rgba(255,255,255,0.7)'
-  const cardBg  = dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'
-  const goldColor = metalType === '22k' ? '#fbbf24' : '#ffd700'
-  const inpBg   = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
-  const inpBorder = dark ? '#374151' : '#d1d5db'
+
+const bg = '#FDF5EE'
+const text = '#020617'
+const subtext = '#64748b'
+const border = 'rgba(0,0,0,0.1)'
+const cardBg = 'rgba(0,0,0,0.03)'
+const goldColor = metalType === '22k' ? '#fbbf24' : '#ffd700'
+const inpBg = 'rgba(0,0,0,0.05)'
+const inpBorder = '#d1d5db'
 
   // Fetch metal rates
   useEffect(() => {
@@ -103,65 +101,6 @@ useEffect(() => {
   }
 
 
-
-  // Particle canvas
-  useEffect(() => {
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    let animId, particles = []
-    const mouse = { x: null, y: null, radius: 150 }
-    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight }
-    const mouseMove = e => { mouse.x = e.x; mouse.y = e.y }
-    window.addEventListener('resize', resize)
-    window.addEventListener('mousemove', mouseMove)
-    resize()
-
-    class Particle {
-      constructor() {
-        this.x = Math.random() * canvas.width
-        this.y = Math.random() * canvas.height
-        this.size = Math.random() * 4 + 2
-        this.speedX = (Math.random() - 0.5) * 0.3
-        this.speedY = (Math.random() - 0.5) * 0.3
-      }
-      update() {
-        this.x += this.speedX; this.y += this.speedY
-        if (this.x > canvas.width || this.x < 0) this.speedX *= -1
-        if (this.y > canvas.height || this.y < 0) this.speedY *= -1
-        if (mouse.x !== null) {
-          const dx = mouse.x - this.x, dy = mouse.y - this.y
-          const dist = Math.sqrt(dx*dx + dy*dy)
-          if (dist < mouse.radius) {
-            const f = (mouse.radius - dist) / mouse.radius
-            this.x += (dx/dist)*f*2; this.y += (dy/dist)*f*2
-          }
-        }
-      }
-      draw() {
-        ctx.fillStyle = dark ? 'rgba(251,191,36,0.7)' : 'rgba(217,119,6,0.6)'
-        ctx.save(); ctx.translate(this.x, this.y); ctx.beginPath()
-        const spikes = 5, outerR = this.size, innerR = this.size * 0.4
-        for (let i = 0; i < spikes*2; i++) {
-          const r = i%2===0 ? outerR : innerR
-          const a = (i*Math.PI)/spikes - Math.PI/2
-          if (i===0) ctx.moveTo(Math.cos(a)*r, Math.sin(a)*r)
-          else       ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r)
-        }
-        ctx.closePath(); ctx.fill(); ctx.restore()
-      }
-    }
-    function init()    { particles = []; for (let i=0;i<60;i++) particles.push(new Particle()) }
-    function connect() {
-      for (let a=0;a<particles.length;a++) for (let b=a;b<particles.length;b++) {
-        const dx=particles[a].x-particles[b].x, dy=particles[a].y-particles[b].y, d=Math.sqrt(dx*dx+dy*dy)
-        if (d<150) { ctx.strokeStyle=`rgba(251,191,36,${(1-d/150)*0.35})`; ctx.lineWidth=0.5; ctx.beginPath(); ctx.moveTo(particles[a].x,particles[a].y); ctx.lineTo(particles[b].x,particles[b].y); ctx.stroke() }
-      }
-    }
-    function animate() { ctx.clearRect(0,0,canvas.width,canvas.height); particles.forEach(p=>{p.update();p.draw()}); connect(); animId=requestAnimationFrame(animate) }
-    init(); animate()
-    return () => { window.removeEventListener('resize',resize); window.removeEventListener('mousemove',mouseMove); cancelAnimationFrame(animId) }
-  }, [dark])
-
   const currentRate = metalType === '22k' ? metalPrices.gold22k : metalPrices.gold24k
 
   const getProductPrice = (p) => {
@@ -173,34 +112,24 @@ useEffect(() => {
     return null
   }
 
-  return (
-    <div style={{ minHeight:'100vh', background:bg, color:text, fontFamily:'"Inter",system-ui,sans-serif', position:'relative', overflow:'hidden', transition:'background 0.8s ease' }}>
-      <style>{`
-        @keyframes float-orb    { 0%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-50px) scale(1.1)} 66%{transform:translate(-20px,20px) scale(0.9)} 100%{transform:translate(0,0) scale(1)} }
-        @keyframes fadeInUp     { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes goldShimmer  { 0%{background-position:200% center} 100%{background-position:-200% center} }
-        @keyframes coinFloat    { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-8px) rotate(5deg)} }
-        @keyframes glow-pulse   { 0%,100%{box-shadow:0 0 20px rgba(251,191,36,0.1)} 50%{box-shadow:0 0 50px rgba(251,191,36,0.5)} }
-        @keyframes shine        { 0%{left:-80%} 100%{left:120%} }
-        @keyframes spin         { to{transform:rotate(360deg)} }
-        @keyframes sparkle      { 0%,100%{opacity:0;transform:scale(0) rotate(0deg)} 50%{opacity:1;transform:scale(1) rotate(180deg)} }
-        .gc-card { animation: fadeInUp 0.5s ease both; }
-        .gc-card:nth-child(1){animation-delay:0.05s} .gc-card:nth-child(2){animation-delay:0.1s}
-        .gc-card:nth-child(3){animation-delay:0.15s} .gc-card:nth-child(4){animation-delay:0.2s}
-        .gc-card:nth-child(5){animation-delay:0.25s} .gc-card:nth-child(6){animation-delay:0.3s}
-        .gc-shine { position:absolute; top:0; left:-80%; width:40%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent); transform:skewX(-20deg); opacity:0; transition:opacity 0.3s; }
-        .gc-card:hover .gc-shine { opacity:1; animation:shine 0.6s ease; }
-        .sparkle-dot { animation:sparkle 2s ease infinite; }
-      `}</style>
+return (
+  <div style={{ minHeight:'100vh', background:bg, color:text, fontFamily:'"Inter",system-ui,sans-serif', position:'relative', overflow:'hidden' }}>
+    <style>{`
+      @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+      @keyframes goldShimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
+      @keyframes coinFloat { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-8px) rotate(5deg)} }
+      @keyframes glow-pulse { 0%,100%{box-shadow:0 0 20px rgba(251,191,36,0.1)} 50%{box-shadow:0 0 50px rgba(251,191,36,0.5)} }
+      @keyframes shine { 0%{left:-80%} 100%{left:120%} }
+      @keyframes spin { to{transform:rotate(360deg)} }
+      .gc-card { animation: fadeInUp 0.5s ease both; }
+      .gc-card:nth-child(1){animation-delay:0.05s} .gc-card:nth-child(2){animation-delay:0.1s}
+      .gc-card:nth-child(3){animation-delay:0.15s} .gc-card:nth-child(4){animation-delay:0.2s}
+      .gc-card:nth-child(5){animation-delay:0.25s} .gc-card:nth-child(6){animation-delay:0.3s}
+      .gc-shine { position:absolute; top:0; left:-80%; width:40%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent); transform:skewX(-20deg); opacity:0; transition:opacity 0.3s; }
+      .gc-card:hover .gc-shine { opacity:1; animation:shine 0.6s ease; }
+    `}</style>
 
-      <canvas ref={canvasRef} style={{ position:'fixed', top:0, left:0, pointerEvents:'none', zIndex:1, opacity:0.4 }} />
-
-      {/* Orbs */}
-      <div style={{ position:'absolute', borderRadius:'50%', filter:'blur(90px)', animation:'float-orb 20s infinite ease-in-out', zIndex:0, top:'5%', left:'5%', width:'420px', height:'420px', background:'rgba(251,191,36,0.07)' }} />
-      <div style={{ position:'absolute', borderRadius:'50%', filter:'blur(90px)', animation:'float-orb 20s infinite ease-in-out', zIndex:0, bottom:'5%', right:'5%', width:'500px', height:'500px', background:'rgba(245,158,11,0.05)', animationDelay:'-7s' }} />
-
-      {/* NAVBAR */}
- <CustomerNavbar />
+    <CustomerNavbar />
 
       <div style={{ position:'relative', zIndex:10, padding:'40px', maxWidth:'1300px', margin:'0 auto' }}>
 
@@ -301,7 +230,7 @@ useEffect(() => {
                   {/* Image */}
                   <div style={{
                     height:'200px', position:'relative', overflow:'hidden',
-                    background: dark ? 'linear-gradient(135deg,#1a0a00,#3d1f00)' : 'linear-gradient(135deg,#fff8e7,#fef3c7)',
+                    background: 'linear-gradient(135deg,#fff8e7,#fef3c7)',
                     display:'flex', alignItems:'center', justifyContent:'center',
                   }}>
                     {firstImg

@@ -313,7 +313,7 @@ export default function CustomerNavbar() {
               filters: ['Category', 'Price', 'Occasion', 'Gender'],
               filterKeys: ['category', 'price', 'occasion', 'gender'],
               panels: {
-                category: { type: 'icon-grid', items: ['Diamond Earrings', 'Diamond Rings', 'Diamond Necklaces', 'Diamond Bangles', 'Diamond Bracelets'] },
+                category: { type: 'icon-grid', items: ['Diamond Earrings', 'Diamond Rings', 'Diamond Chains', 'Diamond Necklaces', 'Diamond Bangles', 'Diamond Bracelets'] },
                 price: { type: 'price-grid', items: [{ label: '< ₹25K' }, { label: '₹25K – ₹50K' }, { label: '₹50K – ₹1L' }, { label: '₹1L & Above' }] },
                 occasion: { type: 'occasion-grid', items: [{ label: 'Office Wear' }, { label: 'Modern Wear' }, { label: 'Casual Wear' }, { label: 'Traditional Wear' }] },
                 gender: { type: 'gender-grid', items: [{ label: 'Women' }, { label: 'Men' }, { label: 'Kids & Teens' }] },
@@ -323,7 +323,7 @@ export default function CustomerNavbar() {
               filters: ['Category', 'Price', 'Occasion', 'Gender'],
               filterKeys: ['category', 'price', 'occasion', 'gender'],
               panels: {
-                category: { type: 'icon-grid', items: ['Platinum Rings', 'Platinum Necklaces', 'Platinum Coins', 'Platinum Bangles', 'Platinum Bracelets', 'Platinum Earrings'] },
+                category: { type: 'icon-grid', items: ['Platinum Rings', 'Platinum Necklaces', 'Platinum Chains', 'Platinum Bangles', 'Platinum Bracelets', 'Platinum Earrings'] },
                 price: { type: 'price-grid', items: [{ label: '< ₹25K' }, { label: '₹25K – ₹50K' }, { label: '₹50K – ₹1L' }, { label: '₹1L & Above' }] },
                 occasion: { type: 'occasion-grid', items: [{ label: 'Office Wear' }, { label: 'Modern Wear' }, { label: 'Casual Wear' }, { label: 'Traditional Wear' }] },
                 gender: { type: 'gender-grid', items: [{ label: 'Women' }, { label: 'Men' }, { label: 'Kids & Teens' }] },
@@ -384,10 +384,10 @@ export default function CustomerNavbar() {
           const panel = cfg.panels[activeFilter] || cfg.panels[cfg.filterKeys[0]]
 
           const CATEGORY_ROUTES = {
-            'Earrings': '/collection/earrings', 'Chains': '/collection/chains',
+            'Earrings': '/collection/earrings', 'Chains': '/collection/chain',
             'Necklaces': '/collection/necklaces', 'Bangles': '/collection/bangles',
             'Finger Rings': '/collection/rings', 'Bracelets': '/collection/bracelets',
-            'Gold Earrings': '/gold-earrings', 'Gold Chains': '/gold-chains',
+            'Gold Earrings': '/gold-earrings', 'Gold Chains': '/gold-chain',
             'Gold Rings': '/gold-rings', 'Gold Bangles': '/gold-bangles',
             'Gold Necklaces': '/gold-necklaces', 'Gold Bracelets': '/gold-bracelets',
             'Silver Bangles': '/silver-bangles', 'Silver Earrings': '/silver-earrings',
@@ -397,6 +397,7 @@ export default function CustomerNavbar() {
                 // Diamond  ← CHANGE THESE
     'Diamond Earrings': '/diamond-earrings',
     'Diamond Rings': '/diamond-rings',
+    'Diamond Chains': '/diamond-chain',
     'Diamond Necklaces': '/diamond-necklaces',
     'Diamond Bangles': '/diamond-bangles',
     'Diamond Bracelets': '/diamond-bracelets',
@@ -404,7 +405,7 @@ export default function CustomerNavbar() {
      // Platinum  ← THESE ARE ALREADY CORRECT
     'Platinum Rings': '/platinum-rings',
     'Platinum Necklaces': '/platinum-necklaces',
-    'Platinum Coins': '/collection/coins',
+    'Platinum Chains': '/platinum-chain',
     'Platinum Bangles': '/platinum-bangles',
     'Platinum Bracelets': '/platinum-bracelets',
     'Platinum Earrings': '/platinum-earrings',

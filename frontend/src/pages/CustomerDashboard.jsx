@@ -1133,7 +1133,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
               panels: {
                 category: {
                   type: 'icon-grid',
-                  items: ['Diamond Earrings', 'Diamond Rings', 'Diamond Necklaces', 'Diamond Bangles', 'Diamond Bracelets'],
+                  items: ['Diamond Earrings', 'Diamond Rings', 'Diamond Chain','Diamond Necklaces', 'Diamond Bangles', 'Diamond Bracelets'],
                   icon: '💎',
                 },
                 price: {
@@ -1157,7 +1157,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   panels: {
     category: {
       type: 'icon-grid',
-      items: ['Platinum Rings', 'Platinum Necklaces', 'Platinum Coins', 'Platinum Bangles', 'Platinum Bracelets', 'Platinum Earrings'],
+      items: ['Platinum Rings', 'Platinum Chian', 'Platinum Necklaces',  'Platinum Bangles', 'Platinum Bracelets', 'Platinum Earrings'],
       icon: '⬡',
     },
                 price: {

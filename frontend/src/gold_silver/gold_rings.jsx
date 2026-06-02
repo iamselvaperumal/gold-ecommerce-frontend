@@ -4,11 +4,6 @@ import logo from '../assets/logo.png'
 import { addToCart } from '../collection/card_section'
 import CustomerNavbar from '../collection/CustomerNavbar'
 
-const PARTICLES = Array.from({ length: 12 }, (_, i) => ({
-  id: i, size: Math.random() * 50 + 8, x: Math.random() * 100,
-  delay: Math.random() * 8, duration: Math.random() * 12 + 15, opacity: Math.random() * 0.18 + 0.04,
-}))
-
 const WEIGHTS = [
   { label: 'All Weights', grams: null },
   { label: '50 mg', grams: 0.05 },
@@ -44,7 +39,6 @@ const TAG_COLORS = {
 
 export default function GoldRings() {
   const navigate = useNavigate()
-  const [dark, setDark] = useState(true)
   const [selectedWeight, setSelectedWeight] = useState('All Weights')
   const [hoveredRing, setHoveredRing] = useState(null)
   const [metalType, setMetalType] = useState('22k')   // '22k' | '24k'
@@ -53,20 +47,16 @@ export default function GoldRings() {
   const [loading, setLoading] = useState(true)
   const [wishlistedIds, setWishlistedIds] = useState(new Set())
   const [selectedRing, setSelectedRing] = useState(null)
-  const canvasRef = useRef(null)
 
-  const bg = dark ? '#020617' : '#f8fafc'
-  const text = dark ? '#f8fafc' : '#020617'
-  const subtext = dark ? '#94a3b8' : '#64748b'
-  const accent = dark ? '#22d3ee' : '#2563eb'
-  const border = dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-  const glass = dark ? 'rgba(15,23,42,0.65)' : 'rgba(255,255,255,0.7)'
-  const cardBg = dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'
-  const inpBg = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
-  const inpBorder = dark ? '#374151' : '#d1d5db'
-  const optionBg = dark ? '#1a2035' : '#ffffff'
-  const goldColor = metalType === '22k' ? '#fbbf24' : '#ffd700'
-  const goldGlow = metalType === '22k' ? 'rgba(251,191,36,0.3)' : 'rgba(255,215,0,0.3)'
+
+const bg = '#FDF5EE'
+const text = '#020617'
+const subtext = '#64748b'
+const border = 'rgba(0,0,0,0.1)'
+const cardBg = 'rgba(0,0,0,0.03)'
+const inpBg = 'rgba(0,0,0,0.05)'
+const inpBorder = '#d1d5db'
+const goldColor = '#fbbf24'
 
 
 
@@ -121,113 +111,29 @@ export default function GoldRings() {
   }
 
 
-
-  useEffect(() => {
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    let animationFrameId, particlesArray = []
-    const mouse = { x: null, y: null, radius: 150 }
-    const handleResize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight }
-    const handleMouseMove = (e) => { mouse.x = e.x; mouse.y = e.y }
-    window.addEventListener('resize', handleResize)
-    window.addEventListener('mousemove', handleMouseMove)
-    handleResize()
-
-    class Particle {
-      constructor() {
-        this.x = Math.random() * canvas.width
-        this.y = Math.random() * canvas.height
-        this.size = Math.random() * 4 + 2
-        this.speedX = (Math.random() - 0.5) * 0.3
-        this.speedY = (Math.random() - 0.5) * 0.3
-      }
-      update() {
-        this.x += this.speedX; this.y += this.speedY
-        if (this.x > canvas.width || this.x < 0) this.speedX *= -1
-        if (this.y > canvas.height || this.y < 0) this.speedY *= -1
-        if (mouse.x !== null && mouse.y !== null) {
-          let dx = mouse.x - this.x, dy = mouse.y - this.y
-          let dist = Math.sqrt(dx * dx + dy * dy)
-          if (dist < mouse.radius) {
-            const f = (mouse.radius - dist) / mouse.radius
-            this.x += (dx / dist) * f * 2; this.y += (dy / dist) * f * 2
-          }
-        }
-      }
-      draw() {
-        ctx.fillStyle = dark ? 'rgba(251,191,36,0.7)' : 'rgba(217,119,6,0.6)'
-        ctx.save(); ctx.translate(this.x, this.y); ctx.beginPath()
-        const spikes = 5, outerR = this.size, innerR = this.size * 0.4
-        for (let i = 0; i < spikes * 2; i++) {
-          const r = i % 2 === 0 ? outerR : innerR
-          const angle = (i * Math.PI) / spikes - Math.PI / 2
-          if (i === 0) ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r)
-          else ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r)
-        }
-        ctx.closePath(); ctx.fill(); ctx.restore()
-      }
-    }
-
-    function init() { particlesArray = []; for (let i = 0; i < 60; i++) particlesArray.push(new Particle()) }
-    function connect() {
-      for (let a = 0; a < particlesArray.length; a++) for (let b = a; b < particlesArray.length; b++) {
-        let dx = particlesArray[a].x - particlesArray[b].x, dy = particlesArray[a].y - particlesArray[b].y, d = Math.sqrt(dx * dx + dy * dy)
-        if (d < 150) { ctx.strokeStyle = `rgba(251,191,36,${(1 - d / 150) * 0.4})`; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(particlesArray[a].x, particlesArray[a].y); ctx.lineTo(particlesArray[b].x, particlesArray[b].y); ctx.stroke() }
-      }
-    }
-    function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particlesArray.forEach(p => { p.update(); p.draw() }); connect(); animationFrameId = requestAnimationFrame(animate) }
-    init(); animate()
-    return () => { window.removeEventListener('resize', handleResize); window.removeEventListener('mousemove', handleMouseMove); cancelAnimationFrame(animationFrameId) }
-  }, [dark])
-
   const currentRate = metalType === '22k' ? metalPrices.gold22k : metalPrices.gold24k
   const selectedW = WEIGHTS.find(w => w.label === selectedWeight)
   const unitPrice = selectedW?.grams && currentRate ? selectedW.grams * currentRate : null
 
   const tagStyle = (tag) => TAG_COLORS[tag] || { bg: 'rgba(255,255,255,0.1)', border: 'rgba(255,255,255,0.2)', color: '#fff' }
 
-  return (
-    <div style={{ minHeight: '100vh', background: bg, color: text, fontFamily: '"Inter",system-ui,sans-serif', position: 'relative', overflow: 'hidden', transition: 'background 0.8s ease, color 0.4s ease' }}>
-      <style>{`
-        @keyframes float-orb { 0%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-50px) scale(1.1)} 66%{transform:translate(-20px,20px) scale(0.9)} 100%{transform:translate(0,0) scale(1)} }
-        @keyframes antigravity { 0%{transform:translateY(110vh) rotate(0deg);opacity:0} 10%{opacity:var(--op)} 90%{opacity:var(--op)} 100%{transform:translateY(-20vh) rotate(360deg);opacity:0} }
-        @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes goldShimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
-        @keyframes floatRing { 0%,100%{transform:translateY(0px) rotate(0deg)} 50%{transform:translateY(-10px) rotate(3deg)} }
-        @keyframes glow-pulse { 0%,100%{box-shadow:0 0 20px rgba(251,191,36,0.1)} 50%{box-shadow:0 0 40px rgba(251,191,36,0.35)} }
-        @keyframes shine { 0%{left:-80%} 100%{left:120%} }
-        @keyframes sparkle { 0%,100%{opacity:0;transform:scale(0) rotate(0deg)} 50%{opacity:1;transform:scale(1) rotate(180deg)} }
-        .ring-card { animation: fadeInUp 0.5s ease both; }
-        .ring-card:nth-child(1){animation-delay:0.05s}
-        .ring-card:nth-child(2){animation-delay:0.12s}
-        .ring-card:nth-child(3){animation-delay:0.19s}
-        .ring-card:nth-child(4){animation-delay:0.26s}
-        .ring-card:nth-child(5){animation-delay:0.33s}
-        .ring-img-wrap { overflow:hidden; }
-        .ring-img-wrap img { transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1); }
-        .ring-card:hover .ring-img-wrap img { transform: scale(1.12) translateY(-4px) !important; }
-        .shine-overlay { position:absolute; top:0; left:-80%; width:40%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent); transform:skewX(-20deg); opacity:0; transition:opacity 0.3s; }
-        .ring-card:hover .shine-overlay { opacity:1; animation: shine 0.6s ease; }
-        .sparkle-dot { animation: sparkle 2s ease infinite; }
-        .weight-chip { transition: all 0.2s ease; }
-        .weight-chip:hover { transform: translateY(-2px); }
-        input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
-        input[type=number] { -moz-appearance: textfield; appearance: textfield; }
-      `}</style>
-
-      <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, pointerEvents: 'none', zIndex: 1, opacity: 0.4 }} />
-
-      {/* Floating orbs */}
-      <div style={{ position: 'absolute', borderRadius: '50%', filter: 'blur(90px)', animation: 'float-orb 20s infinite ease-in-out', zIndex: 0, top: '5%', left: '5%', width: '420px', height: '420px', background: 'rgba(251,191,36,0.07)' }} />
-      <div style={{ position: 'absolute', borderRadius: '50%', filter: 'blur(90px)', animation: 'float-orb 20s infinite ease-in-out', zIndex: 0, bottom: '5%', right: '5%', width: '500px', height: '500px', background: 'rgba(245,158,11,0.05)', animationDelay: '-7s' }} />
-
-      {PARTICLES.map(p => (
-        <div key={p.id} style={{ position: 'absolute', left: `${p.x}%`, bottom: '-100px', width: p.size, height: p.size, borderRadius: '40% 60% 60% 40%/40% 40% 60% 60%', border: `1px solid ${goldColor}44`, opacity: p.opacity, animation: `antigravity ${p.duration}s ${p.delay}s infinite linear`, '--op': p.opacity, pointerEvents: 'none', zIndex: 0 }} />
-      ))}
-
-      {/* Navbar */}
-<CustomerNavbar />
+return (
+  <div style={{ minHeight: '100vh', background: bg, color: text, fontFamily: '"Inter",system-ui,sans-serif', position: 'relative', overflow: 'hidden' }}>
+    <style>{`
+      @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+      @keyframes goldShimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
+      @keyframes glow-pulse { 0%,100%{box-shadow:0 0 20px rgba(251,191,36,0.1)} 50%{box-shadow:0 0 40px rgba(251,191,36,0.35)} }
+      @keyframes shine { 0%{left:-80%} 100%{left:120%} }
+      .ring-card { animation: fadeInUp 0.5s ease both; }
+      .ring-card:nth-child(1){animation-delay:0.05s} .ring-card:nth-child(2){animation-delay:0.12s}
+      .ring-card:nth-child(3){animation-delay:0.19s} .ring-card:nth-child(4){animation-delay:0.26s}
+      .ring-img-wrap { overflow:hidden; }
+      .ring-img-wrap img { transition:transform 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+      .ring-card:hover .ring-img-wrap img { transform:scale(1.12) translateY(-4px) !important; }
+      .shine-overlay { position:absolute; top:0; left:-80%; width:40%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent); transform:skewX(-20deg); opacity:0; transition:opacity 0.3s; }
+      .ring-card:hover .shine-overlay { opacity:1; animation:shine 0.6s ease; }
+    `}</style>
+    <CustomerNavbar />
 
       <div style={{ position: 'relative', zIndex: 10, padding: '40px 40px', maxWidth: '1300px', margin: '0 auto' }}>
 
@@ -325,7 +231,7 @@ export default function GoldRings() {
                 <div className="shine-overlay" />
 
                 {/* Image */}
-                <div className="ring-img-wrap" style={{ position: 'relative', height: '200px', background: dark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.04)' }}>
+                <div className="ring-img-wrap" style={{ position: 'relative', height: '200px', background: 'rgba(0,0,0,0.04)' }}>
                   <img
                     src={getImageUrl(ring.images?.[0]?.image)}
                     alt={ring.name}

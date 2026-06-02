@@ -4,13 +4,6 @@ import logo from '../assets/logo.png'
 import api from '../api'
 import CustomerNavbar from './CustomerNavbar'
 
-const PARTICLES = Array.from({ length: 12 }, (_, i) => ({
-  id: i, size: Math.random() * 50 + 8, x: Math.random() * 100,
-  delay: Math.random() * 8, duration: Math.random() * 12 + 15, opacity: Math.random() * 0.18 + 0.04,
-}))
-
-
-
 export async function getCartFromDB() {
   try {
     const res = await api.get('/cart/')
@@ -65,17 +58,13 @@ export function getCartCount() { return 0 }
 
 export default function CardSection() {
   const navigate = useNavigate()
-  const [dark, setDark] = useState(true)
   const [cart, setCart] = useState([])
-  const canvasRef = useRef(null)
 
-  const bg = dark ? '#020617' : '#f8fafc'
-  const text = dark ? '#f8fafc' : '#020617'
-  const subtext = dark ? '#94a3b8' : '#64748b'
-  const border = dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-  const glass = dark ? 'rgba(15,23,42,0.65)' : 'rgba(255,255,255,0.7)'
-  const cardBg = dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'
-  const cardBorder = dark ? '1px solid rgba(103,232,249,0.1)' : '1px solid rgba(0,0,0,0.1)'
+const bg = '#FDF5EE'
+const text = '#020617'
+const subtext = '#64748b'
+const border = 'rgba(0,0,0,0.1)'
+const cardBg = 'rgba(0,0,0,0.03)'
 
   const fetchCart = async () => {
     const items = await getCartFromDB()
@@ -88,70 +77,6 @@ export default function CardSection() {
     window.addEventListener('bb_cart_update', handler)
     return () => window.removeEventListener('bb_cart_update', handler)
   }, [])
-
-
-  useEffect(() => {
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    let animId, particles = []
-    const mouse = { x: null, y: null, radius: 150 }
-    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight }
-    const mouseMove = (e) => { mouse.x = e.x; mouse.y = e.y }
-    window.addEventListener('resize', resize)
-    window.addEventListener('mousemove', mouseMove)
-    resize()
-
-    class Particle {
-      constructor() {
-        this.x = Math.random() * canvas.width
-        this.y = Math.random() * canvas.height
-        this.size = Math.random() * 4 + 2
-        this.speedX = (Math.random() - 0.5) * 0.3
-        this.speedY = (Math.random() - 0.5) * 0.3
-      }
-      update() {
-        this.x += this.speedX; this.y += this.speedY
-        if (this.x > canvas.width || this.x < 0) this.speedX *= -1
-        if (this.y > canvas.height || this.y < 0) this.speedY *= -1
-        if (mouse.x !== null) {
-          const dx = mouse.x - this.x, dy = mouse.y - this.y
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          if (dist < mouse.radius) {
-            const f = (mouse.radius - dist) / mouse.radius
-            this.x += (dx / dist) * f * 2; this.y += (dy / dist) * f * 2
-          }
-        }
-      }
-      draw() {
-        ctx.fillStyle = dark ? 'rgba(34,211,238,0.9)' : 'rgba(37,99,235,0.8)'
-        ctx.save(); ctx.translate(this.x, this.y); ctx.beginPath()
-        const spikes = 5, outerR = this.size, innerR = this.size * 0.4
-        for (let i = 0; i < spikes * 2; i++) {
-          const r = i % 2 === 0 ? outerR : innerR
-          const a = (i * Math.PI) / spikes - Math.PI / 2
-          if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r)
-          else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r)
-        }
-        ctx.closePath(); ctx.fill(); ctx.restore()
-      }
-    }
-
-    function init() { particles = []; for (let i = 0; i < 60; i++) particles.push(new Particle()) }
-    function connect() {
-      for (let a = 0; a < particles.length; a++) for (let b = a; b < particles.length; b++) {
-        const dx = particles[a].x - particles[b].x, dy = particles[a].y - particles[b].y
-        const d = Math.sqrt(dx * dx + dy * dy)
-        if (d < 150) {
-          ctx.strokeStyle = dark ? `rgba(34,211,238,${1 - d / 150})` : `rgba(37,99,235,${0.5 - d / 300})`
-          ctx.lineWidth = 0.5; ctx.beginPath()
-          ctx.moveTo(particles[a].x, particles[a].y); ctx.lineTo(particles[b].x, particles[b].y); ctx.stroke()
-        }
-      }
-    }
-    function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw() }); connect(); animId = requestAnimationFrame(animate) }
-    init(); animate()
-    return () => { window.removeEventListener('resize', resize); window.removeEventListener('mousemove', mouseMove); cancelAnimationFrame(animId) }
-  }, [dark])
 
   const removeItem = async (productId) => {
     await removeFromCartDB(productId)
@@ -190,32 +115,17 @@ export default function CardSection() {
 
   const totalItems = cart.reduce((acc, i) => acc + (i.qty || 1), 0)
 
-  return (
-    <div style={{ minHeight: '100vh', background: bg, color: text, fontFamily: '"Inter",system-ui,sans-serif', position: 'relative', overflow: 'hidden', transition: 'background 0.8s ease, color 0.4s ease' }}>
-      <style>{`
-        @keyframes float-orb { 0%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-50px) scale(1.1)} 66%{transform:translate(-20px,20px) scale(0.9)} 100%{transform:translate(0,0) scale(1)} }
-        @keyframes antigravity { 0%{transform:translateY(110vh) rotate(0deg);opacity:0} 10%{opacity:var(--op)} 90%{opacity:var(--op)} 100%{transform:translateY(-20vh) rotate(360deg);opacity:0} }
-        @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
-        @keyframes sparkle { 0%,100%{opacity:0;transform:scale(0) rotate(0deg)} 50%{opacity:1;transform:scale(1) rotate(180deg)} }
-        .cart-card { animation: fadeInUp 0.4s ease both; transition: all 0.3s ease; }
-        .cart-card:hover { transform: translateY(-3px); }
-        .sparkle-dot { animation: sparkle 2s ease infinite; }
-        .remove-btn:hover { background: rgba(239,68,68,0.25) !important; }
-        .qty-btn:hover { background: rgba(34,211,238,0.2) !important; }
-      `}</style>
+return (
+  <div style={{ minHeight: '100vh', background: bg, color: text, fontFamily: '"Inter",system-ui,sans-serif', position: 'relative', overflow: 'hidden' }}>
+    <style>{`
+      @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+      .cart-card { animation: fadeInUp 0.4s ease both; transition: all 0.3s ease; }
+      .cart-card:hover { transform: translateY(-3px); }
+      .remove-btn:hover { background: rgba(239,68,68,0.25) !important; }
+      .qty-btn:hover { background: rgba(34,211,238,0.2) !important; }
+    `}</style>
 
-      <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, pointerEvents: 'none', zIndex: 1, opacity: 0.4 }} />
-
-      <div style={{ position: 'absolute', borderRadius: '50%', filter: 'blur(80px)', animation: 'float-orb 20s infinite ease-in-out', zIndex: 0, top: '8%', left: '8%', width: '380px', height: '380px', background: dark ? 'rgba(52,211,153,0.08)' : 'rgba(16,185,129,0.08)' }} />
-      <div style={{ position: 'absolute', borderRadius: '50%', filter: 'blur(80px)', animation: 'float-orb 20s infinite ease-in-out', zIndex: 0, bottom: '10%', right: '4%', width: '460px', height: '460px', background: dark ? 'rgba(110,231,183,0.06)' : 'rgba(52,211,153,0.06)', animationDelay: '-5s' }} />
-
-      {PARTICLES.map(p => (
-        <div key={p.id} style={{ position: 'absolute', left: `${p.x}%`, bottom: '-100px', width: p.size, height: p.size, borderRadius: '40% 60% 60% 40% / 40% 40% 60% 60%', border: `1px solid rgba(34,211,238,0.44)`, opacity: p.opacity, animation: `antigravity ${p.duration}s ${p.delay}s infinite linear`, '--op': p.opacity, pointerEvents: 'none', zIndex: 0 }} />
-      ))}
-
-      {/* Navbar */}
-<CustomerNavbar />
+    <CustomerNavbar />
 
       {/* Main */}
       <div style={{ position: 'relative', zIndex: 10, padding: '40px', maxWidth: '1000px', margin: '0 auto' }}>

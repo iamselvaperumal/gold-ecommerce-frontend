@@ -65,7 +65,7 @@ const imageRef = useRef(null)
   const accentSoft = isGold ? 'rgba(251,191,36,0.18)' : 'rgba(192,192,192,0.18)'
   const accentGlow = isGold ? 'rgba(251,191,36,0.32)' : 'rgba(192,192,192,0.32)'
 
-  const bg = dark ? '#020617' : '#f8fafc'
+  const bg = '#FDF5EE'
   const text = dark ? '#f8fafc' : '#020617'
   const subtext = dark ? '#94a3b8' : '#64748b'
   const border = dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
@@ -337,16 +337,7 @@ const handleAddToCart = async () => {
 
   if (loading) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: bg,
-          color: text,
-          display: 'grid',
-          placeItems: 'center',
-          fontFamily: '"Inter",system-ui,sans-serif',
-        }}
-      >
+<div style={{ minHeight: '100vh', background: '#FDF5EE', color: text, display: 'grid', placeItems: 'center', fontFamily: '"Inter",system-ui,sans-serif' }}>
         <div style={{ textAlign: 'center' }}>
           <div
             style={{
@@ -368,17 +359,7 @@ const handleAddToCart = async () => {
 
   if (!product) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: bg,
-          color: text,
-          display: 'grid',
-          placeItems: 'center',
-          fontFamily: '"Inter",system-ui,sans-serif',
-          padding: 20,
-        }}
-      >
+<div style={{ minHeight: '100vh', background: '#FDF5EE', color: text, display: 'grid', placeItems: 'center', fontFamily: '"Inter",system-ui,sans-serif', padding: 20 }}>
         <div
           style={{
             maxWidth: 520,

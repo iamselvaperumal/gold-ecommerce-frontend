@@ -69,7 +69,7 @@ export default function DiamondBangles() {
     : products.filter(p => p.grade === gradeFilter)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: '"Inter",system-ui,sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#FDF5EE', fontFamily: '"Inter",system-ui,sans-serif' }}>
       <style>{`
         @keyframes fadeInUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
         @keyframes diamondShimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
