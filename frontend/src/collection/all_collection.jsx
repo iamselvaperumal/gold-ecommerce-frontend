@@ -41,34 +41,39 @@ export default function AllCollection() {
     const fetchAll = async () => {
       setLoading(true)
       try {
-        let url = `${API_BASE}/api/jewelry-products/`
-const params = []
-if (metalFilter) params.push(`metal=${metalFilter}`)
-if (genderFilter) params.push(`gender=${genderFilter}`)
-if (occasionFilter) params.push(`occasion=${occasionFilter}`)
-if (weddingCategoryFilter) params.push(`wedding_category=${encodeURIComponent(weddingCategoryFilter)}`)
-if (params.length) url += `?${params.join('&')}`
+  let url = `${API_BASE}/api/jewelry-products/`
+  const params = []
+  if (metalFilter) params.push(`metal=${metalFilter}`)
+  if (genderFilter) params.push(`gender=${genderFilter}`)
+  if (occasionFilter) params.push(`occasion=${occasionFilter}`)
+  if (weddingCategoryFilter) params.push(`wedding_category=${encodeURIComponent(weddingCategoryFilter)}`)
+  if (params.length) url += `?${params.join('&')}`
 
-        const res = await fetch(url)
-        const data = await res.json()
-        let list = Array.isArray(data) ? data : []
+  const res = await fetch(url)
+  const data = await res.json()
+  let list = Array.isArray(data) ? data : []
 
-        // Price filter — frontend la apply
-        if (priceFilter) {
-          list = list.filter(p => {
-            const price = parseFloat(p.price) || 0
-            if (priceFilter === 'below25k')  return price > 0 && price < 25000
-            if (priceFilter === '25k-50k')   return price >= 25000 && price < 50000
-            if (priceFilter === '50k-1L')    return price >= 50000 && price < 100000
-            if (priceFilter === 'above1L')   return price >= 100000
-            return true
-          })
-        }
+  // Metal filter — frontend la also apply
+  if (metalFilter) {
+    list = list.filter(p => p.metal?.toLowerCase() === metalFilter.toLowerCase())
+  }
 
-        setProducts(list)
-      } catch {
-        setProducts([])
-      }
+  // Price filter — frontend la apply
+  if (priceFilter) {
+    list = list.filter(p => {
+      const price = parseFloat(p.price) || 0
+      if (priceFilter === 'below25k')  return price > 0 && price < 25000
+      if (priceFilter === '25k-50k')   return price >= 25000 && price < 50000
+      if (priceFilter === '50k-1L')    return price >= 50000 && price < 100000
+      if (priceFilter === 'above1L')   return price >= 100000
+      return true
+    })
+  }
+
+  setProducts(list)
+} catch {
+  setProducts([])
+}
       setLoading(false)
     }
     fetchAll()

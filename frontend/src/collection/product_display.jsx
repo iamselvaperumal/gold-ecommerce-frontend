@@ -28,6 +28,13 @@ const METAL_LABELS = {
   silver: 'Silver',
 }
 
+const PURITY_LABELS = {
+  gold: { '22k': '91.6', '24k': '999' },
+  silver: { '999': '999' },
+  diamond: { '18k': '750', '22k': '916' },
+  platinum: { '92': '920' },
+}
+
 const TAG_COLORS = {
   Bestseller: { bg: 'rgba(52,211,153,0.2)', border: 'rgba(52,211,153,0.5)', color: '#34d399' },
   Bridal: { bg: 'rgba(244,114,182,0.2)', border: 'rgba(244,114,182,0.5)', color: '#f472b6' },
@@ -37,6 +44,415 @@ const TAG_COLORS = {
   Stackable: { bg: 'rgba(251,191,36,0.15)', border: 'rgba(251,191,36,0.4)', color: '#ffd700' },
   New: { bg: 'rgba(244,114,182,0.2)', border: 'rgba(244,114,182,0.5)', color: '#f472b6' },
   Antique: { bg: 'rgba(251,191,36,0.15)', border: 'rgba(251,191,36,0.4)', color: '#fbbf24' },
+}
+
+
+
+function MoreFromCollection({ currentProductId, category, metal }) {
+  const navigate = useNavigate()
+  const [products, setProducts] = useState([])
+  const scrollRef = useRef(null)
+
+  useEffect(() => {
+    import('../api').then(({ default: api }) => {
+      api.get(`/jewelry-products/?category=${category}&metal=${metal}`)
+        .then(res => {
+          const list = Array.isArray(res.data) ? res.data : []
+          setProducts(list.filter(p => String(p.id) !== String(currentProductId)))
+        })
+        .catch(() => {})
+    })
+  }, [category, metal, currentProductId])
+
+  if (products.length === 0) return null
+
+  const getImageUrl = img => {
+    if (!img) return null
+    let p = typeof img === 'object' ? (img.image || img.url || '') : img
+    if (!p) return null
+    if (p.startsWith('http://') || p.startsWith('https://')) return p
+    return `https://bitbyte-backend-f66f.onrender.com/${p.replace(/^\/+/, '')}`
+  }
+
+  const scroll = dir => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: dir * 340, behavior: 'smooth' })
+    }
+  }
+
+  return (
+    <div style={{
+      position: 'relative', zIndex: 5,
+      padding: '0 40px 80px',
+      maxWidth: 1600, margin: '0 auto',
+    }}>
+      {/* Header */}
+      <div style={{
+        display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between', marginBottom: 28,
+      }}>
+        <h2 style={{
+          margin: 0, fontSize: 28, fontWeight: 800,
+          color: '#1c1410',
+          fontFamily: '"Cormorant Garamond", Georgia, serif',
+        }}>
+          More from this collection
+        </h2>
+        <button
+          onClick={() => navigate(`/collection/all?metal=${metal}`)}
+          style={{
+            padding: '8px 22px', borderRadius: 999,
+            border: '1.5px solid #1c1410',
+            background: 'transparent', color: '#1c1410',
+            fontWeight: 700, fontSize: 14, cursor: 'pointer',
+            fontFamily: '"Montserrat", sans-serif',
+          }}
+        >
+          View All
+        </button>
+      </div>
+
+      {/* Left Arrow */}
+      <button onClick={() => scroll(-1)} style={{
+        position: 'absolute', left: 0, top: '50%',
+        transform: 'translateY(-50%)',
+        width: 40, height: 40, borderRadius: '50%',
+        background: '#fff', border: '1px solid #e8ddd5',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+        cursor: 'pointer', fontSize: 18, fontWeight: 700,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: '#8B1A1A', zIndex: 10,
+      }}>‹</button>
+
+      {/* Right Arrow */}
+      <button onClick={() => scroll(1)} style={{
+        position: 'absolute', right: 0, top: '50%',
+        transform: 'translateY(-50%)',
+        width: 40, height: 40, borderRadius: '50%',
+        background: '#fff', border: '1px solid #e8ddd5',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+        cursor: 'pointer', fontSize: 18, fontWeight: 700,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: '#8B1A1A', zIndex: 10,
+      }}>›</button>
+
+      {/* Scroll Container */}
+      <div ref={scrollRef} style={{
+        display: 'flex', gap: 20, overflowX: 'auto',
+        scrollbarWidth: 'none', paddingBottom: 8,
+      }}>
+        <style>{`div::-webkit-scrollbar{display:none}`}</style>
+
+        {products.map(p => {
+          const firstImg = p.images?.[0] ? getImageUrl(p.images[0]) : null
+          const price = parseFloat(p.price) || 0
+          const originalPrice = parseFloat(p.original_price) || 0
+          const discountPct = parseFloat(p.wastage_charge) || 0
+          const hasDiscount = discountPct > 0 && originalPrice > price && price > 0
+
+          return (
+            <div
+              key={p.id}
+              onClick={() => navigate(`/product-display?category=${p.category}&metal=${p.metal}&id=${p.id}`)}
+              style={{
+                flexShrink: 0, width: 300,
+                background: '#fff',
+                borderRadius: 16,
+                overflow: 'hidden',
+                cursor: 'pointer',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                border: '1px solid #f0e8e0',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-4px)'
+                e.currentTarget.style.boxShadow = '0 12px 32px rgba(139,26,26,0.12)'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = 'none'
+              }}
+            >
+              {/* Image */}
+              <div style={{
+                height: 300, background: '#fdf8f4',
+                position: 'relative', overflow: 'hidden',
+              }}>
+                {firstImg
+                  ? <img src={firstImg} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>💍</div>
+                }
+
+                {/* Wishlist + Star icons — top */}
+                <div style={{
+                  position: 'absolute', top: 12, left: 12, right: 12,
+                  display: 'flex', justifyContent: 'space-between',
+                }}>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.85)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 14, cursor: 'pointer',
+                    border: '1px solid rgba(139,26,26,0.15)',
+                  }}>☆</div>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.85)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 14, cursor: 'pointer',
+                    border: '1px solid rgba(139,26,26,0.15)',
+                  }}>♡</div>
+                </div>
+              </div>
+
+              {/* Info */}
+              <div style={{ padding: '14px 16px' }}>
+                {/* Price Row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{
+                    fontSize: 18, fontWeight: 900,
+                    color: '#1c1410', fontFamily: 'monospace',
+                  }}>
+                    {price > 0 ? `₹${price.toLocaleString('en-IN')}` : '—'}
+                  </span>
+                  {hasDiscount && (
+                    <span style={{
+                      fontSize: 13, color: '#9ca3af',
+                      textDecoration: 'line-through',
+                    }}>
+                      ₹{originalPrice.toLocaleString('en-IN')}
+                    </span>
+                  )}
+                </div>
+
+                {/* Discount badge */}
+                {hasDiscount && (
+                  <div style={{
+                    fontSize: 12, color: '#8B1A1A',
+                    fontWeight: 700, marginTop: 4,
+                  }}>
+                    {discountPct}% Off
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+
+function ProductInfoAndBreakup({ product, metal }) {
+  const [liveRate, setLiveRate] = useState(null)
+
+  useEffect(() => {
+    import('../api').then(({ default: api }) => {
+      api.get('/metal-rates/').then(res => {
+        const d = res.data
+        setLiveRate({
+          gold_22k: parseFloat(d.gold_22k) || 0,
+          gold_24k: parseFloat(d.gold_24k) || 0,
+          silver_999: parseFloat(d.silver_999) || 0,
+          diamond_18k: parseFloat(d.diamond_18k) || 0,
+          diamond_22k: parseFloat(d.diamond_22k) || 0,
+          platinum_92: parseFloat(d.platinum_92) || 0,
+        })
+      }).catch(() => { })
+    })
+  }, [])
+
+  if (!product) return null
+
+  const PURITY_LABELS = {
+    gold: { '22k': '91.6', '24k': '999' },
+    silver: { '999': '999' },
+    diamond: { '18k': '750', '22k': '916' },
+    platinum: { '92': '920' },
+  }
+
+  const purityLabel = PURITY_LABELS[metal]?.[product.grade] || product.grade?.toUpperCase() || '—'
+  const metalLabel = { gold: 'Gold', silver: 'Silver', diamond: 'Diamond', platinum: 'Platinum' }[metal] || metal
+
+  const netWt = parseFloat(product.net_weight) || 0
+  const crossWt = parseFloat(product.cross_weight) || 0
+  const stoneWt = parseFloat(product.stone_weight) || 0
+  const stoneVal = parseFloat(product.stone_value) || 0
+  const makingChargePct = parseFloat(product.making_charge) || 0
+  const discountPct = parseFloat(product.wastage_charge) || 0
+
+  let todayRate = 0
+  if (liveRate) {
+    if (metal === 'gold') todayRate = product.grade === '24k' ? liveRate.gold_24k : liveRate.gold_22k
+    else if (metal === 'silver') todayRate = liveRate.silver_999
+    else if (metal === 'diamond') todayRate = product.grade === '18k' ? liveRate.diamond_18k : liveRate.diamond_22k
+    else if (metal === 'platinum') todayRate = liveRate.platinum_92
+  }
+
+  // ── Exact same as AddProduct calcAll ──
+  const makingPerGram = todayRate * (makingChargePct / 100)
+  const rateWithMaking = todayRate + makingPerGram
+  const discountPerGram = rateWithMaking * (discountPct / 100)
+  const effectiveRate = rateWithMaking - discountPerGram
+
+  const goldValue = netWt ? Math.round(todayRate * netWt) : null
+  const makingValue = netWt ? Math.round(makingPerGram * netWt) : null
+  const discountOnMaking = netWt ? Math.round(discountPerGram * netWt) : 0
+  const makingFinal = makingValue !== null ? makingValue - discountOnMaking : null
+
+  const subtotalValue = (goldValue || 0) + stoneVal + (makingValue || 0)
+  const subtotalDiscount = discountOnMaking || 0
+  const subtotalFinal = (goldValue || 0) + stoneVal + (makingFinal || 0)
+  const gstValue = Math.round(subtotalValue * 0.03)
+  const gstFinal = Math.round(subtotalFinal * 0.03)
+  const grandValue = subtotalValue + gstValue
+  const grandFinal = subtotalFinal + gstFinal
+
+  const inr = n => n !== null && n !== undefined ? `₹${Math.round(n).toLocaleString('en-IN')}` : '—'
+
+  return (
+    <div style={{
+      maxWidth: 1600,
+      margin: '0 auto',
+      padding: '100px 40px 80px',
+      position: 'relative',
+      zIndex: 5,
+    }}>
+
+      {/* ── Product Information ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, #fef3c7 0%, #fde8c8 60%, #fef9f0 100%)',
+        borderRadius: 16,
+        padding: '36px 48px',
+        marginBottom: 20,
+      }}>
+        <div style={{ color: '#7c2d12', fontWeight: 700, fontSize: 40, marginBottom: 20 }}>
+          Product Information
+        </div>
+        <div style={{
+          background: '#fff',
+          borderRadius: 12,
+          padding: '30px 70px',
+          display: 'inline-block',
+          minWidth: 300,
+          boxShadow: '0 1px 8px rgba(0,0,0,0.07)',
+        }}>
+          <div style={{ color: '#7c2d12', fontWeight: 700, fontSize: 18, marginBottom: 4 }}>Metal and Purity</div>
+          <div style={{ color: '#92400e', fontSize: 16, marginBottom: 16 }}>{metalLabel} {purityLabel}</div>
+          <div style={{ color: '#7c2d12', fontWeight: 700, fontSize: 18, marginBottom: 4 }}>Weight</div>
+          <div style={{ color: '#92400e', fontSize: 16 }}>{netWt > 0 ? `${netWt}gms` : crossWt > 0 ? `${crossWt}gms` : '—'}</div>
+        </div>
+      </div>
+
+      {/* ── Price Breakup ── */}
+      <div style={{
+        background: '#fff',
+        borderRadius: 16,
+        padding: '36px 48px',
+        marginBottom: 60,
+        boxShadow: '0 1px 12px rgba(0,0,0,0.06)',
+        border: '1px solid rgba(0,0,0,0.05)',
+      }}>
+        <div style={{ color: '#7c2d12', fontWeight: 700, fontSize: 40, marginBottom: 28, display: 'flex', alignItems: 'center', gap: 12 }}>
+          Price Breakup
+          {!liveRate && <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 400 }}>Loading rates...</span>}
+        </div>
+
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 18 }}>
+          <thead>
+            <tr style={{ borderBottom: '1.5px solid rgba(120,53,15,0.15)' }}>
+              {['Component', 'Rate', 'Weight', 'Value', 'Discount', 'Final Value'].map((h, i) => (
+                <th key={h} style={{
+                  textAlign: 'left', padding: '10px 16px',
+                  color: '#78350f', fontWeight: 600, fontSize: 20,
+                  minWidth: i === 0 ? 200 : 110,
+                }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+
+            {/* Metal header */}
+            <tr>
+              <td colSpan={6} style={{ padding: '28px 16px 12px', color: '#92400e', fontWeight: 600, fontSize: 18 }}>
+                {metalLabel}
+              </td>
+            </tr>
+
+            {/* Metal row */}
+            <tr style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+              <td style={{ padding: '10px 16px', color: '#78350f' }}>{purityLabel} {metalLabel}</td>
+              <td style={{ padding: '10px 16px', color: '#78350f' }}>{todayRate ? todayRate.toLocaleString('en-IN') : '—'}</td>
+              <td style={{ padding: '10px 16px', color: '#78350f' }}>{netWt || '—'}</td>
+              <td style={{ padding: '10px 16px', color: '#78350f' }}>{inr(goldValue)}</td>
+              <td style={{ padding: '10px 16px', color: '#78350f' }}>₹0</td>
+              <td style={{ padding: '10px 16px', color: '#78350f', fontWeight: 500 }}>{inr(goldValue)}</td>
+            </tr>
+
+            {/* Stone */}
+            {stoneVal > 0 && <>
+              <tr>
+                <td colSpan={6} style={{ padding: '18px 16px 6px', color: '#92400e', fontWeight: 600, fontSize: 14 }}>Stone details</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                <td style={{ padding: '10px 16px', color: '#78350f' }}>Stone</td>
+                <td style={{ padding: '10px 16px', color: '#78350f' }}>—</td>
+                <td style={{ padding: '10px 16px', color: '#78350f' }}>{stoneWt > 0 ? stoneWt : '—'}</td>
+                <td style={{ padding: '10px 16px', color: '#78350f' }}>{inr(stoneVal)}</td>
+                <td style={{ padding: '10px 16px', color: '#78350f' }}>-</td>
+                <td style={{ padding: '10px 16px', color: '#78350f', fontWeight: 500 }}>{inr(stoneVal)}</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                <td style={{ padding: '10px 16px', color: '#78350f' }}>Total Stone Value</td>
+                <td /><td />
+                <td style={{ padding: '10px 16px', color: '#78350f' }}>{inr(stoneVal)}</td>
+                <td style={{ padding: '10px 16px', color: '#78350f' }}>-</td>
+                <td style={{ padding: '10px 16px', color: '#78350f', fontWeight: 500 }}>{inr(stoneVal)}</td>
+              </tr>
+            </>}
+
+            {/* Making Charges */}
+            <tr style={{ borderBottom: '1.5px solid rgba(120,53,15,0.15)' }}>
+              <td style={{ padding: '18px 10px 16px ', color: '#7c2d12', fontWeight: 600 }}>Making Charges</td>
+              <td /><td />
+              <td style={{ padding: '10px 16px', color: '#78350f' }}>{inr(makingValue)}</td>
+              <td style={{ padding: '10px 16px', color: '#78350f' }}>{discountOnMaking ? inr(discountOnMaking) : '₹0'}</td>
+              <td style={{ padding: '10px 16px', color: '#78350f', fontWeight: 500 }}>{inr(makingFinal)}</td>
+            </tr>
+
+            {/* Total */}
+            <tr style={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+              <td style={{ padding: '18px 10px 16px', color: '#7c2d12', fontWeight: 700, fontSize: 18 }}>Total</td>
+              <td /><td />
+              <td style={{ padding: '12px 16px', color: '#7c2d12', fontWeight: 700 }}>{inr(subtotalValue)}</td>
+              <td style={{ padding: '12px 16px', color: '#7c2d12', fontWeight: 700 }}>{subtotalDiscount ? inr(subtotalDiscount) : '₹0'}</td>
+              <td style={{ padding: '12px 16px', color: '#7c2d12', fontWeight: 700 }}>{inr(subtotalFinal)}</td>
+            </tr>
+
+            {/* GST */}
+            <tr style={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+              <td style={{ padding: '18px 10px 16px', color: '#78350f' }}>GST(3%)</td>
+              <td /><td />
+              <td style={{ padding: '10px 16px', color: '#78350f' }}>{inr(gstValue)}</td>
+              <td />
+              <td style={{ padding: '10px 16px', color: '#78350f' }}>{inr(gstFinal)}</td>
+            </tr>
+
+            {/* Grand Total */}
+            <tr>
+              <td style={{ padding: '18px 10px 16px', color: '#7c2d12', fontWeight: 800, fontSize: 20 }}>Grand Total</td>
+              <td /><td />
+              <td style={{ padding: '14px 16px', color: '#7c2d12', fontWeight: 800, fontSize: 16 }}>{inr(grandValue)}</td>
+              <td />
+              <td style={{ padding: '14px 16px', color: '#7c2d12', fontWeight: 800, fontSize: 16 }}>{inr(grandFinal)}</td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+
 }
 
 export default function ProductDisplay() {
@@ -55,10 +471,10 @@ export default function ProductDisplay() {
   const [mainImage, setMainImage] = useState(null)
   const [showAdded, setShowAdded] = useState(false)
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 })
-const [showZoom, setShowZoom] = useState(false)
-const [zoomPixel, setZoomPixel] = useState({ x: 0, y: 0 })
- const [wishlisted, setWishlisted] = useState(false)
-const imageRef = useRef(null)
+  const [showZoom, setShowZoom] = useState(false)
+  const [zoomPixel, setZoomPixel] = useState({ x: 0, y: 0 })
+  const [wishlisted, setWishlisted] = useState(false)
+  const imageRef = useRef(null)
 
   const isGold = metal === 'gold'
   const accentColor = isGold ? '#fbbf24' : '#c0c0c0'
@@ -66,30 +482,30 @@ const imageRef = useRef(null)
   const accentGlow = isGold ? 'rgba(251,191,36,0.32)' : 'rgba(192,192,192,0.32)'
 
   const bg = '#FDF5EE'
-  const text = dark ? '#f8fafc' : '#020617'
-  const subtext = dark ? '#94a3b8' : '#64748b'
-  const border = dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-  const glass = dark ? 'rgba(15,23,42,0.72)' : 'rgba(255,255,255,0.78)'
+  const text = '#1c1410' 
+  const subtext = '#de8856' 
+  const border = 'rgba(180, 130, 80, 0.18)'
+  const glass = '#f0e9de'
   const cardBg = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.035)'
   const inputBg = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'
 
-const getImageUrl = img => {
-  if (!img) return null
-  let imagePath = typeof img === 'object'
-    ? (img.image || img.url || img.file || img.path || img.image_url || img.product_image || '')
-    : img
-  if (!imagePath || typeof imagePath !== 'string' || imagePath.trim() === '') return null
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) return imagePath
-  return `${API_BASE}/${imagePath.replace(/^\/+/, '')}`
-}
+  const getImageUrl = img => {
+    if (!img) return null
+    let imagePath = typeof img === 'object'
+      ? (img.image || img.url || img.file || img.path || img.image_url || img.product_image || '')
+      : img
+    if (!imagePath || typeof imagePath !== 'string' || imagePath.trim() === '') return null
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) return imagePath
+    return `${API_BASE}/${imagePath.replace(/^\/+/, '')}`
+  }
 
-useEffect(() => {
+  useEffect(() => {
     if (!productId) return
     import('../api').then(({ default: api }) => {
       api.get('/wishlist/').then(res => {
         const found = res.data.items.find(i => i.product_id === parseInt(productId))
         setWishlisted(!!found)
-      }).catch(() => {})
+      }).catch(() => { })
     })
   }, [productId])
 
@@ -123,13 +539,13 @@ useEffect(() => {
     return products[0]
   }, [products, productId])
 
-const productImages = useMemo(() => {
-  if (!product) return []
-  if (Array.isArray(product.images) && product.images.length > 0) {
-    return product.images.map(img => getImageUrl(img)).filter(Boolean)
-  }
-  return []
-}, [product, metal])
+  const productImages = useMemo(() => {
+    if (!product) return []
+    if (Array.isArray(product.images) && product.images.length > 0) {
+      return product.images.map(img => getImageUrl(img)).filter(Boolean)
+    }
+    return []
+  }, [product, metal])
 
   useEffect(() => {
     if (productImages.length > 0) {
@@ -264,37 +680,37 @@ const productImages = useMemo(() => {
   }, [dark, metal])
 
 
-const loadRazorpay = () => new Promise(resolve => {
-  const script = document.createElement('script')
-  script.src = 'https://checkout.razorpay.com/v1/checkout.js'
-  script.onload = () => resolve(true)
-  script.onerror = () => resolve(false)
-  document.body.appendChild(script)
-})
+  const loadRazorpay = () => new Promise(resolve => {
+    const script = document.createElement('script')
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.onload = () => resolve(true)
+    script.onerror = () => resolve(false)
+    document.body.appendChild(script)
+  })
 
-const handleBuy = async () => {
-  if (!product || !displayPrice) return
-  const loaded = await loadRazorpay()
-  if (!loaded) { alert('Razorpay load failed'); return }
+  const handleBuy = async () => {
+    if (!product || !displayPrice) return
+    const loaded = await loadRazorpay()
+    if (!loaded) { alert('Razorpay load failed'); return }
 
-  const options = {
-    key: 'rzp_test_SqmXZHA3RWz5ua',
-    amount: Math.round(displayPrice * qty * 100),
-    currency: 'INR',
-    name: 'BitByte Jewellers',
-    description: productName,
-    handler: function(response) {
-      alert('✅ Payment Successful! ID: ' + response.razorpay_payment_id)
-    },
-    prefill: { name: '', email: '', contact: '' },
-    theme: { color: accentColor },
+    const options = {
+      key: 'rzp_test_SqmXZHA3RWz5ua',
+      amount: Math.round(displayPrice * qty * 100),
+      currency: 'INR',
+      name: 'BitByte Jewellers',
+      description: productName,
+      handler: function (response) {
+        alert('✅ Payment Successful! ID: ' + response.razorpay_payment_id)
+      },
+      prefill: { name: '', email: '', contact: '' },
+      theme: { color: accentColor },
+    }
+    const rzp = new window.Razorpay(options)
+    rzp.open()
   }
-  const rzp = new window.Razorpay(options)
-  rzp.open()
-}  
 
 
-const basePrice = Number(product?.price) || 0
+  const basePrice = Number(product?.price) || 0
 
   const displayPrice = basePrice > 0 ? basePrice : null
   const calculatedWeightText = product?.net_weight ? `${parseFloat(product.net_weight)} gm` : '—'
@@ -313,19 +729,19 @@ const basePrice = Number(product?.price) || 0
     color: text,
   }
 
-const handleMouseMove = (e) => {
-  const rect = imageRef.current?.getBoundingClientRect()
-  if (!rect) return
-  const px = e.clientX - rect.left
-  const py = e.clientY - rect.top
-  setZoomPos({
-    x: Math.max(0, Math.min(100, (px / rect.width) * 100)),
-    y: Math.max(0, Math.min(100, (py / rect.height) * 100)),
-  })
-  setZoomPixel({ x: px, y: py })
-}
+  const handleMouseMove = (e) => {
+    const rect = imageRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const px = e.clientX - rect.left
+    const py = e.clientY - rect.top
+    setZoomPos({
+      x: Math.max(0, Math.min(100, (px / rect.width) * 100)),
+      y: Math.max(0, Math.min(100, (py / rect.height) * 100)),
+    })
+    setZoomPixel({ x: px, y: py })
+  }
 
-const handleAddToCart = async () => {
+  const handleAddToCart = async () => {
     if (!product) return
     const result = await addToCartDB(product.id, qty)
     if (result) {
@@ -337,7 +753,7 @@ const handleAddToCart = async () => {
 
   if (loading) {
     return (
-<div style={{ minHeight: '100vh', background: '#FDF5EE', color: text, display: 'grid', placeItems: 'center', fontFamily: '"Inter",system-ui,sans-serif' }}>
+      <div style={{ minHeight: '100vh', background: '#FDF5EE', color: text, display: 'grid', placeItems: 'center', fontFamily: '"Inter",system-ui,sans-serif' }}>
         <div style={{ textAlign: 'center' }}>
           <div
             style={{
@@ -359,7 +775,7 @@ const handleAddToCart = async () => {
 
   if (!product) {
     return (
-<div style={{ minHeight: '100vh', background: '#FDF5EE', color: text, display: 'grid', placeItems: 'center', fontFamily: '"Inter",system-ui,sans-serif', padding: 20 }}>
+      <div style={{ minHeight: '100vh', background: '#FDF5EE', color: text, display: 'grid', placeItems: 'center', fontFamily: '"Inter",system-ui,sans-serif', padding: 20 }}>
         <div
           style={{
             maxWidth: 520,
@@ -376,13 +792,13 @@ const handleAddToCart = async () => {
             This product is not available now. Please go back and select another product.
           </p>
           <button
-onClick={() => {
-  const role = localStorage.getItem('role')
-  if (role === 'customer') navigate('/customer')
-  else if (role === 'admin') navigate('/admin')
-  else if (role === 'super_admin') navigate('/super-admin')
-  else navigate('/')
-}}
+            onClick={() => {
+              const role = localStorage.getItem('role')
+              if (role === 'customer') navigate('/customer')
+              else if (role === 'admin') navigate('/admin')
+              else if (role === 'super_admin') navigate('/super-admin')
+              else navigate('/')
+            }}
             style={{
               border: 'none',
               borderRadius: 999,
@@ -569,7 +985,7 @@ onClick={() => {
       ))}
 
       {/* Navbar */}
-<CustomerNavbar />
+      <CustomerNavbar />
 
       <main
         className="pd-wrap"
@@ -588,7 +1004,7 @@ onClick={() => {
             gap: 10,
             padding: '9px 16px',
             borderRadius: 999,
-            background: accentSoft,
+            background: text,
             border: `1px solid ${accentColor}55`,
             color: accentColor,
             fontWeight: 950,
@@ -602,14 +1018,14 @@ onClick={() => {
         </div>
 
         <section
-          className="pd-grid pd-main"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 34,
-            alignItems: 'stretch',
-          }}
-        >
+  className="pd-grid pd-main"
+  style={{
+    display: 'grid',
+    gridTemplateColumns: '600px 600px',
+    gap: 34,
+    alignItems: 'start',
+  }}
+>
           {/* Image Side */}
           <div
             className="pd-image-card"
@@ -618,8 +1034,10 @@ onClick={() => {
               background: glass,
               border: `1px solid ${border}`,
               borderRadius: 34,
-              overflow: 'visible', 
-              minHeight: 540,
+              overflow: 'hidden',
+              width: '600px',
+              height: '700px',
+              flexShrink: 0,
               backdropFilter: 'blur(18px)',
               boxShadow: `0 24px 80px ${dark ? 'rgba(0,0,0,0.35)' : 'rgba(15,23,42,0.12)'}`,
             }}
@@ -635,61 +1053,61 @@ onClick={() => {
             />
 
             <div
-  ref={imageRef}
-  onMouseMove={handleMouseMove}
-  onMouseEnter={() => setShowZoom(true)}
-  onMouseLeave={() => setShowZoom(false)}
-  style={{
-    position: 'relative',
-    height: 430,
-    display: 'grid',
-    placeItems: 'center',
-    padding: 30,
-    cursor: 'none',
-  }}
->
+              ref={imageRef}
+              onMouseMove={handleMouseMove}
+              onMouseEnter={() => setShowZoom(true)}
+              onMouseLeave={() => setShowZoom(false)}
+              style={{
+                position: 'relative',
+                height: 430,
+                display: 'grid',
+                placeItems: 'center',
+                padding: 30,
+                cursor: 'none',
+              }}
+            >
 
-{mainImage && (
-  <img
-    className="pd-main-img"
-    src={mainImage}
-    onError={e => { e.currentTarget.style.display = 'none' }}
-    
-                style={{
-                  maxWidth: '100%',
-                  maxHeight: '100%',
-                  objectFit: 'contain',
-                  filter: `drop-shadow(0 30px 45px ${dark ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0.22)'})`,
-                  transition: 'transform 0.55s cubic-bezier(0.34,1.56,0.64,1)',
-                }}
-              />
+              {mainImage && (
+                <img
+                  className="pd-main-img"
+                  src={mainImage}
+                  onError={e => { e.currentTarget.style.display = 'none' }}
+
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    objectFit: 'contain',
+                    filter: `drop-shadow(0 30px 45px ${dark ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0.22)'})`,
+                    transition: 'transform 0.55s cubic-bezier(0.34,1.56,0.64,1)',
+                  }}
+                />
 
               )}
 
-  {showZoom && mainImage && (
-  <div style={{
-    position: 'absolute',
-    left: zoomPixel.x - 100,
-    top: zoomPixel.y - 100,
-    width: 200,
-    height: 200,
-    borderRadius: '50%',
-    border: `3px solid ${accentColor}`,
-    boxShadow: `0 0 0 2px ${dark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)'}, 0 8px 32px rgba(0,0,0,0.6)`,
-    backgroundImage: `url(${mainImage})`,
-    backgroundSize: '400%',
-    backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
-    backgroundRepeat: 'no-repeat',
-    pointerEvents: 'none',
-    zIndex: 20,
-  }} />
-)}
+              {showZoom && mainImage && (
+                <div style={{
+                  position: 'absolute',
+                  left: zoomPixel.x - 100,
+                  top: zoomPixel.y - 100,
+                  width: 200,
+                  height: 200,
+                  borderRadius: '50%',
+                  border: `3px solid ${accentColor}`,
+                  boxShadow: `0 0 0 2px ${dark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)'}, 0 8px 32px rgba(0,0,0,0.6)`,
+                  backgroundImage: `url(${mainImage})`,
+                  backgroundSize: '400%',
+                  backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
+                  backgroundRepeat: 'no-repeat',
+                  pointerEvents: 'none',
+                  zIndex: 20,
+                }} />
+              )}
             </div>
 
 
-<div style={{
+            <div style={{
   position: 'absolute',
-  bottom: '-110px',
+  bottom: '16px',
   left: 0,
   right: 0,
   padding: '12px 24px',
@@ -733,18 +1151,21 @@ onClick={() => {
             </div>
           </div>
 
-          {/* Detail Side */}
-          <div
-            style={{
-              background: glass,
-              border: `1px solid ${border}`,
-              borderRadius: 34,
-              padding: 32,
-              backdropFilter: 'blur(18px)',
-              boxShadow: `0 24px 80px ${dark ? 'rgba(0,0,0,0.28)' : 'rgba(15,23,42,0.10)'}`,
-            }}
-          >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+        {/* Detail Side Zoom Corecion*/}
+<div
+  style={{
+    background: glass,
+    border: `1px solid ${border}`,
+    borderRadius: 34,
+    padding: 32,
+    backdropFilter: 'blur(18px)',
+    boxShadow: `0 24px 80px ${dark ? 'rgba(0,0,0,0.28)' : 'rgba(15,23,42,0.10)'}`,
+    width: '600px',
+    height: '700px',
+    
+  }}
+>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
               <div
                 style={{
                   display: 'inline-flex',
@@ -791,11 +1212,11 @@ onClick={() => {
             <h1
               className="pd-title"
               style={{
-                margin: '0 0 14px',
-                fontSize: 54,
-                lineHeight: 1.02,
+                margin: '0 0 10px',
+                fontSize: 32,
+                lineHeight: 1.1,
                 fontWeight: 950,
-                letterSpacing: '-0.04em',
+                letterSpacing: '-0.02em',
                 color: text,
               }}
             >
@@ -831,7 +1252,7 @@ onClick={() => {
                 }}
               >
                 <div style={{ color: subtext, fontSize: 12, fontWeight: 800 }}>Metal</div>
-                <div style={{ color: accentColor, fontSize: 18, fontWeight: 950 }}>
+                <div style={{ color: text, fontSize: 18, fontWeight: 950 }}>
                   {METAL_LABELS[metal] || metal}
                 </div>
               </div>
@@ -874,73 +1295,73 @@ onClick={() => {
                 marginBottom: 24,
               }}
             >
-            <div style={{ color: subtext, fontSize: 13, fontWeight: 800, marginBottom: 8 }}>
-  Price
-</div>
+              <div style={{ color: subtext, fontSize: 13, fontWeight: 800, marginBottom: 8 }}>
+                Price
+              </div>
 
-{(() => {
-  const discountPct = parseFloat(product?.wastage_charge) || 0
-  const originalAmt = parseFloat(product?.original_price) || 0
-  const hasDiscount = discountPct > 0 && originalAmt > 0 && displayPrice
+              {(() => {
+                const discountPct = parseFloat(product?.wastage_charge) || 0
+                const originalAmt = parseFloat(product?.original_price) || 0
+                const hasDiscount = discountPct > 0 && originalAmt > 0 && displayPrice
 
-  return (
-    <>
-      {/* % Off badge */}
-      {hasDiscount && (
-        <div style={{ marginBottom: '10px' }}>
-          <span style={{
-            background: 'rgba(74,222,128,0.15)',
-            border: '1px solid rgba(74,222,128,0.4)',
-            color: '#4ade80',
-            fontSize: '12px', fontWeight: 800,
-            padding: '4px 12px', borderRadius: '999px'
-          }}>
-            {discountPct}% Off
-          </span>
-        </div>
-      )}
+                return (
+                  <>
+                    {/* % Off badge */}
+                    {hasDiscount && (
+                      <div style={{ marginBottom: '10px' }}>
+                        <span style={{
+                          background: 'rgba(74,222,128,0.15)',
+                          border: '1px solid rgba(74,222,128,0.4)',
+                          color: '#4ade80',
+                          fontSize: '12px', fontWeight: 800,
+                          padding: '4px 12px', borderRadius: '999px'
+                        }}>
+                          {discountPct}% Off
+                        </span>
+                      </div>
+                    )}
 
-      {/* Final price big */}
-      <div style={{
-        color: accentColor,
-        fontSize: 36, fontWeight: 950,
-        letterSpacing: '-0.03em', lineHeight: 1.1
-      }}>
-        {displayPrice ? `₹${displayPrice.toLocaleString('en-IN')}` : 'Contact for Price'}
-      </div>
+                    {/* Final price big */}
+                    <div style={{
+                      color: text,
+                      fontSize: 36, fontWeight: 950,
+                      letterSpacing: '-0.03em', lineHeight: 1.1
+                    }}>
+                      {displayPrice ? `₹${displayPrice.toLocaleString('en-IN')}` : 'Contact for Price'}
+                    </div>
 
-      {/* Original struck + savings — only if discount */}
-      {hasDiscount && (
-        <>
-          <div style={{
-            color: '#64748b', fontSize: 17,
-            fontWeight: 500, textDecoration: 'line-through',
-            marginTop: '5px', opacity: 0.85
-          }}>
-            ₹{originalAmt.toLocaleString('en-IN')}
-          </div>
-          <div style={{
-            color: '#4ade80', fontSize: 13,
-            fontWeight: 700, marginTop: '5px'
-          }}>
-            You save ₹{(originalAmt - displayPrice).toLocaleString('en-IN')}
-          </div>
-        </>
-      )}
-    </>
-  )
-})()}
+                    {/* Original struck + savings — only if discount */}
+                    {hasDiscount && (
+                      <>
+                        <div style={{
+                          color: '#e76b12', fontSize: 17,
+                          fontWeight: 500, textDecoration: 'line-through',
+                          marginTop: '5px', opacity: 0.85
+                        }}>
+                          ₹{originalAmt.toLocaleString('en-IN')}
+                        </div>
+                        <div style={{
+                          color: '#4ade80', fontSize: 13,
+                          fontWeight: 700, marginTop: '5px'
+                        }}>
+                          You save ₹{(originalAmt - displayPrice).toLocaleString('en-IN')}
+                        </div>
+                      </>
+                    )}
+                  </>
+                )
+              })()}
 
 
               {!product.is_active && (
-  <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '12px', padding: '10px 16px', marginBottom: '16px', color: '#f87171', fontWeight: 700, fontSize: '13px', textAlign: 'center' }}>
-    ⚠️ Currently Unavailable
-  </div>
-)}
+                <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '12px', padding: '10px 16px', marginBottom: '16px', color: '#f87171', fontWeight: 700, fontSize: '13px', textAlign: 'center' }}>
+                  ⚠️ Currently Unavailable
+                </div>
+              )}
 
-              <div style={{ color: subtext, marginTop: 6, fontSize: 13 }}>
+              {/* <div style={{ color: subtext, marginTop: 6, fontSize: 13 }}>
                 Final price may vary based on live metal rate, making charge and selected weight.
-              </div>
+              </div> */}
             </div>
 
             <div
@@ -1040,75 +1461,182 @@ onClick={() => {
                 {showAdded ? '✓ Added to Cart' : '🛒 Add to Cart'}
               </button>
 
-<button
-  className="action-btn"
-  onClick={handleBuy}
-  disabled={!product.is_active}
-  style={{
-    flex: '1 1 180px', border: 'none', borderRadius: 999,
-    padding: '16px 24px',
-    background: product.is_active ? `linear-gradient(135deg, #22c55e, #16a34a)` : 'rgba(100,100,100,0.3)',
-    color: '#fff', fontWeight: 950, fontSize: 15,
-    cursor: product.is_active ? 'pointer' : 'not-allowed',
-    transition: 'all 0.2s ease',
-  }}
->
-  💳 Buy
-</button>
+              <button
+                className="action-btn"
+                onClick={handleBuy}
+                disabled={!product.is_active}
+                style={{
+                  flex: '1 1 180px', border: 'none', borderRadius: 999,
+                  padding: '16px 24px',
+                  background: product.is_active ? `linear-gradient(135deg, #22c55e, #16a34a)` : 'rgba(100,100,100,0.3)',
+                  color: '#fff', fontWeight: 950, fontSize: 15,
+                  cursor: product.is_active ? 'pointer' : 'not-allowed',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                💳 Buy
+              </button>
             </div>
           </div>
         </section>
       </main>
 
+
+      {/* ── TRUST BADGES ── */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: 0,
+        marginTop: 80,
+        padding: '40px 0 20px',
+        borderTop: '2px solid rgba(146,64,14,0.10)',
+        position: 'relative',
+        zIndex: 5,
+      }}>
+        {[
+          {
+            label: 'BIS Hallmark Jewellery',
+            sub: 'Authenticity Guaranteed, Purity Assured',
+            svg: (
+              <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <polygon points="32,5 42,17 57,17 57,32 42,47 32,59 22,47 7,32 7,17 22,17"
+                  fill="rgba(251,191,36,0.15)" stroke="#d97706" strokeWidth="2.5" />
+                <polygon points="32,12 40,22 52,22 52,32 40,42 32,52 24,42 12,32 12,22 24,22"
+                  fill="rgba(251,191,36,0.08)" stroke="#d97706" strokeWidth="1.5" />
+                <polyline points="22,32 28,38 42,24"
+                  stroke="#d97706" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                <line x1="16" y1="50" x2="48" y2="50" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+            ),
+          },
+          {
+            label: 'Fast Shipping',
+            sub: 'Swift & Secure Delivery to Your Doorstep',
+            svg: (
+              <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <rect x="4" y="24" width="36" height="22" rx="4"
+                  fill="rgba(251,191,36,0.15)" stroke="#d97706" strokeWidth="2.5" />
+                <path d="M40 30 L56 30 L56 46 L40 46 Z"
+                  fill="rgba(251,191,36,0.15)" stroke="#d97706" strokeWidth="2.5" />
+                <path d="M40 36 L52 36" stroke="#d97706" strokeWidth="2" strokeLinecap="round" />
+                <circle cx="16" cy="50" r="5" fill="#d97706" />
+                <circle cx="46" cy="50" r="5" fill="#d97706" />
+                <path d="M10 32 L6 32" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" />
+                <path d="M10 26 L14 26" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+            ),
+          },
+          {
+            label: 'Free Insured Shipping',
+            sub: 'Your Precious Jewellery, Protected Every Step of the Way',
+            svg: (
+              <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <path d="M32 6 C32 6 12 14 12 30 L12 44 C12 50 22 57 32 60 C42 57 52 50 52 44 L52 30 C52 14 32 6 32 6Z"
+                  fill="rgba(251,191,36,0.15)" stroke="#d97706" strokeWidth="2.5" />
+                <path d="M22 34 C25 39 29 44 32 47 C35 44 41 37 44 30"
+                  stroke="#d97706" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                <circle cx="44" cy="22" r="9"
+                  fill="rgba(251,191,36,0.2)" stroke="#d97706" strokeWidth="2" />
+                <polyline points="40,22 43,25 49,18"
+                  stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            ),
+          },
+          {
+            label: 'Return Policy',
+            sub: '15 Days Easy Returns Guaranteed',
+            svg: (
+              <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <circle cx="32" cy="32" r="25"
+                  fill="rgba(251,191,36,0.15)" stroke="#d97706" strokeWidth="2.5" />
+                <path d="M32 16 A16 16 0 1 1 16 32"
+                  stroke="#d97706" strokeWidth="3" strokeLinecap="round" fill="none" />
+                <polyline points="14,26 16,32 22,29"
+                  stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                <text x="32" y="37" textAnchor="middle" fontSize="14" fontWeight="900" fill="#d97706">15</text>
+              </svg>
+            ),
+          },
+        ].map((item, i) => (
+          <div key={i} style={{
+            textAlign: 'center',
+            padding: '24px 20px',
+            borderRight: i < 3 ? '1px solid rgba(146,64,14,0.10)' : 'none',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+              {item.svg}
+            </div>
+            <div style={{ color: '#92400e', fontWeight: 800, fontSize: 15, marginBottom: 8 }}>
+              {item.label}
+            </div>
+            <div style={{ color: '#78350f', fontSize: 13, lineHeight: 1.6, opacity: 0.75, maxWidth: 180, margin: '0 auto' }}>
+              {item.sub}
+            </div>
+          </div>
+        ))}
+      </div>
+
+
+      {/* ── PRODUCT INFORMATION + PRICE BREAKUP ── */}
+      <ProductInfoAndBreakup product={product} metal={metal} />
+
+      {/* ── MORE FROM THIS COLLECTION ── */}
+<MoreFromCollection
+  currentProductId={productId}
+  category={category}
+  metal={metal}
+/>
+
       {/* Zoom Panel */}
-{showZoom && mainImage && (
-  <div
-    style={{
-      position: 'fixed',
-      top: '50%',
-      right: 160,
-      transform: 'translateY(-50%)',
-      width: 470,
-      height: 470,
-      borderRadius: 24,
-      border: `1px solid ${accentColor}55`,
-      background: glass,
-      backdropFilter: 'blur(18px)',
-      overflow: 'hidden',
-      boxShadow: `0 24px 80px ${accentGlow}, 0 0 0 1px ${border}`,
-      zIndex: 100,
-      pointerEvents: 'none',
-    }}
-  >
-    {/* Zoom label */}
-    <div style={{
-      position: 'absolute', top: 12, left: 12, zIndex: 2,
-      background: accentSoft, border: `1px solid ${accentColor}44`,
-      borderRadius: 999, padding: '4px 12px',
-      color: accentColor, fontSize: 11, fontWeight: 800,
-      letterSpacing: '0.08em', textTransform: 'uppercase',
-    }}>
-      🔍 Zoom View
+      {showZoom && mainImage && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '50%',
+            right: 160,
+            transform: 'translateY(-50%)',
+            width: 470,
+            height: 470,
+            borderRadius: 24,
+            border: `1px solid ${accentColor}55`,
+            background: glass,
+            backdropFilter: 'blur(18px)',
+            overflow: 'hidden',
+            boxShadow: `0 24px 80px ${accentGlow}, 0 0 0 1px ${border}`,
+            zIndex: 100,
+            pointerEvents: 'none',
+          }}
+        >
+          {/* Zoom label */}
+          <div style={{
+            position: 'absolute', top: 12, left: 12, zIndex: 2,
+            background: accentSoft, border: `1px solid ${accentColor}44`,
+            borderRadius: 999, padding: '4px 12px',
+            color: accentColor, fontSize: 11, fontWeight: 800,
+            letterSpacing: '0.08em', textTransform: 'uppercase',
+          }}>
+            🔍 Zoom View
+          </div>
+
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              backgroundImage: `url(${mainImage})`,
+              backgroundSize: '300%',
+              backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
+              backgroundRepeat: 'no-repeat',
+              transition: 'background-position 0.05s ease',
+            }}
+          />
+
+
+
+        </div>
+      )}
+
     </div>
 
-    <div
-      style={{
-        width: '100%',
-        height: '100%',
-        backgroundImage: `url(${mainImage})`,
-        backgroundSize: '300%',
-        backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
-        backgroundRepeat: 'no-repeat',
-        transition: 'background-position 0.05s ease',
-      }}
-    />
-
-
-    
-  </div>
-)}
-    </div>
-
-    
   )
+
 }

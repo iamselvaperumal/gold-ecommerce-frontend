@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+// import PageLoader from './Loading/PageLoader'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import SuperAdminDashboard from './pages/SuperAdminDashboard'
@@ -69,7 +70,11 @@ function ProtectedRoute({ children, role }) {
 export default function App() {
   return (
     <BrowserRouter>
+
+    {/* <PageLoader /> */}
+
       <Routes>
+
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/super-admin" element={

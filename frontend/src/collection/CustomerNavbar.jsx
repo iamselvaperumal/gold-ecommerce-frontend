@@ -3,6 +3,86 @@ import { useNavigate } from 'react-router-dom'
 import api from '../api'
 import { getCartCountDB } from '../collection/card_section'
 
+
+function TodayRateDropdown() {
+  const [show, setShow] = useState(false)
+  const [rates, setRates] = useState(null)
+
+useEffect(() => {
+  const token = localStorage.getItem('token')
+  fetch('https://bitbyte-backend-f66f.onrender.com/api/metal-rates/', {
+    headers: token ? { Authorization: `Bearer ${token}` } : {}
+  })
+    .then(r => r.json())
+    .then(d => {
+      const rateData = Array.isArray(d) ? d[0] : d
+      if (rateData && rateData.gold_22k) setRates(rateData)
+    })
+    .catch(() => {})
+}, [])
+
+  return (
+    <div style={{ position: 'relative' }}
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+    >
+<button style={{
+  background: 'linear-gradient(90deg,#b8860b,#d4a017)', color: '#fff',
+  border: 'none', borderRadius: 22, padding: '10px 20px',
+  fontSize: 13, fontWeight: 700, cursor: 'pointer',
+  display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap',
+  boxShadow: '0 2px 8px rgba(184,134,11,0.3)',
+  fontFamily: '"Montserrat", sans-serif', letterSpacing: '0.3px',
+}}>
+  <svg width="16" height="16" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="4" y="6" width="24" height="22" rx="2"/>
+    <path d="M4 12h24"/><path d="M10 4v4"/><path d="M22 4v4"/>
+    <path d="M10 18h4"/><path d="M10 23h8"/>
+  </svg>
+  Today's Gold Rate 22K —{' '}
+  {rates?.gold_22k ? `Rs. ${parseFloat(rates.gold_22k).toFixed(0)}/-` : '...'} ▾
+</button>
+
+      {show && (
+        <div style={{
+          position: 'absolute', top: '110%', right: 0,
+          background: '#fff', borderRadius: 12,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+          border: '1px solid #f0e8e0',
+          minWidth: 260, zIndex: 999,
+          overflow: 'hidden',
+        }}>
+          {[
+{ icon: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#b8860b" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="16" r="11"/><circle cx="16" cy="16" r="7"/><path d="M16 9v2"/><path d="M16 21v2"/><path d="M9 16h2"/><path d="M21 16h2"/><polygon points="16,11 17.5,14.5 21,15 18.5,17.5 19,21 16,19.5 13,21 13.5,17.5 11,15 14.5,14.5" strokeWidth="1.2"/></svg>, label: 'Gold 24K ', value: rates?.gold_24k },
+{ icon: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#9ca3af" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="16" r="11"/><circle cx="16" cy="16" r="7"/><path d="M16 9v2"/><path d="M16 21v2"/><path d="M9 16h2"/><path d="M21 16h2"/></svg>, label: 'Silver', value: rates?.silver_999 },
+{ icon: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#60a5fa" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4l10 8-10 16L6 12z"/><path d="M6 12h20"/><path d="M11 12l5 16"/><path d="M21 12l-5 16"/><path d="M6 12l5-8"/><path d="M26 12l-5-8"/></svg>, label: 'Diamond 18K', value: rates?.diamond_18k },
+{ icon: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#93c5fd" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4l10 8-10 16L6 12z"/><path d="M6 12h20"/><path d="M11 12l5 16"/><path d="M21 12l-5 16"/><path d="M6 12l5-8"/><path d="M26 12l-5-8"/></svg>, label: 'Diamond 22K', value: rates?.diamond_22k },
+{ icon: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#94a3b8" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="16" r="10"/><circle cx="16" cy="16" r="6"/><circle cx="16" cy="16" r="2"/><line x1="16" y1="6" x2="16" y2="4"/><line x1="16" y1="28" x2="16" y2="26"/><line x1="6" y1="16" x2="4" y2="16"/><line x1="28" y1="16" x2="26" y2="16"/></svg>, label: 'Platinum', value: rates?.platinum_92 },
+          ].map((item, i, arr) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              padding: '13px 18px',
+              borderBottom: i < arr.length - 1 ? '1px solid #f5f0e8' : 'none',
+              background: '#fff', transition: 'background 0.15s',
+            }}
+              onMouseEnter={e => e.currentTarget.style.background = '#fdf8f4'}
+              onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+            >
+              <div style={{ flexShrink: 0 }}>{item.icon}</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', flex: 1 }}>
+                <span style={{ color: '#4b3a2a', fontSize: 13, fontFamily: '"Montserrat", sans-serif', fontWeight: 500, letterSpacing: '0.3px' }}>{item.label}</span>
+                <span style={{ color: item.value ? '#b8860b' : '#9ca3af', fontWeight: 700, fontSize: 14 }}>
+                  {item.value ? `Rs. ${parseFloat(item.value).toFixed(0)}/-` : 'Not set'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function CustomerNavbar() {
   const navigate = useNavigate()
   const [cartCount, setCartCount] = useState(0)
@@ -82,30 +162,51 @@ export default function CustomerNavbar() {
         position: 'sticky',
         top: 0,
         zIndex: 300,
-        height: '72px',
+        height: '100px',
         boxShadow: '0 2px 12px rgba(139,26,26,0.06)',
         gap: '20px',
       }}>
 
-        {/* Logo */}
-        <div
-          onClick={() => navigate('/')}
-          style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15, cursor: 'pointer', flexShrink: 0, minWidth: 140 }}
-        >
-          <span style={{
-            color: '#8B1A1A', fontWeight: 700, fontSize: '28px',
-            letterSpacing: '0.5px', fontFamily: '"Playfair Display", Georgia, serif',
-            fontStyle: 'italic', lineHeight: 1, display: 'block',
-          }}>BitByte</span>
-          <span style={{
-            color: '#b8860b', fontWeight: 600, fontSize: '9px',
-            letterSpacing: '5px', textTransform: 'uppercase',
-            fontFamily: '"Montserrat", sans-serif', marginTop: '4px', display: 'block',
-          }}>✦ Jewels ✦</span>
-        </div>
+<div
+  onClick={() => navigate('/')}
+  style={{ 
+    display: 'flex', 
+    flexDirection: 'column', 
+    alignItems: 'flex-start', 
+    cursor: 'pointer', 
+    flexShrink: 0,
+    minWidth: 200,
+    gap: 0,
+    paddingTop: '10px',
+    paddingBottom: '50px',
+  }}
+>
+  <img
+    src="/BJ-logo.png"
+    alt="Bharathi Jewellers"
+    style={{ 
+      height: '180px',      
+      width: '195px',       
+      objectFit: 'contain',
+      display: 'block',
+      marginBottom: '-30px',
+    }}
+  />
+  <span style={{
+    color: '#b8860b', 
+    fontSize: '10px',
+    fontWeight: 600,
+    letterSpacing: '2.5px', 
+    textTransform: 'uppercase',
+    fontFamily: '"Montserrat", sans-serif', 
+    display: 'block',
+    marginTop: '-28px',
+    whiteSpace: 'nowrap',
+  }}>✦ Bharathi Jewellers ✦</span>
+</div>
 
         {/* Search */}
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', maxWidth: 640 }}>
+         <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', maxWidth: 640, marginLeft: '-20px' }}>
           <div style={{ width: '100%', position: 'relative' }}>
             <span style={{
               position: 'absolute', left: 16, top: '50%',
@@ -135,26 +236,7 @@ export default function CustomerNavbar() {
         {/* Right Icons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
 
-          {/* Today Rate */}
-          <button
-            style={{
-              background: 'linear-gradient(90deg,#b8860b,#d4a017)', color: '#fff',
-              border: 'none', borderRadius: 22, padding: '8px 16px',
-              fontSize: 12, fontWeight: 700, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap',
-              boxShadow: '0 2px 8px rgba(184,134,11,0.3)', transition: 'transform 0.2s, box-shadow 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(184,134,11,0.45)' }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(184,134,11,0.3)' }}
-            onClick={() => navigate('/today-rate')}
-          >
-            <svg width="14" height="14" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="4" y="6" width="24" height="22" rx="2"/>
-              <path d="M4 12h24"/><path d="M10 4v4"/><path d="M22 4v4"/>
-              <path d="M10 18h4"/><path d="M10 23h8"/>
-            </svg>
-            Today Rate
-          </button>
+<TodayRateDropdown />
 
           {/* Order Summary */}
           <button
@@ -234,7 +316,7 @@ export default function CustomerNavbar() {
       </div>
 
       {/* ── CATEGORY NAV ── */}
-      <div style={{ position: 'sticky', top: '73px', zIndex: 250, background: '#fff' }} onMouseLeave={() => setShowDropdown(false)}>
+      <div style={{ position: 'sticky', top: '100px', zIndex: 250, background: '#fff' }} onMouseLeave={() => setShowDropdown(false)}>
         <div style={{
           borderBottom: '1px solid #f0e8e0', padding: '0 40px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -485,7 +567,13 @@ export default function CustomerNavbar() {
                     <div key={p.label} style={{ textAlign: 'center', cursor: 'pointer' }}
                       onMouseEnter={e => { e.currentTarget.querySelector('.ph-box').style.borderColor = '#8B1A1A'; e.currentTarget.querySelector('.ph-label').style.color = '#8B1A1A' }}
                       onMouseLeave={e => { e.currentTarget.querySelector('.ph-box').style.borderColor = '#e8e0d0'; e.currentTarget.querySelector('.ph-label').style.color = '#1f2937' }}
-                      onClick={() => { const priceMap = { '< ₹25K': 'below25k', '₹25K – ₹50K': '25k-50k', '₹50K – ₹1L': '50k-1L', '₹1L & Above': 'above1L' }; setShowDropdown(false); navigate(`/collection/all?price=${priceMap[p.label]}`) }}>
+onClick={() => {
+  const priceMap = { '< ₹25K': 'below25k', '₹25K – ₹50K': '25k-50k', '₹50K – ₹1L': '50k-1L', '₹1L & Above': 'above1L' }
+  const metalParam = activeCategory !== 'all' && activeCategory !== 'coins' && activeCategory !== 'wedding' && activeCategory !== 'gifting' && activeCategory !== 'offers'
+    ? `&metal=${activeCategory}` : ''
+  setShowDropdown(false)
+  navigate(`/collection/all?price=${priceMap[p.label]}${metalParam}`)
+}}>
                       <div className="ph-box" style={{ width: '90%', height: '190px', borderRadius: 12, background: '#f5f0e8', border: '0.5px solid #e8e0d0', overflow: 'hidden', marginBottom: 8, transition: 'border-color 0.15s' }}>
                         {priceImgMap[p.label] ? <img src={priceImgMap[p.label]} alt={p.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : null}
                       </div>
@@ -504,7 +592,12 @@ export default function CustomerNavbar() {
                     <div key={o.label} style={{ textAlign: 'center', cursor: 'pointer' }}
                       onMouseEnter={e => e.currentTarget.querySelector('.oh-box').style.borderColor = '#8B1A1A'}
                       onMouseLeave={e => e.currentTarget.querySelector('.oh-box').style.borderColor = '#e8e0d0'}
-                      onClick={() => { setShowDropdown(false); navigate(`/collection/all?occasion=${encodeURIComponent(o.label)}`) }}>
+                     onClick={() => {
+  const metalParam = activeCategory !== 'all' && activeCategory !== 'coins' && activeCategory !== 'wedding' && activeCategory !== 'gifting' && activeCategory !== 'offers'
+    ? `&metal=${activeCategory}` : ''
+  setShowDropdown(false)
+  navigate(`/collection/all?occasion=${encodeURIComponent(o.label)}${metalParam}`)
+}}>
                       <div className="oh-box" style={{ width: '100%', height: '190px', borderRadius: 12, background: '#f5f0e8', border: '0.5px solid #e8e0d0', overflow: 'hidden', marginBottom: 8, transition: 'border-color 0.15s', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40 }}>
                         {occasionImgMap[o.label] ? <img src={occasionImgMap[o.label]} alt={o.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span>{o.emoji}</span>}
                       </div>
@@ -523,7 +616,13 @@ export default function CustomerNavbar() {
                     <div key={g.label} style={{ textAlign: 'center', cursor: 'pointer' }}
                       onMouseEnter={e => e.currentTarget.querySelector('.gh-box').style.borderColor = '#8B1A1A'}
                       onMouseLeave={e => e.currentTarget.querySelector('.gh-box').style.borderColor = '#e8e0d0'}
-                      onClick={() => { const gMap = { 'Women': 'women', 'Her': 'women', 'Men': 'men', 'Him': 'men', 'Kids & Teens': 'kids', 'Kids': 'kids' }; const g2 = gMap[g.label]; if (g2) { setShowDropdown(false); navigate(`/collection/all?gender=${g2}`) } }}>
+                      onClick={() => {
+  const gMap = { 'Women': 'women', 'Her': 'women', 'Men': 'men', 'Him': 'men', 'Kids & Teens': 'kids', 'Kids': 'kids' }
+  const g2 = gMap[g.label]
+  const metalParam = activeCategory !== 'all' && activeCategory !== 'coins' && activeCategory !== 'wedding' && activeCategory !== 'gifting' && activeCategory !== 'offers'
+    ? `&metal=${activeCategory}` : ''
+  if (g2) { setShowDropdown(false); navigate(`/collection/all?gender=${g2}${metalParam}`) }
+}}>
                       <div className="gh-box" style={{ width: '100%', aspectRatio: '0.85', borderRadius: 12, background: '#f5f0e8', border: '0.5px solid #e8e0d0', overflow: 'hidden', marginBottom: 8, transition: 'border-color 0.15s' }}>
                         {genderImgMap[g.label] ? <img src={genderImgMap[g.label]} alt={g.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : null}
                       </div>
