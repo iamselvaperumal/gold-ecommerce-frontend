@@ -48,21 +48,56 @@ const TAG_COLORS = {
 
 
 
-function MoreFromCollection({ currentProductId, category, metal }) {
+function MoreFromCollection({ currentProductId, category, metal, gender, occasion, liveRate }) {
   const navigate = useNavigate()
   const [products, setProducts] = useState([])
-  const scrollRef = useRef(null)
+
+  const calcLivePrice = (p) => {
+    if (!liveRate) return parseFloat(p.price) || null
+    const netWt = parseFloat(p.net_weight) || 0
+    const makingChargePct = parseFloat(p.making_charge) || 0
+    const discountPct = parseFloat(p.wastage_charge) || 0
+    const stoneVal = parseFloat(p.stone_value) || 0
+    let todayRate = 0
+    if (p.metal === 'gold') todayRate = p.grade === '24k' ? liveRate.gold_24k : liveRate.gold_22k
+    else if (p.metal === 'silver') todayRate = liveRate.silver_999
+    else if (p.metal === 'diamond') todayRate = p.grade === '18k' ? liveRate.diamond_18k : liveRate.diamond_22k
+    else if (p.metal === 'platinum') todayRate = liveRate.platinum_92
+    if (!todayRate || !netWt) return parseFloat(p.price) || null
+    const makingPerGram = todayRate * (makingChargePct / 100)
+    const rateWithMaking = todayRate + makingPerGram
+    const discountPerGram = rateWithMaking * (discountPct / 100)
+    const effectiveRate = rateWithMaking - discountPerGram
+    return Math.round(((netWt * effectiveRate) + stoneVal) * 1.03)
+  }
+
+  const calcOriginalPrice = (p) => {
+    if (!liveRate) return parseFloat(p.original_price) || null
+    const netWt = parseFloat(p.net_weight) || 0
+    const makingChargePct = parseFloat(p.making_charge) || 0
+    const stoneVal = parseFloat(p.stone_value) || 0
+    let todayRate = 0
+    if (p.metal === 'gold') todayRate = p.grade === '24k' ? liveRate.gold_24k : liveRate.gold_22k
+    else if (p.metal === 'silver') todayRate = liveRate.silver_999
+    else if (p.metal === 'diamond') todayRate = p.grade === '18k' ? liveRate.diamond_18k : liveRate.diamond_22k
+    else if (p.metal === 'platinum') todayRate = liveRate.platinum_92
+    if (!todayRate || !netWt) return parseFloat(p.original_price) || null
+    const makingPerGram = todayRate * (makingChargePct / 100)
+    const rateWithMaking = todayRate + makingPerGram
+    return Math.round(((netWt * rateWithMaking) + stoneVal) * 1.03)
+  }
 
   useEffect(() => {
     import('../api').then(({ default: api }) => {
       api.get(`/jewelry-products/?category=${category}&metal=${metal}`)
         .then(res => {
           const list = Array.isArray(res.data) ? res.data : []
-          setProducts(list.filter(p => String(p.id) !== String(currentProductId)))
+          const filtered = list.filter(p => String(p.id) !== String(currentProductId))
+setProducts(filtered.slice(0, 4))
         })
         .catch(() => {})
     })
-  }, [category, metal, currentProductId])
+  }, [category, metal, currentProductId, liveRate])
 
   if (products.length === 0) return null
 
@@ -74,162 +109,66 @@ function MoreFromCollection({ currentProductId, category, metal }) {
     return `https://bitbyte-backend-f66f.onrender.com/${p.replace(/^\/+/, '')}`
   }
 
-  const scroll = dir => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: dir * 340, behavior: 'smooth' })
-    }
-  }
-
   return (
-    <div style={{
-      position: 'relative', zIndex: 5,
-      padding: '0 40px 80px',
-      maxWidth: 1600, margin: '0 auto',
-    }}>
+    <div style={{ position: 'relative', zIndex: 5, padding: '0 40px 80px', maxWidth: 1600, margin: '0 auto' }}>
       {/* Header */}
-      <div style={{
-        display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between', marginBottom: 28,
-      }}>
-        <h2 style={{
-          margin: 0, fontSize: 28, fontWeight: 800,
-          color: '#1c1410',
-          fontFamily: '"Cormorant Garamond", Georgia, serif',
-        }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
+        <h2 style={{ margin: 0, fontSize: 28, fontWeight: 800, color: '#1c1410', fontFamily: '"Cormorant Garamond", Georgia, serif' }}>
           More from this collection
         </h2>
         <button
-          onClick={() => navigate(`/collection/all?metal=${metal}`)}
-          style={{
-            padding: '8px 22px', borderRadius: 999,
-            border: '1.5px solid #1c1410',
-            background: 'transparent', color: '#1c1410',
-            fontWeight: 700, fontSize: 14, cursor: 'pointer',
-            fontFamily: '"Montserrat", sans-serif',
-          }}
+          onClick={() => navigate(`/collection/all?metal=${metal}${gender && gender !== 'all' ? `&gender=${gender}` : ''}${occasion ? `&occasion=${occasion}` : ''}`)}
+          style={{ padding: '8px 22px', borderRadius: 999, border: '1.5px solid #1c1410', background: 'transparent', color: '#1c1410', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
         >
           View All
         </button>
       </div>
 
-      {/* Left Arrow */}
-      <button onClick={() => scroll(-1)} style={{
-        position: 'absolute', left: 0, top: '50%',
-        transform: 'translateY(-50%)',
-        width: 40, height: 40, borderRadius: '50%',
-        background: '#fff', border: '1px solid #e8ddd5',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-        cursor: 'pointer', fontSize: 18, fontWeight: 700,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#8B1A1A', zIndex: 10,
-      }}>‹</button>
-
-      {/* Right Arrow */}
-      <button onClick={() => scroll(1)} style={{
-        position: 'absolute', right: 0, top: '50%',
-        transform: 'translateY(-50%)',
-        width: 40, height: 40, borderRadius: '50%',
-        background: '#fff', border: '1px solid #e8ddd5',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-        cursor: 'pointer', fontSize: 18, fontWeight: 700,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#8B1A1A', zIndex: 10,
-      }}>›</button>
-
-      {/* Scroll Container */}
-      <div ref={scrollRef} style={{
-        display: 'flex', gap: 20, overflowX: 'auto',
-        scrollbarWidth: 'none', paddingBottom: 8,
-      }}>
-        <style>{`div::-webkit-scrollbar{display:none}`}</style>
-
+      {/* 4 Products Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
         {products.map(p => {
           const firstImg = p.images?.[0] ? getImageUrl(p.images[0]) : null
-          const price = parseFloat(p.price) || 0
-          const originalPrice = parseFloat(p.original_price) || 0
+          const price = calcLivePrice(p) || 0
+          const originalPrice = calcOriginalPrice(p) || 0
           const discountPct = parseFloat(p.wastage_charge) || 0
           const hasDiscount = discountPct > 0 && originalPrice > price && price > 0
 
           return (
-            <div
-              key={p.id}
-              onClick={() => navigate(`/product-display?category=${p.category}&metal=${p.metal}&id=${p.id}`)}
-              style={{
-                flexShrink: 0, width: 300,
-                background: '#fff',
-                borderRadius: 16,
-                overflow: 'hidden',
-                cursor: 'pointer',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                border: '1px solid #f0e8e0',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-4px)'
-                e.currentTarget.style.boxShadow = '0 12px 32px rgba(139,26,26,0.12)'
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = 'none'
-              }}
+            <div key={p.id}
+              onClick={() => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+  navigate(`/product-display?category=${p.category}&metal=${p.metal}&id=${p.id}`)
+}}
+              style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s', border: '1px solid #f0e8e0' }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(139,26,26,0.12)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
             >
-              {/* Image */}
-              <div style={{
-                height: 300, background: '#fdf8f4',
-                position: 'relative', overflow: 'hidden',
-              }}>
+              <div style={{ height: 220, background: '#fdf8f4', overflow: 'hidden' }}>
                 {firstImg
                   ? <img src={firstImg} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>💍</div>
                 }
-
-                {/* Wishlist + Star icons — top */}
-                <div style={{
-                  position: 'absolute', top: 12, left: 12, right: 12,
-                  display: 'flex', justifyContent: 'space-between',
-                }}>
-                  <div style={{
-                    width: 32, height: 32, borderRadius: '50%',
-                    background: 'rgba(255,255,255,0.85)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 14, cursor: 'pointer',
-                    border: '1px solid rgba(139,26,26,0.15)',
-                  }}>☆</div>
-                  <div style={{
-                    width: 32, height: 32, borderRadius: '50%',
-                    background: 'rgba(255,255,255,0.85)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 14, cursor: 'pointer',
-                    border: '1px solid rgba(139,26,26,0.15)',
-                  }}>♡</div>
-                </div>
               </div>
 
-              {/* Info */}
-              <div style={{ padding: '14px 16px' }}>
-                {/* Price Row */}
+              <div style={{ padding: '12px 14px' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#1c1410', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {p.name}
+                </div>
+                <div style={{ fontSize: 11, color: '#92400e', marginBottom: 6, opacity: 0.75 }}>
+                  {p.metal?.toUpperCase()} {p.grade?.toUpperCase()}{p.net_weight ? ` • ${parseFloat(p.net_weight)}gm` : ''}
+                </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  <span style={{
-                    fontSize: 18, fontWeight: 900,
-                    color: '#1c1410', fontFamily: 'monospace',
-                  }}>
+                  <span style={{ fontSize: 16, fontWeight: 900, color: '#1c1410', fontFamily: 'monospace' }}>
                     {price > 0 ? `₹${price.toLocaleString('en-IN')}` : '—'}
                   </span>
                   {hasDiscount && (
-                    <span style={{
-                      fontSize: 13, color: '#9ca3af',
-                      textDecoration: 'line-through',
-                    }}>
+                    <span style={{ fontSize: 12, color: '#9ca3af', textDecoration: 'line-through' }}>
                       ₹{originalPrice.toLocaleString('en-IN')}
                     </span>
                   )}
                 </div>
-
-                {/* Discount badge */}
                 {hasDiscount && (
-                  <div style={{
-                    fontSize: 12, color: '#8B1A1A',
-                    fontWeight: 700, marginTop: 4,
-                  }}>
+                  <div style={{ fontSize: 11, color: '#8B1A1A', fontWeight: 700, marginTop: 3 }}>
                     {discountPct}% Off
                   </div>
                 )}
@@ -241,6 +180,7 @@ function MoreFromCollection({ currentProductId, category, metal }) {
     </div>
   )
 }
+ 
 
 
 function ProductInfoAndBreakup({ product, metal }) {
@@ -474,8 +414,11 @@ export default function ProductDisplay() {
   const [showZoom, setShowZoom] = useState(false)
   const [zoomPixel, setZoomPixel] = useState({ x: 0, y: 0 })
   const [wishlisted, setWishlisted] = useState(false)
+  const [liveRate, setLiveRate] = useState(null)
   const imageRef = useRef(null)
 
+
+  
   const isGold = metal === 'gold'
   const accentColor = isGold ? '#fbbf24' : '#c0c0c0'
   const accentSoft = isGold ? 'rgba(251,191,36,0.18)' : 'rgba(192,192,192,0.18)'
@@ -508,6 +451,22 @@ export default function ProductDisplay() {
       }).catch(() => { })
     })
   }, [productId])
+
+  useEffect(() => {
+  import('../api').then(({ default: api }) => {
+    api.get('/metal-rates/').then(res => {
+      const d = res.data
+      setLiveRate({
+        gold_22k: parseFloat(d.gold_22k) || 0,
+        gold_24k: parseFloat(d.gold_24k) || 0,
+        silver_999: parseFloat(d.silver_999) || 0,
+        diamond_18k: parseFloat(d.diamond_18k) || 0,
+        diamond_22k: parseFloat(d.diamond_22k) || 0,
+        platinum_92: parseFloat(d.platinum_92) || 0,
+      })
+    }).catch(() => {})
+  })
+}, [])
 
   useEffect(() => {
     setLoading(true)
@@ -1585,6 +1544,9 @@ export default function ProductDisplay() {
   currentProductId={productId}
   category={category}
   metal={metal}
+  gender={product?.gender}
+  occasion={product?.occasion}
+  liveRate={liveRate}
 />
 
       {/* Zoom Panel */}

@@ -113,68 +113,70 @@ export default function PlatinumBangles() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '20px' }}>
           {loading ? (
             <div style={{ gridColumn: 'span 3', textAlign: 'center', color: '#64748b', padding: '60px 0' }}>⏳ Loading products...</div>
           ) : filteredProducts.length === 0 ? (
             <div style={{ gridColumn: 'span 3', textAlign: 'center', color: '#64748b', padding: '60px 0' }}>No platinum bangles found.</div>
           ) : filteredProducts.map((product) => {
-            const isHovered = hovered === product.id
-            const tag = tagStyle(product.tag)
-            const imgUrl = getImageUrl(product.images?.[0])
-            return (
-              <div key={product.id} className="dm-card"
-                onClick={() => navigate(`/product-display?category=bangles&metal=platinum&id=${product.id}`)}
-                onMouseEnter={() => setHovered(product.id)}
-                onMouseLeave={() => setHovered(null)}
-                style={{
-                  borderRadius: '20px', overflow: 'hidden', cursor: 'pointer', position: 'relative',
-                  border: `1px solid ${isHovered ? 'rgba(226,232,240,0.55)' : 'rgba(226,232,240,0.18)'}`,
-                  background: isHovered ? 'rgba(226,232,240,0.05)' : '#fff',
-                  transform: isHovered ? 'translateY(-10px) scale(1.02)' : 'translateY(0) scale(1)',
-                  boxShadow: isHovered ? `0 20px 50px ${ACCENT_GLOW}` : '0 2px 12px rgba(0,0,0,0.06)',
-                  transition: 'all 0.35s cubic-bezier(0.34,1.56,0.64,1)',
-                }}>
-                <div className="dm-shine" />
-                <div className="dm-img-wrap" style={{ position: 'relative', height: '240px', background: '#f8fafc' }}>
-                  {imgUrl ? (
-                    <img src={imgUrl} alt={product.name}
-                      onError={e => { e.currentTarget.style.display = 'none' }}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                  ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '60px' }}>{'⬡'}</div>
-                  )}
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(2,6,23,0.7) 0%, transparent 55%)' }} />
-                  {product.grade && (
-                    <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(226,232,240,0.2)', border: '1px solid rgba(226,232,240,0.5)', borderRadius: '16px', padding: '3px 10px', color: ACCENT, fontSize: '9px', fontWeight: 800, backdropFilter: 'blur(8px)' }}>
-                      ⬡ {product.grade.toUpperCase()}
-                    </div>
-                  )}
-                  {product.tag && (
-                    <div style={{ position: 'absolute', top: product.grade ? '34px' : '10px', left: '10px', background: tag.bg, border: `1px solid ${tag.border}`, borderRadius: '16px', padding: '3px 10px', color: tag.color, fontSize: '9px', fontWeight: 800, backdropFilter: 'blur(8px)' }}>
-                      {product.tag}
-                    </div>
-                  )}
-                  <button onClick={e => toggleWishlist(e, product.id)}
-                    style={{ position: 'absolute', top: '10px', right: '10px', width: '30px', height: '30px', borderRadius: '50%', border: wishlistedIds.has(product.id) ? '1.5px solid #e11d48' : '1.5px solid rgba(255,255,255,0.35)', background: wishlistedIds.has(product.id) ? 'rgba(225,29,72,0.18)' : 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '14px' }}>
-                    {wishlistedIds.has(product.id) ? '❤️' : '🤍'}
-                  </button>
-                </div>
-                <div style={{ padding: '14px 16px' }}>
-                  <div style={{ color: isHovered ? ACCENT : '#020617', fontWeight: 800, fontSize: '14px', marginBottom: '4px', transition: 'color 0.3s' }}>{product.name}</div>
-                  {product.description && <div style={{ color: '#64748b', fontSize: '11px', lineHeight: '1.5', marginBottom: '8px' }}>{product.description}</div>}
-                  {product.price && <div style={{ color: ACCENT, fontWeight: 900, fontSize: '15px', fontFamily: 'monospace' }}>₹{Number(product.price).toLocaleString('en-IN')}</div>}
-                </div>
-                {isHovered && (
-                  <div style={{ padding: '0 16px 14px', animation: 'fadeInUp 0.2s ease' }}>
-                    <div style={{ width: '100%', padding: '8px', background: `linear-gradient(90deg,${ACCENT},#fff)`, borderRadius: '10px', color: '#000', fontWeight: 800, fontSize: '11px', textAlign: 'center' }}>
-                      👁 View Details
-                    </div>
-                  </div>
-                )}
-              </div>
-            )
-          })}
+            const images = product.images?.map(img => getImageUrl(img)).filter(Boolean) || []
+const isHovered = hovered === product.id
+const displayIndex = isHovered && images.length > 1 ? 1 : 0
+const price = parseFloat(product.price) || 0
+const discountPct = parseFloat(product.wastage_charge) || 0
+const originalAmt = parseFloat(product.original_price) || 0
+const hasDiscount = discountPct > 0 && originalAmt > price && price > 0
+
+return (
+  <div key={product.id} className="dm-card"
+    onClick={() => navigate(`/product-display?category=bangles&metal=platinum&id=${product.id}`)}
+    onMouseEnter={() => setHovered(product.id)}
+    onMouseLeave={() => setHovered(null)}
+    style={{
+      borderRadius: 10, overflow: 'hidden', cursor: 'pointer', position: 'relative',
+      border: '1px solid #e8e8e8', background: '#fff',
+      boxShadow: isHovered ? '0 8px 24px rgba(0,0,0,0.12)' : '0 2px 8px rgba(0,0,0,0.06)',
+      transition: 'all 0.25s ease',
+    }}>
+  <div className="dm-img-wrap" style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden', marginBottom: 10 }}>
+    {product.tag && (
+      <div style={{ position: 'absolute', top: 12, left: 0, background: '#2ecc71', color: '#fff', padding: '5px 12px 5px 10px', fontSize: 11, fontWeight: 700, clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)', zIndex: 2 }}>
+        {product.tag}
+      </div>
+    )}
+    <button onClick={e => toggleWishlist(e, product.id)}
+      style={{ position: 'absolute', top: 10, right: 10, width: 30, height: 30, borderRadius: '50%', border: wishlistedIds.has(product.id) ? '1.5px solid #e11d48' : '1px solid #ddd', background: wishlistedIds.has(product.id) ? 'rgba(225,29,72,0.15)' : 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 14, zIndex: 2 }}>
+      {wishlistedIds.has(product.id) ? '❤️' : '🤍'}
+    </button>
+    {images.length > 0
+      ? <img src={images[displayIndex]} alt={product.name}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'opacity 0.3s ease' }}
+          onError={e => e.currentTarget.style.display = 'none'} />
+      : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>⬡</div>
+    }
+    <div style={{ position: 'absolute', bottom: 10, right: 10, fontSize: 16, color: '#999', zIndex: 2 }}>🔗</div>
+  </div>
+  <div style={{ padding: '12px 14px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+      <span style={{ fontSize: 15, fontWeight: 800, color: '#1a1a1a' }}>
+        {price > 0 ? `₹${price.toLocaleString('en-IN')}` : '—'}
+      </span>
+      {hasDiscount && (
+        <span style={{ fontSize: 12, color: '#999', textDecoration: 'line-through' }}>
+          ₹{originalAmt.toLocaleString('en-IN')}
+        </span>
+      )}
+    </div>
+    {hasDiscount && (
+      <div style={{ fontSize: 12, color: '#2ecc71', fontWeight: 700, marginBottom: 6 }}>
+        {discountPct}% Off
+      </div>
+    )}
+    <div style={{ fontSize: 13, color: '#1a1a1a', fontWeight: 600 }}>{product.name}</div>
+  </div>
+</div>
+  )
+})}
         </div>
       </div>
     </div>

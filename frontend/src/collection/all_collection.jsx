@@ -3,6 +3,83 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import logo from '../assets/logo.png'
 import CustomerNavbar from './CustomerNavbar'
 
+
+function ProductCard({ p, navigate }) {
+  const images = p.images?.map(img => getImageUrl(img)).filter(Boolean) || []
+  const [imgIndex, setImgIndex] = useState(0)
+  const [hovered, setHovered] = useState(false)
+  const price = parseFloat(p.price) || 0
+  const discountPct = parseFloat(p.wastage_charge) || 0
+  const originalAmt = parseFloat(p.original_price) || 0
+  const hasDiscount = discountPct > 0 && originalAmt > price && price > 0
+  const displayIndex = hovered && images.length > 1 ? 1 : imgIndex
+
+  return (
+<div
+  onClick={() => navigate(`/product-display?category=${p.category}&metal=${p.metal}&id=${p.id}`)}
+  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'; setHovered(true) }}
+  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; setHovered(false) }}
+  style={{ background: '#fff', border: '1px solid #e8e8e8', borderRadius: 10, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+>
+      <div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden' }}>
+
+        {p.tag && (
+          <div style={{ position: 'absolute', top: 12, left: 0, background: '#2ecc71', color: '#fff', padding: '5px 12px 5px 10px', fontSize: 11, fontWeight: 700, clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)', zIndex: 2 }}>
+            {p.tag}
+          </div>
+        )}
+
+        <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 10, right: 10, fontSize: 20, cursor: 'pointer', zIndex: 2 }}>🤍</div>
+
+{images.length > 0
+  ? <img 
+      src={images[displayIndex]}  // ← இங்க மாத்து
+      alt={p.name} 
+      style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'opacity 0.3s ease' }} 
+      onError={e => e.currentTarget.style.display = 'none'} 
+    />
+  : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>💍</div>
+}
+
+        {/* {images.length > 1 && (
+          <button onClick={e => { e.stopPropagation(); setImgIndex(i => (i - 1 + images.length) % images.length) }}
+            style={{ position: 'absolute', left: 2, top: '50%', transform: 'translateY(-50%)', border: 'none', borderRadius: '50%', width: 48, height: 48, fontSize: 38, cursor: 'pointer', zIndex: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            ‹
+          </button>
+        )}
+
+        {images.length > 1 && (
+          <button onClick={e => { e.stopPropagation(); setImgIndex(i => (i + 1) % images.length) }}
+            style={{ position: 'absolute', right: 2, top: '50%', transform: 'translateY(-50%)', border: 'none', borderRadius: '50%', width: 48, height: 48, fontSize: 38, cursor: 'pointer', zIndex: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            ›
+          </button>
+        )} */}
+
+        <div style={{ position: 'absolute', bottom: 10, right: 10, fontSize: 16, color: '#999', zIndex: 2 }}>🔗</div>
+      </div>
+
+      <div style={{ padding: '12px 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <span style={{ fontSize: 15, fontWeight: 800, color: '#1a1a1a' }}>
+            {price > 0 ? `₹${price.toLocaleString('en-IN')}` : '—'}
+          </span>
+          {hasDiscount && (
+            <span style={{ fontSize: 12, color: '#999', textDecoration: 'line-through' }}>
+              ₹{originalAmt.toLocaleString('en-IN')}
+            </span>
+          )}
+        </div>
+        {hasDiscount && (
+          <div style={{ fontSize: 12, color: '#2ecc71', fontWeight: 700, marginBottom: 6 }}>
+            {discountPct}% Off
+          </div>
+        )}
+        <div style={{ fontSize: 13, color: '#1a1a1a', fontWeight: 600 }}>{p.name}</div>
+      </div>
+    </div>
+  )
+}
+
 const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
 
 const getImageUrl = img => {
@@ -86,7 +163,7 @@ export default function AllCollection() {
 <CustomerNavbar />
 
       {/* HEADER */}
-      <div style={{ textAlign: 'center', padding: '40px 20px 24px' }}>
+      <div style={{ textAlign: 'center', padding: '40px 16px 24px' }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: '#8B1A1A', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>
           {metalFilter ? `${metalFilter.toUpperCase()} JEWELLERY` : 'ALL JEWELLERY'}
         </div>
@@ -123,7 +200,7 @@ export default function AllCollection() {
       </div>
 
       {/* PRODUCTS GRID */}
-      <div style={{ maxWidth: 1300, margin: '0 auto', padding: '0 32px 60px' }}>
+      <div style={{ maxWidth: '100%', margin: '0 auto', padding: '0 16px 60px' }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '80px 0' }}>
             <div style={{ width: 40, height: 40, border: '3px solid #f3d5d5', borderTop: '3px solid #8B1A1A', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
@@ -142,54 +219,12 @@ export default function AllCollection() {
             </button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20, animation: 'fadeIn 0.4s ease' }}>
-            {products.map(p => {
-              const firstImg = p.images?.[0] ? getImageUrl(p.images[0]) : null
-              const price = parseFloat(p.price) || 0
-              return (
-                <div key={p.id}
-                  onClick={() => navigate(`/product-display?category=${p.category}&metal=${p.metal}&id=${p.id}`)}
-                  style={{ background: '#fff', border: '1px solid #e8ddd5', borderRadius: 16, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s ease', boxShadow: '0 2px 8px rgba(139,26,26,0.06)' }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(139,26,26,0.15)' }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(139,26,26,0.06)' }}
-                >
-                  {/* Image */}
-                  <div style={{ height: 200, background: '#f5f0e8', position: 'relative', overflow: 'hidden' }}>
-                    {firstImg
-                      ? <img src={firstImg} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={e => e.currentTarget.style.display = 'none'} />
-                      : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>{CATEGORY_ICONS[p.category] || '💍'}</div>
-                    }
-                    {p.tag && (
-                      <div style={{ position: 'absolute', top: 10, left: 10, background: '#8B1A1A', color: '#fff', borderRadius: 20, padding: '3px 10px', fontSize: 10, fontWeight: 800 }}>
-                        {p.tag}
-                      </div>
-                    )}
-                    <div style={{ position: 'absolute', top: 10, right: 10, background: p.metal === 'gold' ? 'rgba(251,191,36,0.9)' : 'rgba(192,192,192,0.9)', color: '#000', borderRadius: 20, padding: '3px 10px', fontSize: 10, fontWeight: 800 }}>
-                      {p.metal === 'gold' ? '🥇' : '🥈'} {p.grade?.toUpperCase()}
-                    </div>
-                  </div>
-
-                  {/* Info */}
-                  <div style={{ padding: '14px 16px' }}>
-                    <div style={{ fontSize: 11, color: '#7c5c4a', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>
-                      {CATEGORY_ICONS[p.category]} {p.category}
-                    </div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1a0a0a', marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {p.name}
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ fontSize: 16, fontWeight: 900, color: p.metal === 'gold' ? '#b8860b' : '#9ca3af', fontFamily: 'monospace' }}>
-                        {price > 0 ? `₹${price.toLocaleString('en-IN')}` : '—'}
-                      </div>
-                      <div style={{ fontSize: 11, color: '#7c5c4a' }}>
-                        {p.net_weight ? `${p.net_weight}g` : ''}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 20, animation: 'fadeIn 0.4s ease' }}>
+  {products.map(p => (
+    <ProductCard key={p.id} p={p} navigate={navigate} />
+  ))}
+</div>
+         
         )}
       </div>
     </div>
