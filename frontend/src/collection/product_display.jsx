@@ -278,18 +278,22 @@ function ProductInfoAndBreakup({ product, metal }) {
           Product Information
         </div>
         <div style={{
-          background: '#fff',
-          borderRadius: 12,
-          padding: '30px 70px',
-          display: 'inline-block',
-          minWidth: 300,
-          boxShadow: '0 1px 8px rgba(0,0,0,0.07)',
-        }}>
-          <div style={{ color: '#7c2d12', fontWeight: 700, fontSize: 18, marginBottom: 4 }}>Metal and Purity</div>
-          <div style={{ color: '#92400e', fontSize: 16, marginBottom: 16 }}>{metalLabel} {purityLabel}</div>
-          <div style={{ color: '#7c2d12', fontWeight: 700, fontSize: 18, marginBottom: 4 }}>Weight</div>
-          <div style={{ color: '#92400e', fontSize: 16 }}>{netWt > 0 ? `${netWt}gms` : crossWt > 0 ? `${crossWt}gms` : '—'}</div>
-        </div>
+  background: '#fff',
+  borderRadius: 12,
+  padding: '36px 80px',
+  display: 'inline-block',
+  minWidth: 600,
+  boxShadow: '0 1px 8px rgba(0,0,0,0.07)',
+}}>
+<div style={{ color: '#7c2d12', fontWeight: 700, fontSize: 18, marginBottom: 4 }}>Metal and Purity</div>
+<div style={{ color: '#92400e', fontSize: 16, marginBottom: 20 }}>{metalLabel} {purityLabel}</div>
+<div style={{ color: '#7c2d12', fontWeight: 700, fontSize: 18, marginBottom: 4 }}>Weight</div>
+<div style={{ color: '#92400e', fontSize: 16, marginBottom: 20 }}>{netWt > 0 ? `${netWt}gms` : crossWt > 0 ? `${crossWt}gms` : '—'}</div>
+<div style={{ color: '#7c2d12', fontWeight: 700, fontSize: 18, marginBottom: 4 }}>Product Description</div>
+<div style={{ color: '#92400e', fontSize: 16, lineHeight: 1.8 }}>
+  {product?.desc || product?.description || product?.short_description || 'No description available.'}
+</div>
+</div>
       </div>
 
       {/* ── Price Breakup ── */}
@@ -994,21 +998,15 @@ export default function ProductDisplay() {
   }}
 >
           {/* Image Side */}
-          <div
-            className="pd-image-card"
-            style={{
-              position: 'relative',
-              background: glass,
-              border: `1px solid ${border}`,
-              borderRadius: 34,
-              overflow: 'hidden',
-              width: '600px',
-              height: '700px',
-              flexShrink: 0,
-              backdropFilter: 'blur(18px)',
-              boxShadow: `0 24px 80px ${dark ? 'rgba(0,0,0,0.35)' : 'rgba(15,23,42,0.12)'}`,
-            }}
-          >
+<div
+  className="pd-image-card"
+  style={{
+    position: 'relative',
+    width: '550px',
+    height: '710px',
+    flexShrink: 0,
+  }}
+>
             <div className="pd-shine" />
 
             <div
@@ -1119,17 +1117,11 @@ export default function ProductDisplay() {
           </div>
 
         {/* Detail Side Zoom Corecion*/}
+{/* Detail Side Zoom Corecion*/}
 <div
   style={{
-    background: glass,
-    border: `1px solid ${border}`,
-    borderRadius: 34,
+    width: '500px',
     padding: 32,
-    backdropFilter: 'blur(18px)',
-    boxShadow: `0 24px 80px ${dark ? 'rgba(0,0,0,0.28)' : 'rgba(15,23,42,0.10)'}`,
-    width: '600px',
-    height: '700px',
-    
   }}
 >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
@@ -1190,7 +1182,7 @@ export default function ProductDisplay() {
               {productName}
             </h1>
 
-            <p
+            {/* <p
               style={{
                 margin: '0 0 24px',
                 color: subtext,
@@ -1200,7 +1192,7 @@ export default function ProductDisplay() {
               }}
             >
               {productDesc}
-            </p>
+            </p> */}
 
             <div
               style={{

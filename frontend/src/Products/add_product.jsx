@@ -644,7 +644,6 @@ const handleDelete = async (id) => {
           <div style={{ color: '#a5f3fc', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>
             {CATEGORIES.find(c => c.key === activeCategory)?.emoji} {CATEGORIES.find(c => c.key === activeCategory)?.label} — {products.length} Products
           </div>
-          <button onClick={fetchProducts} style={{ padding: '6px 14px', background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.3)', borderRadius: '8px', color: '#22d3ee', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>🔄 Refresh</button>
         </div>
 
         {/* ── PRODUCT GRID ── */}

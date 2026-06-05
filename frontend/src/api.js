@@ -31,14 +31,17 @@ api.interceptors.response.use(
           return api(original)
         }
       } catch {
-        localStorage.clear()
-        window.location.href = '/login'
+        // auto logout
+        // localStorage.clear()
+        // window.location.href = '/login'
       }
     }
-    if (error.response?.status === 401) {
-      localStorage.clear()
-      window.location.href = '/login'
-    }
+
+    // auto logout
+    // if (error.response?.status === 401) {
+    //   localStorage.clear()
+    //   window.location.href = '/login'
+    // }
     return Promise.reject(error)
   }
 )

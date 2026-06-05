@@ -99,6 +99,7 @@ useEffect(() => {
 return (
   <div style={{ minHeight: '100vh', background: bg, color: text, fontFamily: '"Inter",system-ui,sans-serif', position: 'relative', overflow: 'hidden' }}>
     <style>{`
+    
       @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
       @keyframes goldShimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
       @keyframes glow-pulse { 0%,100%{box-shadow:0 0 20px rgba(251,191,36,0.1)} 50%{box-shadow:0 0 40px rgba(251,191,36,0.35)} }
@@ -164,52 +165,56 @@ return (
   const hasDiscount = discountPct > 0 && originalAmt > price && price > 0
 
   return (
-    <div key={product.id} className="ge-card"
-      onClick={() => navigate(`/product-display?category=earrings&metal=gold&id=${product.id}`)}
-      onMouseEnter={() => setHoveredItem(product.id)}
-      onMouseLeave={() => setHoveredItem(null)}
-      style={{
-        borderRadius: 10, overflow: 'hidden', cursor: 'pointer', position: 'relative',
-        border: '1px solid #e8e8e8', background: '#fff',
-        boxShadow: isHovered ? '0 8px 24px rgba(0,0,0,0.12)' : '0 2px 8px rgba(0,0,0,0.06)',
-        transition: 'all 0.25s ease',
-      }}>
-      <div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden', marginBottom: 10 }}>
-        {product.tag && (
-          <div style={{ position: 'absolute', top: 12, left: 0, background: '#2ecc71', color: '#fff', padding: '5px 12px 5px 10px', fontSize: 11, fontWeight: 700, clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)', zIndex: 2 }}>
-            {product.tag}
-          </div>
-        )}
-        <button onClick={e => toggleWishlist(e, product.id)}
-          style={{ position: 'absolute', top: 10, right: 10, width: 30, height: 30, borderRadius: '50%', border: wishlistedIds.has(product.id) ? '1.5px solid #e11d48' : '1px solid #ddd', background: wishlistedIds.has(product.id) ? 'rgba(225,29,72,0.15)' : 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 14, zIndex: 2 }}>
-          {wishlistedIds.has(product.id) ? '❤️' : '🤍'}
-        </button>
-        {images.length > 0
-          ? <img key={displayIndex} src={images[displayIndex]} alt={product.name}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', animation: 'fadeImg 0.5s ease' }}
-              onError={e => e.currentTarget.style.display = 'none'} />
-          : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>✨</div>
-        }
-        <div style={{ position: 'absolute', bottom: 10, right: 10, fontSize: 16, color: '#999', zIndex: 2 }}>🔗</div>
-      </div>
+<div key={product.id} className="ge-card"
+  onClick={() => navigate(`/product-display?category=earrings&metal=gold&id=${product.id}`)}
+  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'; setHoveredItem(product.id) }}
+  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; setHoveredItem(null) }}
+  style={{
+    borderRadius: 10, overflow: 'hidden', cursor: 'pointer', position: 'relative',
+    border: '1px solid #e8e8e8', background: '#fff',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    transition: 'all 0.25s ease',
+  }}>
+<div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden' }}>
+  {product.tag && (
+    <div style={{ position: 'absolute', top: 12, left: 0, background: '#2ecc71', color: '#fff', padding: '5px 12px 5px 10px', fontSize: 11, fontWeight: 700, clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)', zIndex: 2 }}>
+      {product.tag}
+    </div>
+  )}
+  <button onClick={e => toggleWishlist(e, product.id)}
+    style={{ position: 'absolute', top: 10, right: 10, width: 30, height: 30, borderRadius: '50%', border: wishlistedIds.has(product.id) ? '1.5px solid #e11d48' : '1px solid #ddd', background: wishlistedIds.has(product.id) ? 'rgba(225,29,72,0.15)' : 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 14, zIndex: 2 }}>
+    {wishlistedIds.has(product.id) ? '❤️' : '🤍'}
+  </button>
+  {images.length > 0
+    ? <img
+        key={displayIndex}
+        src={images[displayIndex]}
+        alt={product.name}
+        style={{ width: '100%', height: '100%', objectFit: 'cover', animation: 'fadeImg 0.5s ease' }}
+        onError={e => e.currentTarget.style.display = 'none'}
+      />
+    : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>✨</div>
+  }
+  <div style={{ position: 'absolute', bottom: 10, right: 10, fontSize: 16, color: '#999', zIndex: 2 }}>🔗</div>
+</div>
       <div style={{ padding: '12px 14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <span style={{ fontSize: 15, fontWeight: 800, color: '#1a1a1a' }}>
-            {price > 0 ? `₹${price.toLocaleString('en-IN')}` : '—'}
-          </span>
-          {hasDiscount && (
-            <span style={{ fontSize: 12, color: '#999', textDecoration: 'line-through' }}>
-              ₹{originalAmt.toLocaleString('en-IN')}
-            </span>
-          )}
-        </div>
-        {hasDiscount && (
-          <div style={{ fontSize: 12, color: '#2ecc71', fontWeight: 700, marginBottom: 6 }}>
-            {discountPct}% Off
-          </div>
-        )}
-        <div style={{ fontSize: 13, color: '#1a1a1a', fontWeight: 600 }}>{product.name}</div>
-      </div>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+    <span style={{ fontSize: 15, fontWeight: 800, color: '#1a1a1a' }}>
+      {price > 0 ? `₹${price.toLocaleString('en-IN')}` : '—'}
+    </span>
+    {hasDiscount && (
+      <span style={{ fontSize: 12, color: '#999', textDecoration: 'line-through' }}>
+        ₹{originalAmt.toLocaleString('en-IN')}
+      </span>
+    )}
+  </div>
+  {hasDiscount && (
+    <div style={{ fontSize: 12, color: '#2ecc71', fontWeight: 700, marginBottom: 4 }}>
+      {discountPct}% Off
+    </div>
+  )}
+  <div style={{ fontSize: 13, color: '#1a1a1a', fontWeight: 600 }}>{product.name}</div>
+</div>
     </div>
   )
 })}

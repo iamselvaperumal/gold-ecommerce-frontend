@@ -37,7 +37,15 @@ function HomeBannerSlider() {
   if (!banners.length) return null
 
   return (
-    <div style={{ width: '100%', overflow: 'hidden', position: 'relative', height: '850px', background: '#f5f0e8' }}>
+    <div style={{ 
+  width: '100%', 
+  maxWidth: '1690px',   // ← add this
+  margin: '0 auto',     // ← center pannanum na
+  overflow: 'hidden', 
+  position: 'relative', 
+  height: '624px',      // ← height also change
+  background: '#f5f0e8' 
+}}>
       <style>{`
       @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@400;500;600;700&display=swap');
 
@@ -57,6 +65,23 @@ h1, h2, h3 {
         }
         .bb-banner-exit  { animation: slideLeft    0.6s ease forwards; position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         .bb-banner-enter { animation: slideInRight 0.6s ease forwards; position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+         /* ── SCROLLBAR STYLE ── */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #FDF5EE;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #c9a96e;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #e28888;
+  }
+    
       `}</style>
 
       {banners.map((b, i) => {
@@ -546,6 +571,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 
   /* Navbar stays white — no change needed */
       `}</style>
+
 
 <CustomerNavbar />
 
@@ -1725,25 +1751,29 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
             {/* LEFT COLUMN — 2 stacked */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-              {/* Wedding */}
-              <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: '300px', cursor: 'pointer' }}
-                onMouseEnter={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1.04)'}
-                onMouseLeave={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1)'}
-              >
-                <img className="bw-img" src="/marriage_woman.jpg" alt="Wedding"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(139,26,26,0.65) 0%, transparent 55%)' }} />
-                <div style={{ position: 'absolute', bottom: 24, left: 24 }}>
-                  <div style={{ color: '#fff', fontWeight: 700, fontSize: 22 }}>Wedding</div>
-                </div>
-              </div>
+{/* Wedding */}
+<div
+  onClick={() => navigate('/collection/all?wedding=true')}
+  style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: '300px', cursor: 'pointer' }}
+  onMouseEnter={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1.04)'}
+  onMouseLeave={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1)'}
+>
+  <img className="bw-img" src="/marriage_woman.jpg" alt="Wedding"
+    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }} />
+  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(139,26,26,0.65) 0%, transparent 55%)' }} />
+  <div style={{ position: 'absolute', bottom: 24, left: 24 }}>
+    <div style={{ color: '#fff', fontWeight: 700, fontSize: 22 }}>Wedding</div>
+  </div>
+</div>
 
-              {/* Gold */}
-              <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: '420px', cursor: 'pointer' }}
-                onMouseEnter={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1.04)'}
-                onMouseLeave={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1)'}
-              >
-                <img className="bw-img" src="/gold_Woman.jpg" alt="Gold"
+{/* Gold */}
+<div
+  onClick={() => navigate('/collection/all?metal=gold')}
+  style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: '420px', cursor: 'pointer' }}
+  onMouseEnter={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1.04)'}
+  onMouseLeave={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1)'}
+>
+  <img className="bw-img" src="/gold_Woman.jpg" alt="Gold"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(139,26,26,0.65) 0%, transparent 55%)' }} />
                 <div style={{ position: 'absolute', bottom: 24, left: 24 }}>
@@ -1756,12 +1786,14 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
             {/* RIGHT COLUMN — 2 stacked */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-              {/* Diamond */}
-              <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: '420px', cursor: 'pointer' }}
-                onMouseEnter={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1.04)'}
-                onMouseLeave={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1)'}
-              >
-                <img className="bw-img" src="/diamond_woman.jpg" alt="Diamond"
+{/* Diamond */}
+<div
+  onClick={() => navigate('/collection/all?metal=diamond')}
+  style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: '420px', cursor: 'pointer' }}
+  onMouseEnter={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1.04)'}
+  onMouseLeave={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1)'}
+>
+  <img className="bw-img" src="/diamond_woman.jpg" alt="Diamond"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(139,26,26,0.65) 0%, transparent 55%)' }} />
                 <div style={{ position: 'absolute', bottom: 24, left: 24 }}>
@@ -1769,12 +1801,14 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
                 </div>
               </div>
 
-              {/* Dailywear */}
-              <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: '300px', cursor: 'pointer' }}
-                onMouseEnter={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1.04)'}
-                onMouseLeave={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1)'}
-              >
-                <img className="bw-img" src="/dailywear_woman.jpg" alt="Dailywear"
+{/* Dailywear */}
+<div
+  onClick={() => navigate('/collection/all?dailywear=true')}
+  style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: '300px', cursor: 'pointer' }}
+  onMouseEnter={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1.04)'}
+  onMouseLeave={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1)'}
+>
+  <img className="bw-img" src="/dailywear_woman.jpg" alt="Dailywear"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(139,26,26,0.65) 0%, transparent 55%)' }} />
                 <div style={{ position: 'absolute', bottom: 24, left: 24 }}>

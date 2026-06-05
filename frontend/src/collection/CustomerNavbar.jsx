@@ -90,6 +90,10 @@ export default function CustomerNavbar() {
   const [showDropdown, setShowDropdown] = useState(false)
   const [activeFilter, setActiveFilter] = useState('category')
   const [activeCategory, setActiveCategory] = useState('all')
+    const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [showSearchDrop, setShowSearchDrop] = useState(false)
 
   useEffect(() => {
     const updateCount = async () => {
@@ -114,6 +118,31 @@ export default function CustomerNavbar() {
     window.addEventListener('bb_wishlist_update', handler)
     return () => window.removeEventListener('bb_wishlist_update', handler)
   }, [])
+
+   // 🔍 SEARCH useEffect — NEW
+useEffect(() => {
+  if (!searchQuery.trim() || searchQuery.trim().length < 2) {
+    setSearchResults([])
+    setShowSearchDrop(false)
+    return
+  }
+  const timer = setTimeout(async () => {
+      setSearchLoading(true)
+      try {
+        const token = localStorage.getItem('token')
+        const res = await fetch(
+          `https://bitbyte-backend-f66f.onrender.com/api/jewelry-products/?search=${encodeURIComponent(searchQuery)}`,
+          { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+        )
+        const data = await res.json()
+        setSearchResults(Array.isArray(data) ? data.slice(0, 8) : [])
+        setShowSearchDrop(true)
+      } catch { setSearchResults([]) }
+      setSearchLoading(false)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
 
   return (
     <>
@@ -206,32 +235,109 @@ export default function CustomerNavbar() {
 </div>
 
         {/* Search */}
-         <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', maxWidth: 640, marginLeft: '-20px' }}>
-          <div style={{ width: '100%', position: 'relative' }}>
-            <span style={{
-              position: 'absolute', left: 16, top: '50%',
-              transform: 'translateY(-50%)', color: '#8B1A1A',
-              display: 'flex', alignItems: 'center',
-            }}>
+<div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', maxWidth: 640, marginLeft: '-20px' }}>
+  <div style={{ width: '100%', position: 'relative' }}>
+<span
+  onClick={() => {
+    if (searchQuery.trim()) {
+      setShowSearchDrop(false)
+      navigate(`/collection/all?search=${encodeURIComponent(searchQuery.trim())}`)
+    }
+  }}
+  style={{
+    position: 'absolute', left: 16, top: '50%',
+    transform: 'translateY(-50%)', color: '#8B1A1A',
+    display: 'flex', alignItems: 'center',
+    cursor: searchQuery.trim() ? 'pointer' : 'default',
+  }}
+>
               <svg width="17" height="17" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="14" cy="14" r="9"/>
                 <path d="M21 21l7 7"/>
               </svg>
             </span>
-            <input
-              placeholder="Search gold & diamond jewellery..."
-              style={{
-                width: '100%', border: '1.5px solid #e8ddd5', borderRadius: 32,
-                padding: '11px 18px 11px 46px', fontSize: 15, outline: 'none',
-                color: '#374151', boxSizing: 'border-box', background: '#fdf8f4',
-                transition: 'border-color 0.2s, box-shadow 0.2s',
-                fontFamily: '"Cormorant Garamond", Georgia, serif',
-              }}
-              onFocus={e => { e.target.style.borderColor = '#8B1A1A'; e.target.style.boxShadow = '0 0 0 3px rgba(139,26,26,0.08)' }}
-              onBlur={e => { e.target.style.borderColor = '#e8ddd5'; e.target.style.boxShadow = 'none' }}
-            />
+
+<input
+  value={searchQuery}
+  onChange={e => setSearchQuery(e.target.value)}
+  onBlur={() => setTimeout(() => setShowSearchDrop(false), 200)}
+  onKeyDown={e => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      setShowSearchDrop(false)
+      navigate(`/collection/all?search=${encodeURIComponent(searchQuery.trim())}`)
+    }
+  }}
+      placeholder="Search gold & diamond jewellery..."
+      style={{
+        width: '100%', border: '1.5px solid #e8ddd5', borderRadius: 32,
+        padding: '11px 18px 11px 46px', fontSize: 15, outline: 'none',
+        color: '#374151', boxSizing: 'border-box', background: '#fdf8f4',
+        transition: 'border-color 0.2s, box-shadow 0.2s',
+        fontFamily: '"Cormorant Garamond", Georgia, serif',
+      }}
+      onFocus={e => { e.target.style.borderColor = '#8B1A1A'; e.target.style.boxShadow = '0 0 0 3px rgba(139,26,26,0.08)' }}
+      onBlur={e => { e.target.style.borderColor = '#e8ddd5'; e.target.style.boxShadow = 'none' }}
+    />
+
+    {/* 🔍 DROPDOWN — NEW, input tag keezhla, div close aagura munnadi */}
+    {showSearchDrop && (
+      <div style={{
+        position: 'absolute', top: '110%', left: 0, right: 0,
+        background: '#fff', borderRadius: 12,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+        border: '1px solid #f0e8e0', zIndex: 999,
+        maxHeight: 360, overflowY: 'auto'
+      }}>
+        {searchLoading ? (
+          <div style={{ padding: 16, textAlign: 'center', color: '#8B1A1A', fontSize: 13 }}>
+            Searching...
           </div>
-        </div>
+        ) : searchResults.length === 0 ? (
+          <div style={{ padding: 16, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>
+            No results found
+          </div>
+        ) : searchResults.map(p => (
+          <div key={p.id}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              padding: '10px 16px', cursor: 'pointer',
+              borderBottom: '1px solid #f5f0e8', background: '#fff',
+              transition: 'background 0.15s'
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#fdf8f4'}
+            onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+ onClick={() => {
+  navigate(`/product-display?category=${p.category}&metal=${p.metal}&id=${p.id}`)
+  setSearchQuery('')
+  setShowSearchDrop(false)
+}}
+          >
+            <div style={{ width: 44, height: 44, borderRadius: 8, background: '#f5f0e8', overflow: 'hidden', flexShrink: 0 }}>
+              {p.images?.[0]?.image
+                ? <img
+                    src={p.images[0].image.startsWith('http')
+                      ? p.images[0].image
+                      : `https://bitbyte-backend-f66f.onrender.com/${p.images[0].image}`}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 20 }}>💍</div>
+              }
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14, color: '#1f2937', fontFamily: '"Cormorant Garamond",serif', fontWeight: 600 }}>
+                {p.name}
+              </div>
+              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
+                {p.metal?.toUpperCase()} • {p.category} • ₹{Number(p.price).toLocaleString('en-IN')}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+  </div>
+</div>
 
         {/* Right Icons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
@@ -585,7 +691,16 @@ onClick={() => {
             }
 
             if (panel.type === 'occasion-grid') {
-              const occasionImgMap = { 'Office Wear': '/Office Wear.jpg', 'Modern Wear': '/Modern Wear.jpg', 'Casual Wear': '/Casual Wear.jpg', 'Traditional Wear': '/Traditional Wear.jpg', 'Wedding': null, 'Birthday': null, 'Anniversary': null, 'Auspicious': null }
+const occasionImgMap = { 
+  'Office Wear': '/Office Wear.jpg', 
+  'Modern Wear': '/Modern Wear.jpg', 
+  'Casual Wear': '/Casual Wear.jpg', 
+  'Traditional Wear': '/Traditional Wear.jpg', 
+  'Wedding': '/gift_wedding.jpg', 
+  'Birthday': '/gift_birthday.jpg', 
+  'Anniversary': '/gift_anniversary.jpg', 
+  'Auspicious': '/gift_auspicious.jpg' 
+}
               return (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }}>
                   {panel.items.map(o => (

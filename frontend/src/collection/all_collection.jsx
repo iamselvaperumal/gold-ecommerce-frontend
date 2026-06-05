@@ -111,52 +111,120 @@ export default function AllCollection() {
   const metalFilter = searchParams.get('metal')
   const genderFilter = searchParams.get('gender')
   const occasionFilter = searchParams.get('occasion')
+  const searchFilter = searchParams.get('search') 
   const weddingCategoryFilter = searchParams.get('wedding_category')
+  const isWedding = searchParams.get('wedding') === 'true'
+  const isDailywear = searchParams.get('dailywear') === 'true'
 
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [weddingTab, setWeddingTab] = useState('all')
 
-  useEffect(() => {
-    const fetchAll = async () => {
-      setLoading(true)
-      try {
-  let url = `${API_BASE}/api/jewelry-products/`
-  const params = []
-  if (metalFilter) params.push(`metal=${metalFilter}`)
-  if (genderFilter) params.push(`gender=${genderFilter}`)
-  if (occasionFilter) params.push(`occasion=${occasionFilter}`)
-  if (weddingCategoryFilter) params.push(`wedding_category=${encodeURIComponent(weddingCategoryFilter)}`)
-  if (params.length) url += `?${params.join('&')}`
+  // Diamond la coins vendam — filter out
+const displayProducts = (() => {
+  let list = isWedding && weddingTab !== 'all'
+    ? products.filter(p => p.wedding_category === weddingTab)
+    : products
 
-  const res = await fetch(url)
-  const data = await res.json()
-  let list = Array.isArray(data) ? data : []
-
-  // Metal filter — frontend la also apply
-  if (metalFilter) {
-    list = list.filter(p => p.metal?.toLowerCase() === metalFilter.toLowerCase())
+  // Diamond click panna coins hide pannu
+  if (metalFilter === 'diamond') {
+    list = list.filter(p => p.category !== 'coins')
   }
 
-  // Price filter — frontend la apply
-  if (priceFilter) {
-    list = list.filter(p => {
-      const price = parseFloat(p.price) || 0
-      if (priceFilter === 'below25k')  return price > 0 && price < 25000
-      if (priceFilter === '25k-50k')   return price >= 25000 && price < 50000
-      if (priceFilter === '50k-1L')    return price >= 50000 && price < 100000
-      if (priceFilter === 'above1L')   return price >= 100000
-      return true
-    })
+  // Dailywear la coins vendam
+  if (isDailywear) {
+    list = list.filter(p => p.category !== 'coins')
   }
 
-  setProducts(list)
-} catch {
-  setProducts([])
-}
-      setLoading(false)
+  return list
+})()
+
+useEffect(() => {
+  setWeddingTab('all')
+  const fetchAll = async () => {
+    setLoading(true)
+    try {
+
+      // ── DAILYWEAR: Office Wear + Modern Wear + Casual Wear ──
+      if (isDailywear) {
+        const dailywearOccasions = ['Office Wear', 'Modern Wear', 'Casual Wear']
+        const results = await Promise.all(
+          dailywearOccasions.map(occ =>
+            fetch(`${API_BASE}/api/jewelry-products/?occasion=${encodeURIComponent(occ)}`)
+              .then(r => r.json())
+              .catch(() => [])
+          )
+        )
+        const merged = []
+        const seen = new Set()
+        results.flat().forEach(p => {
+          if (!seen.has(p.id)) { seen.add(p.id); merged.push(p) }
+        })
+        setProducts(merged)
+        setLoading(false)
+        return
+      }
+
+      // ── WEDDING: wedding_category base panni fetch ──
+      if (isWedding) {
+        const weddingCats = [
+          'Wedding Ring', 'Wedding Necklaces', 'Wedding Chain',
+          'Wedding Bangles', 'Wedding Earring'
+        ]
+        const results = await Promise.all(
+          weddingCats.map(cat =>
+            fetch(`${API_BASE}/api/jewelry-products/?wedding_category=${encodeURIComponent(cat)}`)
+              .then(r => r.json())
+              .catch(() => [])
+          )
+        )
+        const merged = []
+        const seen = new Set()
+        results.flat().forEach(p => {
+          if (!seen.has(p.id)) { seen.add(p.id); merged.push(p) }
+        })
+        setProducts(merged)
+        setLoading(false)
+        return
+      }
+
+      // ── NORMAL fetch for all other filters ──
+      let url = `${API_BASE}/api/jewelry-products/`
+      const params = []
+      if (metalFilter) params.push(`metal=${metalFilter}`)
+      if (genderFilter) params.push(`gender=${genderFilter}`)
+      if (occasionFilter) params.push(`occasion=${occasionFilter}`)
+      if (weddingCategoryFilter) params.push(`wedding_category=${encodeURIComponent(weddingCategoryFilter)}`)
+      if (searchFilter) params.push(`search=${encodeURIComponent(searchFilter)}`)
+      if (params.length) url += `?${params.join('&')}`
+
+      const res = await fetch(url)
+      const data = await res.json()
+      let list = Array.isArray(data) ? data : []
+
+      if (metalFilter) {
+        list = list.filter(p => p.metal?.toLowerCase() === metalFilter.toLowerCase())
+      }
+
+      if (priceFilter) {
+        list = list.filter(p => {
+          const price = parseFloat(p.price) || 0
+          if (priceFilter === 'below25k')  return price > 0 && price < 25000
+          if (priceFilter === '25k-50k')   return price >= 25000 && price < 50000
+          if (priceFilter === '50k-1L')    return price >= 50000 && price < 100000
+          if (priceFilter === 'above1L')   return price >= 100000
+          return true
+        })
+      }
+
+      setProducts(list)
+    } catch {
+      setProducts([])
     }
-    fetchAll()
-  }, [priceFilter, metalFilter, genderFilter, occasionFilter, weddingCategoryFilter])
+    setLoading(false)
+  }
+  fetchAll()
+}, [priceFilter, metalFilter, genderFilter, occasionFilter, weddingCategoryFilter, isWedding, isDailywear, searchFilter])
 
   return (
     <div style={{ minHeight: '100vh', background: '#FDF5EE', fontFamily: '"Inter",system-ui,sans-serif' }}>
@@ -165,16 +233,24 @@ export default function AllCollection() {
 <CustomerNavbar />
 
       {/* HEADER */}
-      <div style={{ textAlign: 'center', padding: '40px 16px 24px' }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: '#8B1A1A', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>
-          {metalFilter ? `${metalFilter.toUpperCase()} JEWELLERY` : 'ALL JEWELLERY'}
-        </div>
-        <div style={{ fontSize: 28, fontWeight: 800, color: '#1a0a0a', marginBottom: 6 }}>
-          {priceFilter ? PRICE_LABELS[priceFilter] : 'All Products'}
-        </div>
-        <div style={{ fontSize: 14, color: '#7c5c4a' }}>
-          {loading ? 'Loading...' : `${products.length} products found`}
-        </div>
+<div style={{ textAlign: 'center', padding: '40px 16px 24px' }}>
+  <div style={{ fontSize: 13, fontWeight: 700, color: '#8B1A1A', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>
+    {isWedding ? 'WEDDING COLLECTION' : isDailywear ? 'DAILYWEAR COLLECTION' : searchFilter ? `SEARCH RESULTS` : metalFilter ? `${metalFilter.toUpperCase()} JEWELLERY` : occasionFilter ? `${occasionFilter.toUpperCase()} COLLECTION` : 'ALL JEWELLERY'}
+  </div>
+  <div style={{ fontSize: 28, fontWeight: 800, color: '#1a0a0a', marginBottom: 6 }}>
+{isWedding
+  ? '💒 Wedding Jewellery'
+  : isDailywear ? '👗 Dailywear Collection'
+  : metalFilter === 'diamond' ? '💎 Diamond Jewellery'
+  : metalFilter === 'gold' ? '🥇 Gold Jewellery'
+  : metalFilter === 'silver' ? '🥈 Silver Jewellery'
+  : occasionFilter ? `✨ ${occasionFilter.replace('+', ' ')} Collection`
+  : priceFilter ? PRICE_LABELS[priceFilter]
+  : 'All Products'}
+  </div>
+  <div style={{ fontSize: 14, color: '#7c5c4a' }}>
+    {loading ? 'Loading...' : `${displayProducts.length} products found`}
+  </div>
 
         {/* Filter badges */}
         <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -201,8 +277,57 @@ export default function AllCollection() {
         </div>
       </div>
 
-      {/* PRODUCTS GRID */}
-      <div style={{ maxWidth: '100%', margin: '0 auto', padding: '0 16px 60px' }}>
+ {/* ── WEDDING TABS — only show when occasion=Wedding ── */}
+{isWedding && !loading && (
+  <div style={{
+    background: '#fff',
+    borderBottom: '1px solid #e8ddd5',
+    padding: '14px 24px',
+    display: 'flex', gap: 10,
+    overflowX: 'auto', alignItems: 'center',
+    justifyContent: 'center', flexWrap: 'wrap'
+  }}>
+    {[
+      { key: 'all',               label: 'All Wedding',       emoji: '💒' },
+      { key: 'Wedding Ring',      label: 'Wedding Ring',      emoji: '💍' },
+      { key: 'Wedding Necklaces', label: 'Wedding Necklaces', emoji: '📿' },
+      { key: 'Wedding Chain',     label: 'Wedding Chain',     emoji: '⛓️' },
+      { key: 'Wedding Bangles',   label: 'Wedding Bangles',   emoji: '⭕' },
+      { key: 'Wedding Earring',   label: 'Wedding Earring',   emoji: '✨' },
+    ].map(tab => {
+      const count = tab.key === 'all'
+        ? products.length
+        : products.filter(p => p.wedding_category === tab.key).length
+      return (
+        <button key={tab.key}
+          onClick={() => setWeddingTab(tab.key)}
+          style={{
+            padding: '9px 18px', borderRadius: 20, border: 'none',
+            cursor: 'pointer', fontWeight: 700, fontSize: 13,
+            whiteSpace: 'nowrap',
+            background: weddingTab === tab.key
+              ? 'linear-gradient(90deg,#8B1A1A,#b91c1c)'
+              : '#f5f0e8',
+            color: weddingTab === tab.key ? '#fff' : '#7c5c4a',
+            transition: 'all 0.2s',
+            boxShadow: weddingTab === tab.key ? '0 4px 12px rgba(139,26,26,0.3)' : 'none'
+          }}
+        >
+          {tab.emoji} {tab.label}
+          <span style={{
+            marginLeft: 6, fontSize: 10, fontWeight: 800,
+            background: weddingTab === tab.key ? 'rgba(255,255,255,0.25)' : 'rgba(139,26,26,0.1)',
+            color: weddingTab === tab.key ? '#fff' : '#8B1A1A',
+            borderRadius: 20, padding: '1px 7px'
+          }}>{count}</span>
+        </button>
+      )
+    })}
+  </div>
+)}
+
+{/* PRODUCTS GRID */}
+<div style={{ maxWidth: '100%', margin: '0 auto', padding: '0 16px 60px' }}>
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: '80px 0' }}>
@@ -223,9 +348,9 @@ export default function AllCollection() {
           </div>
         ) : (
 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 20, animation: 'fadeIn 0.4s ease' }}>
-  {products.map(p => (
-    <ProductCard key={p.id} p={p} navigate={navigate} />
-  ))}
+{displayProducts.map(p => (
+  <ProductCard key={p.id} p={p} navigate={navigate} />
+))}
 </div>
          
         )}
