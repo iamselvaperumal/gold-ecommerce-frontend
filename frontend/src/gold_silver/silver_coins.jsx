@@ -115,7 +115,7 @@ return (
 
     <CustomerNavbar />
 
-      <div style={{ position:'relative', zIndex:10, padding:'40px', maxWidth:'1300px', margin:'0 auto' }}>
+      <div style={{ position:'relative', zIndex:10, padding:'40px', maxWidth:'100%', margin:'0 auto' }}>
 
         {/* PAGE HEADER */}
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'40px', animation:'fadeInUp 0.4s ease both' }}>
@@ -182,85 +182,102 @@ return (
 
               return (
                 <div key={p.id}
-                  className="sc-card"
-                  onClick={() => navigate(`/product-display?category=coins&metal=silver&id=${p.id}`)}
-                  onMouseEnter={() => setHoveredId(p.id)}
-                  onMouseLeave={() => setHoveredId(null)}
-                  style={{
-                    borderRadius:'20px', overflow:'hidden', cursor:'pointer', position:'relative',
-                    border: `1px solid ${isHovered ? 'rgba(192,192,192,0.6)' : 'rgba(192,192,192,0.18)'}`,
-                    background: isHovered ? 'rgba(192,192,192,0.07)' : cardBg,
-                    transform: isHovered ? 'translateY(-10px) scale(1.02)' : 'translateY(0) scale(1)',
-                    boxShadow: isHovered ? '0 20px 50px rgba(192,192,192,0.25)' : 'none',
-                    transition:'all 0.35s cubic-bezier(0.34,1.56,0.64,1)',
-                  }}
-                >
-                  <div className="sc-shine" />
+  className="sc-card"
+  onClick={() => navigate(`/product-display?category=coins&metal=silver&id=${p.id}`)}
+  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'; setHoveredId(p.id) }}
+  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; setHoveredId(null) }}
+  style={{
+    background: '#fff',
+    border: '1px solid #e8e8e8',
+    borderRadius: 10,
+    overflow: 'hidden',
+    cursor: 'pointer',
+    transition: 'all 0.25s ease',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+  }}
+>
+<div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden' }}>
 
-                  {/* Image */}
-                  <div style={{
-                    height:'200px', position:'relative', overflow:'hidden',
-                    background: 'linear-gradient(135deg,#f8f9fa,#e9ecef)',
-                    display:'flex', alignItems:'center', justifyContent:'center',
-                  }}>
-                    {firstImg
-                      ? <img src={firstImg} alt={p.name}
-                          style={{ width:'100%', height:'100%', objectFit:'cover', display:'block', transform: isHovered ? 'scale(1.08)' : 'scale(1)', transition:'transform 0.4s ease' }}
-                          onError={e => e.currentTarget.style.display='none'} />
-                      : <img src={silverCoin} alt={p.name}
-                          style={{ width:110, height:110, objectFit:'contain', filter:'drop-shadow(0 8px 20px rgba(192,192,192,0.8))', animation: isHovered ? 'coinFloat 1.5s ease-in-out infinite' : 'none' }} />
-                    }
-                    <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)' }} />
+  {p.tag && (
+    <div style={{ position: 'absolute', top: 12, left: 0, background: '#2ecc71', color: '#fff', padding: '5px 12px 5px 10px', fontSize: 11, fontWeight: 700, clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)', zIndex: 2 }}>
+      {p.tag}
+    </div>
+  )}
 
-                  {/* heart + Grade badge */}
-                    <div style={{ position:'absolute', top:'10px', right:'10px', display:'flex', alignItems:'center', gap:'6px', zIndex:10 }}>
-                      <button onClick={e => toggleWishlist(e, p.id)} style={{ width:'28px', height:'28px', borderRadius:'50%', border: wishlistedIds.has(p.id) ? '1.5px solid #e11d48' : '1.5px solid rgba(255,255,255,0.35)', background: wishlistedIds.has(p.id) ? 'rgba(225,29,72,0.18)' : 'rgba(0,0,0,0.4)', backdropFilter:'blur(8px)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:'13px', transition:'all 0.2s ease' }}>
-                        {wishlistedIds.has(p.id) ? '❤️' : '🤍'}
-                      </button>
-                      {/* <div style={{ background:'rgba(192,192,192,0.9)', color:'#000', borderRadius:20, padding:'3px 10px', fontSize:10, fontWeight:900 }}>
-                        999
-                      </div> */}
-                    </div>
+  <button onClick={e => toggleWishlist(e, p.id)}
+    style={{ position: 'absolute', top: 10, right: 10, width: 30, height: 30, borderRadius: '50%', border: wishlistedIds.has(p.id) ? '1.5px solid #e11d48' : '1px solid #ddd', background: wishlistedIds.has(p.id) ? 'rgba(225,29,72,0.15)' : 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 14, zIndex: 2 }}>
+    {wishlistedIds.has(p.id) ? '❤️' : '🤍'}
+  </button>
 
-                    {/* Tag */}
-                    {p.tag && (
-                      <div style={{ position:'absolute', top:'10px', left:'10px', background:'rgba(139,26,26,0.9)', color:'#fff', borderRadius:20, padding:'3px 10px', fontSize:9, fontWeight:800 }}>
-                        {p.tag}
-                      </div>
-                    )}
+  {firstImg
+    ? <img
+        key={isHovered ? 1 : 0}
+        src={firstImg}
+        alt={p.name}
+        style={{ width: '100%', height: '100%', objectFit: 'cover', animation: 'fadeImg 0.5s ease' }}
+        onError={e => e.currentTarget.style.display = 'none'}
+      />
+    : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>🪙</div>
+  }
 
-                    {/* Hover glow */}
-                    {isHovered && (
-                      <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', pointerEvents:'none' }}>
-                        <div style={{ width:'80px', height:'80px', borderRadius:'50%', border:'2px solid rgba(192,192,192,0.7)', animation:'glow-pulse 1.5s ease infinite' }} />
-                      </div>
-                    )}
-                  </div>
+  <div style={{ position: 'absolute', bottom: 10, right: 10, fontSize: 16, color: '#999', zIndex: 2 }}>🔗</div>
+</div>
 
-                  {/* Info */}
-                  <div style={{ padding:'14px 16px' }}>
-                    <div style={{ color: isHovered ? silverColor : text, fontWeight:800, fontSize:'13px', marginBottom:'4px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', transition:'color 0.3s' }}>
-                      {p.name}
-                    </div>
-                    {p.net_weight && (
-                      <div style={{ color:subtext, fontSize:'10px', marginBottom:'8px' }}>⚖️ {p.net_weight}g net weight</div>
-                    )}
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                      <div style={{ color:silverColor, fontWeight:900, fontSize:'14px', fontFamily:'monospace' }}>
-                        {displayPrice ? `₹${displayPrice.toLocaleString('en-IN')}` : '—'}
-                      </div>
-                      <div style={{ fontSize:'9px', color:subtext }}>incl. 3% GST</div>
-                    </div>
-                  </div>
+<div style={{ padding: '12px 14px' }}>
 
-                  {/* Hover CTA */}
-                  {isHovered && (
-                    <div style={{ padding:'0 16px 14px', animation:'fadeInUp 0.2s ease' }}>
-                      <div style={{ width:'100%', padding:'8px', background:'linear-gradient(90deg,#9ca3af,#e2e8f0)', borderRadius:'10px', color:'#000', fontWeight:800, fontSize:'11px', textAlign:'center', cursor:'pointer' }}>
-                        👁 View Details
-                      </div>
-                    </div>
-                  )}
+  {/* Grade + Weight badges */}
+  <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+    <span style={{
+      background: 'rgba(192,192,192,0.15)',
+      border: '1px solid rgba(192,192,192,0.5)',
+      color: '#666',
+      borderRadius: 20, padding: '2px 10px',
+      fontSize: 10, fontWeight: 800
+    }}>
+      🥈 Silver 999
+    </span>
+    {p.net_weight && (
+      <span style={{
+        background: 'rgba(0,0,0,0.04)',
+        border: '1px solid rgba(0,0,0,0.1)',
+        color: '#555',
+        borderRadius: 20, padding: '2px 10px',
+        fontSize: 10, fontWeight: 700
+      }}>
+        ⚖️ {p.net_weight}g
+      </span>
+    )}
+  </div>
+
+  {/* Price row */}
+  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+    <span style={{ fontSize: 15, fontWeight: 800, color: '#1a1a1a' }}>
+      {displayPrice ? `₹${displayPrice.toLocaleString('en-IN')}` : '—'}
+    </span>
+    {parseFloat(p.original_price) > displayPrice && displayPrice > 0 && (
+      <span style={{ fontSize: 12, color: '#999', textDecoration: 'line-through' }}>
+        ₹{parseFloat(p.original_price).toLocaleString('en-IN')}
+      </span>
+    )}
+  </div>
+
+  {/* Discount */}
+  {parseFloat(p.wastage_charge) > 0 && parseFloat(p.original_price) > displayPrice && (
+    <div style={{ fontSize: 12, color: '#2ecc71', fontWeight: 700, marginBottom: 4 }}>
+      {p.wastage_charge}% Off
+    </div>
+  )}
+
+  {/* Name */}
+  <div style={{ fontSize: 13, color: '#1a1a1a', fontWeight: 600 }}>{p.name}</div>
+
+  {/* Live rate */}
+  {silverPrice && p.net_weight && (
+    <div style={{ fontSize: 10, color: '#999', marginTop: 3 }}>
+      ₹{silverPrice.toFixed(0)}/gm · incl. 3% GST
+    </div>
+  )}
+</div>
                 </div>
               )
             })}

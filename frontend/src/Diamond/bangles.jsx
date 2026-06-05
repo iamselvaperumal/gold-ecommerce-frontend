@@ -87,7 +87,7 @@ export default function DiamondBangles() {
 
       <CustomerNavbar />
 
-      <div style={{ padding: '40px', maxWidth: '1400px', margin: '0 auto' }}>
+      <div style={{ padding: '40px', maxWidth: '100%', margin: '0 auto' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>

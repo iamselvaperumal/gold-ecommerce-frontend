@@ -85,7 +85,7 @@ export default function PlatinumNecklaces() {
 
       <CustomerNavbar />
 
-      <div style={{ padding: '40px', maxWidth: '1400px', margin: '0 auto' }}>
+      <div style={{ padding: '40px', maxWidth: '100%', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(226,232,240,0.08)', border: '1px solid rgba(226,232,240,0.25)', borderRadius: '20px', padding: '5px 14px', marginBottom: '14px' }}>
@@ -129,7 +129,7 @@ const hasDiscount = discountPct > 0 && originalAmt > price && price > 0
 
 return (
   <div key={product.id} className="dm-card"
-    onClick={() => navigate(`/product-display?category=bangles&metal=platinum&id=${product.id}`)}
+    onClick={() => navigate(`/product-display?category=${product.category}&metal=platinum&id=${product.id}`)}
     onMouseEnter={() => setHovered(product.id)}
     onMouseLeave={() => setHovered(null)}
     style={{

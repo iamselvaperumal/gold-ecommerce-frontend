@@ -125,13 +125,13 @@ return (
       .gc-card:nth-child(1){animation-delay:0.05s} .gc-card:nth-child(2){animation-delay:0.1s}
       .gc-card:nth-child(3){animation-delay:0.15s} .gc-card:nth-child(4){animation-delay:0.2s}
       .gc-card:nth-child(5){animation-delay:0.25s} .gc-card:nth-child(6){animation-delay:0.3s}
-      .gc-shine { position:absolute; top:0; left:-80%; width:40%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent); transform:skewX(-20deg); opacity:0; transition:opacity 0.3s; }
-      .gc-card:hover .gc-shine { opacity:1; animation:shine 0.6s ease; }
+      @keyframes fadeImg { from{opacity:0;transform:scale(1.03)} to{opacity:1;transform:scale(1)} }
+
     `}</style>
 
     <CustomerNavbar />
 
-      <div style={{ position:'relative', zIndex:10, padding:'40px', maxWidth:'1300px', margin:'0 auto' }}>
+      <div style={{ position:'relative', zIndex:10, padding:'40px', maxWidth:'100%', margin:'0 auto' }}>
 
         {/* PAGE HEADER */}
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'40px', animation:'fadeInUp 0.4s ease both' }}>
@@ -206,94 +206,110 @@ return (
         ) : (
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
             {products.map(p => {
-              const firstImg = p.images?.[0] ? getImageUrl(p.images[0]) : null
-              const displayPrice = getProductPrice(p)
-              const isHovered = hoveredId === p.id
+  const images = p.images?.map(img => getImageUrl(img)).filter(Boolean) || []
+  const isHovered = hoveredId === p.id
+  const displayIndex = isHovered && images.length > 1 ? 1 : 0
+  const displayPrice = getProductPrice(p)
+  const discountPct = parseFloat(p.wastage_charge) || 0
+  const originalAmt = parseFloat(p.original_price) || 0
+  const hasDiscount = discountPct > 0 && originalAmt > displayPrice && displayPrice > 0
 
-              return (
-                <div key={p.id}
-                  className="gc-card"
-                  onClick={() => navigate(`/product-display?category=coins&metal=gold&id=${p.id}`)}
-                  onMouseEnter={() => setHoveredId(p.id)}
-                  onMouseLeave={() => setHoveredId(null)}
-                  style={{
-                    borderRadius:'20px', overflow:'hidden', cursor:'pointer', position:'relative',
-                    border: `1px solid ${isHovered ? 'rgba(251,191,36,0.6)' : 'rgba(251,191,36,0.18)'}`,
-                    background: isHovered ? 'rgba(251,191,36,0.07)' : cardBg,
-                    transform: isHovered ? 'translateY(-10px) scale(1.02)' : 'translateY(0) scale(1)',
-                    boxShadow: isHovered ? '0 20px 50px rgba(251,191,36,0.28)' : 'none',
-                    transition:'all 0.35s cubic-bezier(0.34,1.56,0.64,1)',
-                  }}
-                >
-                  <div className="gc-shine" />
+  return (
+    <div key={p.id}
+      className="gc-card"
+      onClick={() => navigate(`/product-display?category=coins&metal=gold&id=${p.id}`)}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'; setHoveredId(p.id) }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; setHoveredId(null) }}
+      style={{
+        borderRadius: 10, overflow: 'hidden', cursor: 'pointer', position: 'relative',
+        border: '1px solid #e8e8e8', background: '#fff',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+        transition: 'all 0.25s ease',
+      }}
+    >
+      <div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden' }}>
 
-                  {/* Image */}
-                  <div style={{
-                    height:'200px', position:'relative', overflow:'hidden',
-                    background: 'linear-gradient(135deg,#fff8e7,#fef3c7)',
-                    display:'flex', alignItems:'center', justifyContent:'center',
-                  }}>
-                    {firstImg
-                      ? <img src={firstImg} alt={p.name}
-                          style={{ width:'100%', height:'100%', objectFit:'cover', display:'block', transform: isHovered ? 'scale(1.08)' : 'scale(1)', transition:'transform 0.4s ease' }}
-                          onError={e => e.currentTarget.style.display='none'} />
-                      : <img src={goldCoin} alt={p.name}
-                          style={{ width:110, height:110, objectFit:'contain', filter:`drop-shadow(0 8px 20px rgba(251,191,36,0.8))`, animation: isHovered ? 'coinFloat 1.5s ease-in-out infinite' : 'none' }} />
-                    }
-                    <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)' }} />
+        {p.tag && (
+          <div style={{ position: 'absolute', top: 12, left: 0, background: '#2ecc71', color: '#fff', padding: '5px 12px 5px 10px', fontSize: 11, fontWeight: 700, clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)', zIndex: 2 }}>
+            {p.tag}
+          </div>
+        )}
 
-                   {/* heart + Grade badge */}
-                    <div style={{ position:'absolute', top:'10px', right:'10px', display:'flex', alignItems:'center', gap:'6px', zIndex:10 }}>
-                      <button onClick={e => toggleWishlist(e, p.id)} style={{ width:'28px', height:'28px', borderRadius:'50%', border: wishlistedIds.has(p.id) ? '1.5px solid #e11d48' : '1.5px solid rgba(255,255,255,0.35)', background: wishlistedIds.has(p.id) ? 'rgba(225,29,72,0.18)' : 'rgba(0,0,0,0.4)', backdropFilter:'blur(8px)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:'13px', transition:'all 0.2s ease' }}>
-                        {wishlistedIds.has(p.id) ? '❤️' : '🤍'}
-                      </button>
-                      <div style={{ background: p.grade==='24k' ? 'rgba(255,215,0,0.9)' : 'rgba(251,191,36,0.9)', color:'#000', borderRadius:20, padding:'3px 10px', fontSize:10, fontWeight:900 }}>
-                        {p.grade?.toUpperCase() || '22K'}
-                      </div>
-                    </div>
+        <button onClick={e => toggleWishlist(e, p.id)}
+          style={{ position: 'absolute', top: 10, right: 10, width: 30, height: 30, borderRadius: '50%', border: wishlistedIds.has(p.id) ? '1.5px solid #e11d48' : '1px solid #ddd', background: wishlistedIds.has(p.id) ? 'rgba(225,29,72,0.15)' : 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 14, zIndex: 2 }}>
+          {wishlistedIds.has(p.id) ? '❤️' : '🤍'}
+        </button>
 
-                    {/* Tag */}
-                    {p.tag && (
-                      <div style={{ position:'absolute', top:'10px', left:'10px', background:'rgba(139,26,26,0.9)', color:'#fff', borderRadius:20, padding:'3px 10px', fontSize:9, fontWeight:800 }}>
-                        {p.tag}
-                      </div>
-                    )}
+        {images.length > 0
+          ? <img key={displayIndex} src={images[displayIndex]} alt={p.name}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', animation: 'fadeImg 0.5s ease' }}
+              onError={e => e.currentTarget.style.display = 'none'} />
+          : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>🪙</div>
+        }
 
-                    {/* Hover glow */}
-                    {isHovered && (
-                      <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', pointerEvents:'none' }}>
-                        <div style={{ width:'80px', height:'80px', borderRadius:'50%', border:`2px solid rgba(251,191,36,0.7)`, animation:'glow-pulse 1.5s ease infinite' }} />
-                      </div>
-                    )}
-                  </div>
+        <div style={{ position: 'absolute', bottom: 10, right: 10, fontSize: 16, color: '#999', zIndex: 2 }}>🔗</div>
+      </div>
 
-                  {/* Info */}
-                  <div style={{ padding:'14px 16px' }}>
-                    <div style={{ color: isHovered ? goldColor : text, fontWeight:800, fontSize:'13px', marginBottom:'4px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', transition:'color 0.3s' }}>
-                      {p.name}
-                    </div>
-                    {p.net_weight && (
-                      <div style={{ color:subtext, fontSize:'10px', marginBottom:'8px' }}>⚖️ {p.net_weight}g net weight</div>
-                    )}
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                      <div style={{ color: goldColor, fontWeight:900, fontSize:'14px', fontFamily:'monospace' }}>
-                        {displayPrice ? `₹${displayPrice.toLocaleString('en-IN')}` : '—'}
-                      </div>
-                      <div style={{ fontSize:'9px', color:subtext }}>incl. 3% GST</div>
-                    </div>
-                  </div>
+      <div style={{ padding: '12px 14px' }}>
 
-                  {/* Hover CTA */}
-                  {isHovered && (
-                    <div style={{ padding:'0 16px 14px', animation:'fadeInUp 0.2s ease' }}>
-                      <div style={{ width:'100%', padding:'8px', background:'linear-gradient(90deg,#f59e0b,#fbbf24)', borderRadius:'10px', color:'#000', fontWeight:800, fontSize:'11px', textAlign:'center', cursor:'pointer' }}>
-                        👁 View Details
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+  {/* Grade + Weight badges */}
+  <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+    {p.grade && (
+      <span style={{
+        background: p.grade === '24k' ? 'rgba(255,215,0,0.15)' : 'rgba(251,191,36,0.15)',
+        border: p.grade === '24k' ? '1px solid rgba(255,215,0,0.5)' : '1px solid rgba(251,191,36,0.5)',
+        color: p.grade === '24k' ? '#b8860b' : '#92660a',
+        borderRadius: 20, padding: '2px 10px',
+        fontSize: 10, fontWeight: 800, letterSpacing: '0.5px'
+      }}>
+        {p.grade === '24k' ? '🥇 24K' : '🏅 22K'}
+      </span>
+    )}
+    {p.net_weight && (
+      <span style={{
+        background: 'rgba(0,0,0,0.04)',
+        border: '1px solid rgba(0,0,0,0.1)',
+        color: '#555',
+        borderRadius: 20, padding: '2px 10px',
+        fontSize: 10, fontWeight: 700
+      }}>
+        ⚖️ {p.net_weight}g
+      </span>
+    )}
+  </div>
+
+  {/* Price row */}
+  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+    <span style={{ fontSize: 15, fontWeight: 800, color: '#1a1a1a' }}>
+      {displayPrice ? `₹${displayPrice.toLocaleString('en-IN')}` : '—'}
+    </span>
+    {hasDiscount && (
+      <span style={{ fontSize: 12, color: '#999', textDecoration: 'line-through' }}>
+        ₹{originalAmt.toLocaleString('en-IN')}
+      </span>
+    )}
+  </div>
+
+  {/* Discount */}
+  {hasDiscount && (
+    <div style={{ fontSize: 12, color: '#2ecc71', fontWeight: 700, marginBottom: 4 }}>
+      {discountPct}% Off
+    </div>
+  )}
+
+  {/* Product name */}
+  <div style={{ fontSize: 13, color: '#1a1a1a', fontWeight: 600 }}>{p.name}</div>
+
+  {/* Live rate info */}
+  {currentRate && p.net_weight && (
+    <div style={{ fontSize: 10, color: '#999', marginTop: 3 }}>
+      ₹{currentRate.toFixed(0)}/gm · incl. 3% GST
+    </div>
+  )}
+</div>
+    </div>
+  )
+})}
           </div>
         )}
 

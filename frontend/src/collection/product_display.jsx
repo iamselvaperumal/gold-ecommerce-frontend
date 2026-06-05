@@ -143,12 +143,20 @@ setProducts(filtered.slice(0, 4))
               onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(139,26,26,0.12)' }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
             >
-              <div style={{ height: 220, background: '#fdf8f4', overflow: 'hidden' }}>
-                {firstImg
-                  ? <img src={firstImg} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>💍</div>
-                }
-              </div>
+ <div style={{ height: 220, background: '#fdf8f4', overflow: 'hidden' }}
+  onMouseEnter={e => {
+    const secondImg = p.images?.[1] ? getImageUrl(p.images[1]) : null
+    if (secondImg) e.currentTarget.querySelector('img').src = secondImg
+  }}
+  onMouseLeave={e => {
+    if (firstImg) e.currentTarget.querySelector('img').src = firstImg
+  }}
+>
+  {firstImg
+    ? <img src={firstImg} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'opacity 0.3s ease' }} />
+    : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>💍</div>
+  }
+</div>
 
               <div style={{ padding: '12px 14px' }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#1c1410', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

@@ -85,7 +85,7 @@ export default function DiamondBracelets() {
 
       <CustomerNavbar />
 
-      <div style={{ padding: '40px', maxWidth: '1400px', margin: '0 auto' }}>
+      <div style={{ padding: '40px', maxWidth: '100%', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(103,232,249,0.08)', border: '1px solid rgba(103,232,249,0.25)', borderRadius: '20px', padding: '5px 14px', marginBottom: '14px' }}>

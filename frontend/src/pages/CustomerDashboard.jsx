@@ -1598,7 +1598,10 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 }}>
 
     {/* LEFT BANNER */}
-    <div style={{
+    
+    <div 
+    onClick={() => navigate('/gold-coins')}
+    style={{
       position: 'relative',
       borderRadius: 16,
       overflow: 'hidden',
@@ -1629,25 +1632,29 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
         left: '50%',
         transform: 'translateX(-50%)'
       }}>
-        <button style={{
-          background: '#e91e8c',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 24,
-          padding: '12px 32px',
-          fontSize: 14,
-          fontWeight: 700,
-          cursor: 'pointer',
-          boxShadow: '0 4px 16px rgba(233,30,140,0.4)',
-          whiteSpace: 'nowrap'
-        }}>
-          Start Now
-        </button>
+     <button 
+  onClick={() => navigate('/gold-coins')}
+  style={{
+  background: '#e91e8c',
+  color: '#fff',
+  border: 'none',
+  borderRadius: 24,
+  padding: '12px 32px',
+  fontSize: 14,
+  fontWeight: 700,
+  cursor: 'pointer',
+  boxShadow: '0 4px 16px rgba(233,30,140,0.4)',
+  whiteSpace: 'nowrap'
+}}>
+  Start Now
+</button>
       </div>
     </div>
 
     {/* RIGHT BANNER */}
-    <div style={{
+    <div 
+      onClick={() => navigate('/silver-coins')}
+      style={{      
       position: 'relative',
       borderRadius: 16,
       overflow: 'hidden',
@@ -1678,7 +1685,9 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
         left: '50%',
         transform: 'translateX(-50%)'
       }}>
-        <button style={{
+        <button 
+        onClick={() => navigate('/silver-coins')}
+        style={{
           background: '#e91e8c',
           color: '#fff',
           border: 'none',

@@ -123,6 +123,7 @@ useEffect(() => {
         @keyframes goldShimmer  { 0%{background-position:200% center} 100%{background-position:-200% center} }
         @keyframes glow-pulse   { 0%,100%{box-shadow:0 0 20px rgba(251,191,36,0.1)} 50%{box-shadow:0 0 40px rgba(251,191,36,0.4)} }
         @keyframes shine        { 0%{left:-80%} 100%{left:120%} }
+        @keyframes fadeImg      { from{opacity:0;transform:scale(1.03)} to{opacity:1;transform:scale(1)} }
         @keyframes sparkle      { 0%,100%{opacity:0;transform:scale(0) rotate(0deg)} 50%{opacity:1;transform:scale(1) rotate(180deg)} }
 
         .gb-card { animation: fadeInUp 0.5s ease both; }
@@ -156,7 +157,7 @@ useEffect(() => {
       {/* ── Navbar ── */}
 <CustomerNavbar />
 
-      <div style={{ position:'relative', zIndex:10, padding:'40px', maxWidth:'1400px', margin:'0 auto' }}>
+      <div style={{ position:'relative', zIndex:10, padding:'40px 40px', maxWidth:'100%', margin:'0 auto' }}>
 
         {/* ── Page Header ── */}
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'32px', animation:'fadeInUp 0.4s ease both', flexWrap:'wrap', gap:'16px' }}>
@@ -196,95 +197,80 @@ useEffect(() => {
 
 
         {/* ── Bangle Cards — 6 cards, 3 columns ── */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'20px' }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', padding: '0 40px', gap:'20px' }}>
           {loading ? (
   <div style={{ gridColumn:'span 3', textAlign:'center', color:subtext, padding:'60px 0' }}>
     ⏳ Loading products...
   </div>
 ) : goldBangles.length === 0 ? (
-  <div style={{ gridColumn:'span 3', textAlign:'center', color:subtext, padding:'60px 0' }}>
+  <div style={{ gridColumn:'span 4', textAlign:'center', color:subtext, padding:'60px 0' }}>
     No gold bangles added yet.
   </div>
-) : goldBangles.map((bangle) => {
-            const isHovered = hoveredBangle === bangle.id
-            const tag = tagStyle(bangle.tag)
-            return (
-              <div key={bangle.id} className="gb-card"
-                onClick={() => navigate(`/product-display?category=bangles&metal=gold&id=${bangle.id}`)}
-                onMouseEnter={() => setHoveredBangle(bangle.id)}
-                onMouseLeave={() => setHoveredBangle(null)}
-                style={{
-                  borderRadius:'20px', overflow:'hidden', cursor:'pointer', position:'relative',
-                  border: `1px solid ${isHovered ? 'rgba(251,191,36,0.55)' : 'rgba(251,191,36,0.18)'}`,
-                  background: isHovered ? 'rgba(251,191,36,0.07)' : cardBg,
-                  transform: isHovered ? 'translateY(-10px) scale(1.02)' : 'translateY(0) scale(1)',
-                  boxShadow: isHovered ? `0 20px 50px ${goldGlow}, 0 0 0 1px rgba(251,191,36,0.1)` : 'none',
-                  transition:'all 0.35s cubic-bezier(0.34,1.56,0.64,1)',
-                }}>
-                <div className="gb-shine" />
+) : goldBangles.map((product) => {
+  const images = product.images?.map(img => {
+    const src = typeof img === 'object' ? (img.image || '') : img
+    if (!src) return null
+    if (src.startsWith('http')) return src
+    return `${API_BASE}/${src.replace(/^\/+/, '')}`
+  }).filter(Boolean) || []
+  const isHovered = hoveredBangle === product.id
+  const displayIndex = isHovered && images.length > 1 ? 1 : 0
+  const price = parseFloat(product.price) || 0
+  const discountPct = parseFloat(product.wastage_charge) || 0
+  const originalAmt = parseFloat(product.original_price) || 0
+  const hasDiscount = discountPct > 0 && originalAmt > price && price > 0
 
-                {/* Image */}
-                <div className="gb-img-wrap" style={{ position:'relative', height:'240px', background: 'rgba(0,0,0,0.04)' }}>
-<img
-  src={getImageUrl(bangle.images?.[0]?.image)}
-  alt={bangle.name}
-  onError={(e) => { e.currentTarget.src = '/img/gold/gold-bangles-1.png' }}
-  style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}
-/>
-                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(2,6,23,0.8) 0%, transparent 60%)' }} />
+  return (
+    <div key={product.id} className="gb-card"
+      onClick={() => navigate(`/product-display?category=bangles&metal=gold&id=${product.id}`)}
+      onMouseEnter={() => setHoveredBangle(product.id)}
+      onMouseLeave={() => setHoveredBangle(null)}
+      style={{
+        borderRadius: 10, overflow: 'hidden', cursor: 'pointer', position: 'relative',
+        border: '1px solid #e8e8e8', background: '#fff',
+        boxShadow: isHovered ? '0 8px 24px rgba(0,0,0,0.12)' : '0 2px 8px rgba(0,0,0,0.06)',
+        transition: 'all 0.25s ease',
+      }}>
+      <div style={{ height: 320, background: '#f0f0f0', position: 'relative', overflow: 'hidden', marginBottom: 10 }}>
+        {product.tag && (
+          <div style={{ position: 'absolute', top: 12, left: 0, background: '#2ecc71', color: '#fff', padding: '5px 12px 5px 10px', fontSize: 11, fontWeight: 700, clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)', zIndex: 2 }}>
+            {product.tag}
+          </div>
+        )}
+        <button onClick={e => toggleWishlist(e, product.id)}
+          style={{ position: 'absolute', top: 10, right: 10, width: 30, height: 30, borderRadius: '50%', border: wishlistedIds.has(product.id) ? '1.5px solid #e11d48' : '1px solid #ddd', background: wishlistedIds.has(product.id) ? 'rgba(225,29,72,0.15)' : 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 14, zIndex: 2 }}>
+          {wishlistedIds.has(product.id) ? '❤️' : '🤍'}
+        </button>
+        {images.length > 0
+          ? <img key={displayIndex} src={images[displayIndex]} alt={product.name}
+    style={{ width: '100%', height: '100%', objectFit: 'cover', animation: 'fadeImg 0.5s ease' }}
+    onError={e => e.currentTarget.style.display = 'none'} />
+          : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>💍</div>
+        }
+        <div style={{ position: 'absolute', bottom: 10, right: 10, fontSize: 16, color: '#999', zIndex: 2 }}>🔗</div>
+      </div>
+      <div style={{ padding: '12px 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <span style={{ fontSize: 15, fontWeight: 800, color: '#1a1a1a' }}>
+            {price > 0 ? `₹${price.toLocaleString('en-IN')}` : '—'}
+          </span>
+          {hasDiscount && (
+            <span style={{ fontSize: 12, color: '#999', textDecoration: 'line-through' }}>
+              ₹{originalAmt.toLocaleString('en-IN')}
+            </span>
+          )}
+        </div>
+        {hasDiscount && (
+          <div style={{ fontSize: 12, color: '#2ecc71', fontWeight: 700, marginBottom: 6 }}>
+            {discountPct}% Off
+          </div>
+        )}
+        <div style={{ fontSize: 13, color: '#1a1a1a', fontWeight: 600 }}>{product.name}</div>
+      </div>
+    </div>
+  )
+})}
 
-                  {/* tag */}
-                  <div style={{ position:'absolute', top:'10px', left:'10px', background:tag.bg, border:`1px solid ${tag.border}`, borderRadius:'16px', padding:'3px 10px', color:tag.color, fontSize:'9px', fontWeight:800, letterSpacing:'0.5px', backdropFilter:'blur(8px)' }}>
-                    {bangle.tag}
-                  </div>
-
-                  {/* heart + number badge */}
-                  <div style={{ position:'absolute', top:'10px', right:'10px', display:'flex', alignItems:'center', gap:'6px', zIndex:10 }}>
-                    <button
-                      onClick={e => toggleWishlist(e, bangle.id)}
-                      style={{
-                        width: '30px', height: '30px', borderRadius: '50%',
-                        border: wishlistedIds.has(bangle.id) ? '1.5px solid #e11d48' : '1.5px solid rgba(255,255,255,0.35)',
-                        background: wishlistedIds.has(bangle.id) ? 'rgba(225,29,72,0.18)' : 'rgba(0,0,0,0.4)',
-                        backdropFilter: 'blur(8px)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', fontSize: '14px', transition: 'all 0.2s ease',
-                      }}
-                    >
-                      {wishlistedIds.has(bangle.id) ? '❤️' : '🤍'}
-                    </button>
-                    <div style={{ width:'24px', height:'24px', borderRadius:'50%', background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.4)', display:'flex', alignItems:'center', justifyContent:'center', color:goldColor, fontSize:'10px', fontWeight:900 }}>
-                      {bangle.id}
-                    </div>
-                  </div>
-
-                  {/* hover glow ring */}
-                  {isHovered && (
-                    <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', pointerEvents:'none' }}>
-                      <div style={{ width:'70px', height:'70px', borderRadius:'50%', border:'2px solid rgba(251,191,36,0.6)', animation:'glow-pulse 1.5s ease infinite' }} />
-                    </div>
-                  )}
-                </div>
-
-                {/* Content */}
-                <div style={{ padding:'14px 16px' }}>
-                  <div style={{ color: isHovered ? goldColor : text, fontWeight:800, fontSize:'14px', marginBottom:'4px', transition:'color 0.3s' }}>{bangle.name}</div>
-                  <div style={{ color:subtext, fontSize:'11px', lineHeight:'1.5', marginBottom:'10px' }}>{bangle.description}</div>
-
-
-                </div>
-
-                {/* hover CTA */}
-                {isHovered && (
-                  <div style={{ padding:'0 16px 14px', animation:'fadeInUp 0.2s ease' }}>
-                    <div style={{ width:'100%', padding:'8px', background:'linear-gradient(90deg,#f59e0b,#fbbf24)', borderRadius:'10px', color:'#000', fontWeight:800, fontSize:'11px', textAlign:'center' }}>
-                      👁 View Details
-                    </div>
-                  </div>
-                )}
-              </div>
-            )
-          })}
         </div>
 
         {/* footer line */}

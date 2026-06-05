@@ -105,12 +105,12 @@ return (
       .gn-img-wrap { overflow:hidden; }
       .gn-img-wrap img { transition:transform 0.5s cubic-bezier(0.34,1.56,0.64,1); }
       .gn-card:hover .gn-img-wrap img { transform:scale(1.12) translateY(-4px) !important; }
-      .gn-shine { position:absolute; top:0; left:-80%; width:40%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent); transform:skewX(-20deg); opacity:0; transition:opacity 0.3s; }
-      .gn-card:hover .gn-shine { opacity:1; animation:shine 0.6s ease; }
+      @keyframes fadeImg { from{opacity:0;transform:scale(1.03)} to{opacity:1;transform:scale(1)} }
+
     `}</style>
     <CustomerNavbar />
 
-      <div style={{ position: 'relative', zIndex: 10, padding: '40px', maxWidth: '1400px', margin: '0 auto' }}>
+      <div style={{ position: 'relative', zIndex: 10, padding: '40px', maxWidth: '100%', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '40px', animation: 'fadeInUp 0.4s ease both' }}>
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.25)', borderRadius: '20px', padding: '5px 14px', marginBottom: '14px' }}>
@@ -138,7 +138,7 @@ return (
 
      
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px' }}>
           {loading ? (
   <div style={{ gridColumn:'span 3', textAlign:'center', color:subtext, padding:'60px 0' }}>
     ⏳ Loading...
@@ -147,71 +147,70 @@ return (
   <div style={{ gridColumn:'span 3', textAlign:'center', color:subtext, padding:'60px 0' }}>
     No gold necklaces yet.
   </div>
-) : goldNecklaces.map((item) => {
-            const isHovered = hoveredItem === item.id
-            const tag = tagStyle(item.tag)
+) : goldNecklaces.map((product) => {
+  const images = product.images?.map(img => {
+    const src = typeof img === 'object' ? (img.image || '') : img
+    if (!src) return null
+    if (src.startsWith('http')) return src
+    return `${API_BASE}/${src.replace(/^\/+/, '')}`
+  }).filter(Boolean) || []
+  const isHovered = hoveredItem === product.id
+  const displayIndex = isHovered && images.length > 1 ? 1 : 0
+  const price = parseFloat(product.price) || 0
+  const discountPct = parseFloat(product.wastage_charge) || 0
+  const originalAmt = parseFloat(product.original_price) || 0
+  const hasDiscount = discountPct > 0 && originalAmt > price && price > 0
 
-            return (
-            <div
-  key={item.id}
-  className="gn-card"
-  onClick={() =>
-    navigate(`/product-display?category=necklaces&metal=gold&id=${item.id}`)
-  }
-  onMouseEnter={() => setHoveredItem(item.id)}
-  onMouseLeave={() => setHoveredItem(null)}
-                style={{
-                  borderRadius: '20px',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  border: `1px solid ${isHovered ? 'rgba(251,191,36,0.55)' : 'rgba(251,191,36,0.18)'}`,
-                  background: isHovered ? 'rgba(251,191,36,0.07)' : cardBg,
-                  transform: isHovered ? 'translateY(-10px) scale(1.02)' : 'translateY(0) scale(1)',
-                  boxShadow: isHovered ? '0 20px 50px rgba(251,191,36,0.22), 0 0 0 1px rgba(251,191,36,0.1)' : 'none',
-                  transition: 'all 0.35s cubic-bezier(0.34,1.56,0.64,1)',
-                }}
-              >
-                <div className="gn-shine" />
-
-                <div className="gn-img-wrap" style={{ position: 'relative', height: '190px', background: 'rgba(0,0,0,0.04)' }}>
-<img
-  src={getImageUrl(item.images?.[0]?.image)}
-  alt={item.name}
-  onError={(e) => { e.currentTarget.src = '/img/gold/gold-necklace-1.png' }}
-  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-/>
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(2,6,23,0.8) 0%, transparent 60%)' }} />
-
-                  <div style={{ position: 'absolute', top: '10px', left: '10px', background: tag.bg, border: `1px solid ${tag.border}`, borderRadius: '16px', padding: '3px 10px', color: tag.color, fontSize: '9px', fontWeight: 800, letterSpacing: '0.5px', backdropFilter: 'blur(8px)' }}>
-                    {item.tag}
-                  </div>
-
-                  <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', alignItems: 'center', gap: '6px', zIndex: 10 }}>
-                    <button onClick={e => toggleWishlist(e, item.id)} style={{ width: '30px', height: '30px', borderRadius: '50%', border: wishlistedIds.has(item.id) ? '1.5px solid #e11d48' : '1.5px solid rgba(255,255,255,0.35)', background: wishlistedIds.has(item.id) ? 'rgba(225,29,72,0.18)' : 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '14px', transition: 'all 0.2s ease' }}>
-                      {wishlistedIds.has(item.id) ? '❤️' : '🤍'}
-                    </button>
-                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: goldColor, fontSize: '10px', fontWeight: 900 }}>
-                      {item.id}
-                    </div>
-                  </div>
-
-                  {isHovered && (
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-                      <div style={{ width: '70px', height: '70px', borderRadius: '50%', border: '2px solid rgba(251,191,36,0.6)', animation: 'glow-pulse 1.5s ease infinite' }} />
-                    </div>
-                  )}
-                </div>
-
-                <div style={{ padding: '14px 14px' }}>
-                  <div style={{ color: isHovered ? goldColor : text, fontWeight: 800, fontSize: '12px', marginBottom: '4px', transition: 'color 0.3s' }}>{item.name}</div>
-                  <div style={{ color: subtext, fontSize: '10px', lineHeight: '1.5', marginBottom: '10px' }}>{item.description}</div>
-
-
-                </div>
-              </div>
-            )
-          })}
+  return (
+    <div key={product.id} className="gn-card"
+      onClick={() => navigate(`/product-display?category=necklaces&metal=gold&id=${product.id}`)}
+      onMouseEnter={() => setHoveredItem(product.id)}
+      onMouseLeave={() => setHoveredItem(null)}
+      style={{
+        borderRadius: 10, overflow: 'hidden', cursor: 'pointer', position: 'relative',
+        border: '1px solid #e8e8e8', background: '#fff',
+        boxShadow: isHovered ? '0 8px 24px rgba(0,0,0,0.12)' : '0 2px 8px rgba(0,0,0,0.06)',
+        transition: 'all 0.25s ease',
+      }}>
+      <div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden', marginBottom: 10 }}>
+        {product.tag && (
+          <div style={{ position: 'absolute', top: 12, left: 0, background: '#2ecc71', color: '#fff', padding: '5px 12px 5px 10px', fontSize: 11, fontWeight: 700, clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)', zIndex: 2 }}>
+            {product.tag}
+          </div>
+        )}
+        <button onClick={e => toggleWishlist(e, product.id)}
+          style={{ position: 'absolute', top: 10, right: 10, width: 30, height: 30, borderRadius: '50%', border: wishlistedIds.has(product.id) ? '1.5px solid #e11d48' : '1px solid #ddd', background: wishlistedIds.has(product.id) ? 'rgba(225,29,72,0.15)' : 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 14, zIndex: 2 }}>
+          {wishlistedIds.has(product.id) ? '❤️' : '🤍'}
+        </button>
+        {images.length > 0
+          ? <img key={displayIndex} src={images[displayIndex]} alt={product.name}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', animation: 'fadeImg 0.5s ease' }}
+              onError={e => e.currentTarget.style.display = 'none'} />
+          : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>📿</div>
+        }
+        <div style={{ position: 'absolute', bottom: 10, right: 10, fontSize: 16, color: '#999', zIndex: 2 }}>🔗</div>
+      </div>
+      <div style={{ padding: '12px 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <span style={{ fontSize: 15, fontWeight: 800, color: '#1a1a1a' }}>
+            {price > 0 ? `₹${price.toLocaleString('en-IN')}` : '—'}
+          </span>
+          {hasDiscount && (
+            <span style={{ fontSize: 12, color: '#999', textDecoration: 'line-through' }}>
+              ₹{originalAmt.toLocaleString('en-IN')}
+            </span>
+          )}
+        </div>
+        {hasDiscount && (
+          <div style={{ fontSize: 12, color: '#2ecc71', fontWeight: 700, marginBottom: 6 }}>
+            {discountPct}% Off
+          </div>
+        )}
+        <div style={{ fontSize: 13, color: '#1a1a1a', fontWeight: 600 }}>{product.name}</div>
+      </div>
+    </div>
+  )
+})}
         </div>
       </div>
 

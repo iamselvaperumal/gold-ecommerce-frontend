@@ -6,7 +6,7 @@ import CustomerNavbar from './CustomerNavbar'
 
 export default function NecklacesCollection() {
   const navigate = useNavigate()
-  const [hoveredCard, setHoveredCard] = useState(null)
+  
 
 const bg = '#FDF5EE'
 const text = '#020617'
@@ -131,96 +131,47 @@ return (
         </p>
       </div>
 
-      {/* Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', maxWidth: '1600px', margin: '0 auto' }}>
-        {collections.map((col, idx) => (
-          <div
-            key={col.id}
-            className="necklace-card"
-            onClick={() => navigate(col.route)}
-            style={{ animationDelay: `${idx * 0.15}s` }}
-          >
-            <div
-              className="necklace-card-wrap"
-              onMouseEnter={() => setHoveredCard(col.id)}
-              onMouseLeave={() => setHoveredCard(null)}
-              style={{
-                position: 'relative',
-                borderRadius: '24px',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                border: `1px solid ${hoveredCard === col.id ? col.border : border}`,
-                background: hoveredCard === col.id ? col.bg : cardBg,
-                boxShadow: hoveredCard === col.id ? `0 20px 60px ${col.glow}` : 'none',
-                transform: hoveredCard === col.id ? 'translateY(-8px) scale(1.01)' : 'translateY(0) scale(1)',
-                transition: 'all 0.35s cubic-bezier(0.34,1.56,0.64,1)',
-                '--shimmer': col.shimmer,
-              }}
-            >
-              <div className="card-shimmer" />
-
-              {/* Image */}
-              <div style={{ position: 'relative', height: '420px', overflow: 'hidden', background: 'rgba(0,0,0,0.05)' }}>
-                <img
-                  src={col.img}
-                  alt={col.title}
-                  style={{
-                    width: '100%', height: '100%', objectFit: 'cover', display: 'block',
-                    transform: hoveredCard === col.id ? 'scale(1.08)' : 'scale(1)',
-                    transition: 'transform 0.5s ease',
-                  }}
-                />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(2,6,23,0.85) 0%, rgba(2,6,23,0.1) 60%, transparent 100%)' }} />
-
-                {/* Tag */}
-                <div style={{ position: 'absolute', top: '14px', right: '14px', background: `rgba(${col.iconBg},0.2)`, border: `1px solid ${col.border}`, borderRadius: '20px', padding: '4px 12px', color: col.color, fontSize: '10px', fontWeight: 800, letterSpacing: '1px', backdropFilter: 'blur(8px)' }}>
-                  {col.tag}
-                </div>
-
-                {hoveredCard === col.id && (
-                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-                    <div style={{ width: '80px', height: '80px', borderRadius: '50%', border: `2px solid ${col.color}`, animation: 'pulse-ring 1.5s ease infinite', opacity: 0.5 }} />
-                  </div>
-                )}
-              </div>
-
-              {/* Content */}
-              <div style={{ padding: '24px 28px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <div>
-                    <div style={{ color: col.color, fontWeight: 900, fontSize: '22px', marginBottom: '3px' }}>{col.title}</div>
-                    <div style={{ color: subtext, fontSize: '11px', fontWeight: 600, letterSpacing: '0.5px' }}>{col.subtitle}</div>
-                  </div>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `rgba(${col.iconBg},0.12)`, border: `1px solid ${col.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>
-                    {col.icon}
-                  </div>
-                </div>
-
-                <p style={{ color: '#64748b', fontSize: '14px', lineHeight: '1.6', margin: '0 0 18px' }}>
-                  {col.description}
-                </p>
-
-                <button
-                  className="explore-btn"
-                  style={{
-                    width: '100%', padding: '12px',
-                    background: hoveredCard === col.id
-                      ? `linear-gradient(90deg, ${col.color}, ${col.color}cc)`
-                      : `rgba(${col.iconBg},0.1)`,
-                    border: `1px solid ${col.border}`,
-                    borderRadius: '12px',
-                    color: hoveredCard === col.id ? '#000' : col.color,
-                    fontWeight: 800, fontSize: '13px', cursor: 'pointer',
-                    transition: 'all 0.3s ease', letterSpacing: '0.5px',
-                  }}
-                >
-                  {hoveredCard === col.id ? '→ Explore Now' : `View ${col.title}`}
-                </button>
-              </div>
-            </div>
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 20 }}>
+  {collections.map((col) => (
+    <div
+      key={col.id}
+      onClick={() => navigate(col.route)}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'; e.currentTarget.querySelector('img').style.transform = 'scale(1.08)' }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; e.currentTarget.querySelector('img').style.transform = 'scale(1)' }}
+      style={{
+        background: '#fff',
+        border: '1px solid #e8e8e8',
+        borderRadius: 10,
+        overflow: 'hidden',
+        cursor: 'pointer',
+        transition: 'all 0.25s ease',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+      }}
+    >
+      {/* Image */}
+      <div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden' }}>
+        <img
+          src={col.img}
+          alt={col.title}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
+          onError={e => e.currentTarget.style.display = 'none'}
+        />
+        {col.tag && (
+          <div style={{ position: 'absolute', top: 12, left: 0, background: '#2ecc71', color: '#fff', padding: '5px 12px 5px 10px', fontSize: 11, fontWeight: 700, clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)', zIndex: 2 }}>
+            {col.tag}
           </div>
-        ))}
+        )}
+        <div style={{ position: 'absolute', bottom: 10, right: 10, fontSize: 16, color: '#999', zIndex: 2 }}>🔗</div>
       </div>
+
+      {/* Content */}
+      <div style={{ padding: '12px 14px' }}>
+        <div style={{ fontSize: 13, color: '#1a1a1a', fontWeight: 700, marginBottom: 4 }}>{col.title}</div>
+        <div style={{ fontSize: 12, color: '#7c5c4a' }}>{col.subtitle}</div>
+      </div>
+    </div>
+  ))}
+</div>
 
       {/* Footer */}
       <div style={{ textAlign: 'center', marginTop: '60px', animation: 'fadeInUp 0.8s ease 0.4s both' }}>

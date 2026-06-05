@@ -25,7 +25,7 @@ export default function CoinsCollection() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [metalPrices, setMetalPrices] = useState({ gold22k: null, gold24k: null, silver: null })
-  const [hoveredId, setHoveredId] = useState(null)
+
 
   const isGold = metalFilter === 'gold'
   const coinImg = isGold ? goldCoin : silverCoin
@@ -219,68 +219,51 @@ export default function CoinsCollection() {
 
               return (
                 <div key={p.id}
-                  className="coin-card"
-                  onClick={() => navigate(`/product-display?category=coins&metal=${metalFilter}&id=${p.id}`)}
-                  onMouseEnter={() => setHoveredId(p.id)}
-                  onMouseLeave={() => setHoveredId(null)}
-                  style={{
-                    background: '#fff',
-                    border: isHovered ? `1px solid ${accentColor}` : '1px solid #e8ddd5',
-                    borderRadius: 20, overflow: 'hidden', cursor: 'pointer',
-                    transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)',
-                    boxShadow: isHovered ? `0 16px 40px ${accentColor}33` : '0 2px 8px rgba(139,26,26,0.06)',
-                  }}
-                >
-                  {/* Image */}
-                  <div style={{
-                    height: 200, position: 'relative', overflow: 'hidden',
-                    background: isGold ? 'linear-gradient(135deg,#1a0a00,#3d1f00)' : 'linear-gradient(135deg,#0a0a1a,#1a1a2e)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    {firstImg
-                      ? <img src={firstImg} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease', transform: isHovered ? 'scale(1.08)' : 'scale(1)' }} onError={e => e.currentTarget.style.display = 'none'} />
-                      : <img src={coinImg} alt={p.name} style={{ width: 110, height: 110, objectFit: 'contain', filter: `drop-shadow(0 8px 20px ${accentColor}88)`, animation: isHovered ? 'float 1.5s ease-in-out infinite' : 'none' }} />
-                    }
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%)' }} />
+  className="coin-card"
+  onClick={() => navigate(`/product-display?category=coins&metal=${metalFilter}&id=${p.id}`)}
+  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'; e.currentTarget.querySelector('img')?.style && (e.currentTarget.querySelector('img').style.transform = 'scale(1.08)') }}
+  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; e.currentTarget.querySelector('img')?.style && (e.currentTarget.querySelector('img').style.transform = 'scale(1)') }}
+  style={{
+    background: '#fff',
+    border: '1px solid #e8e8e8',
+    borderRadius: 10,
+    overflow: 'hidden',
+    cursor: 'pointer',
+    transition: 'all 0.25s ease',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+  }}
+>
+  {/* Image */}
+  <div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden' }}>
+    {firstImg
+      ? <img src={firstImg} alt={p.name}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
+          onError={e => e.currentTarget.style.display = 'none'} />
+      : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>🪙</div>
+    }
 
-                    {p.tag && (
-                      <div style={{ position: 'absolute', top: 10, left: 10, background: '#8B1A1A', color: '#fff', borderRadius: 20, padding: '3px 10px', fontSize: 10, fontWeight: 800 }}>
-                        {p.tag}
-                      </div>
-                    )}
-                    <div style={{ position: 'absolute', top: 10, right: 10, background: `${accentColor}dd`, color: '#000', borderRadius: 20, padding: '3px 10px', fontSize: 10, fontWeight: 900 }}>
-                      {p.grade?.toUpperCase() || (isGold ? '22K' : '999')}
-                    </div>
-                  </div>
+    {p.tag && (
+      <div style={{ position: 'absolute', top: 12, left: 0, background: '#2ecc71', color: '#fff', padding: '5px 12px 5px 10px', fontSize: 11, fontWeight: 700, clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)', zIndex: 2 }}>
+        {p.tag}
+      </div>
+    )}
 
-                  {/* Info */}
-                  <div style={{ padding: '16px 18px' }}>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: '#1a0a0a', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {p.name}
-                    </div>
-                    {p.net_weight && (
-                      <div style={{ fontSize: 12, color: '#7c5c4a', marginBottom: 8 }}>
-                        ⚖️ {p.net_weight}g net weight
-                      </div>
-                    )}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                      <div>
-                        <div style={{ fontSize: 18, fontWeight: 900, color: accentColor, fontFamily: 'monospace' }}>
-                          {price > 0 ? `₹${price.toLocaleString('en-IN')}` : livePrice ? `₹${Number(livePrice).toLocaleString('en-IN')}` : '—'}
-                        </div>
-                        <div style={{ fontSize: 10, color: '#b09080' }}>incl. 3% GST</div>
-                      </div>
-                      <div style={{
-                        padding: '7px 14px', borderRadius: 10, fontSize: 11, fontWeight: 800,
-                        background: isHovered ? accentGrad : '#f5f0e8',
-                        color: isHovered ? '#000' : '#7c5c4a',
-                        transition: 'all 0.2s',
-                      }}>
-                        {isHovered ? '→ View' : '🪙 Coin'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+    <div style={{ position: 'absolute', bottom: 10, right: 10, fontSize: 16, color: '#999', zIndex: 2 }}>🔗</div>
+  </div>
+
+  {/* Info */}
+  <div style={{ padding: '12px 14px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+      <span style={{ fontSize: 15, fontWeight: 800, color: '#1a1a1a' }}>
+        {price > 0 ? `₹${price.toLocaleString('en-IN')}` : livePrice ? `₹${Number(livePrice).toLocaleString('en-IN')}` : '—'}
+      </span>
+    </div>
+    <div style={{ fontSize: 13, color: '#1a1a1a', fontWeight: 600 }}>{p.name}</div>
+    {p.net_weight && (
+      <div style={{ fontSize: 11, color: '#999', marginTop: 3 }}>⚖️ {p.net_weight}g · incl. 3% GST</div>
+    )}
+  </div>
+</div>
               )
             })}
           </div>

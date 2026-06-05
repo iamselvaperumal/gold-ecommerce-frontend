@@ -466,7 +466,7 @@ export default function CustomerNavbar() {
           const panel = cfg.panels[activeFilter] || cfg.panels[cfg.filterKeys[0]]
 
           const CATEGORY_ROUTES = {
-            'Earrings': '/collection/earrings', 'Chains': '/collection/chain',
+            'Earrings': '/collection/earrings', 'Chains': '/collection/chains',
             'Necklaces': '/collection/necklaces', 'Bangles': '/collection/bangles',
             'Finger Rings': '/collection/rings', 'Bracelets': '/collection/bracelets',
             'Gold Earrings': '/gold-earrings', 'Gold Chains': '/gold-chain',

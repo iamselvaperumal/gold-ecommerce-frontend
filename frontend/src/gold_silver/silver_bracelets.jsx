@@ -100,7 +100,7 @@ return (
     `}</style>
     <CustomerNavbar />
 
-      <div style={{ position:'relative', zIndex:10, padding:'40px', maxWidth:'1300px', margin:'0 auto' }}>
+      <div style={{ position:'relative', zIndex:10, padding:'40px', maxWidth:'100%', margin:'0 auto' }}>
 
         {/* Page Header */}
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'40px', animation:'fadeInUp 0.4s ease both' }}>
@@ -128,7 +128,7 @@ return (
         </div>
 
         {/* Bracelet Cards */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'18px' }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'18px' }}>
           {loading ? (
             <div style={{ gridColumn: 'span 3', textAlign: 'center', color: subtext, padding: '60px 0' }}>
               ⏳ Loading products...
@@ -141,70 +141,67 @@ return (
             const isHovered = hoveredBracelet === bracelet.id
             const tag = tagStyle(bracelet.tag)
             return (
-              <div
-                key={bracelet.id}
-                className="sb-card"
-                onClick={() => navigate(`/product-display?category=bracelets&metal=silver&id=${bracelet.id}`)}
-                onMouseEnter={() => setHoveredBracelet(bracelet.id)}
-                onMouseLeave={() => setHoveredBracelet(null)}
-                style={{
-                  borderRadius:'20px', overflow:'hidden', cursor:'pointer', position:'relative',
-                  border: `1px solid ${isHovered ? 'rgba(192,192,192,0.55)' : 'rgba(192,192,192,0.18)'}`,
-                  background: isHovered ? 'rgba(192,192,192,0.07)' : cardBg,
-                  transform: isHovered ? 'translateY(-10px) scale(1.02)' : 'translateY(0) scale(1)',
-                  boxShadow: isHovered ? '0 20px 50px rgba(192,192,192,0.22), 0 0 0 1px rgba(192,192,192,0.1)' : 'none',
-                  transition:'all 0.35s cubic-bezier(0.34,1.56,0.64,1)',
-                }}
-              >
-                <div className="sb-shine" />
+<div
+  key={bracelet.id}
+  className="sb-card"
+  onClick={() => navigate(`/product-display?category=bracelets&metal=silver&id=${bracelet.id}`)}
+  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'; setHoveredBracelet(bracelet.id) }}
+  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; setHoveredBracelet(null) }}
+  style={{
+    background: '#fff',
+    border: '1px solid #e8e8e8',
+    borderRadius: 10,
+    overflow: 'hidden',
+    cursor: 'pointer',
+    transition: 'all 0.25s ease',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+  }}
+>
+<div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden' }}>
 
-                {/* Image */}
-                <div className="sb-img-wrap" style={{ position:'relative', height:'200px', background: 'rgba(0,0,0,0.04)' }}>
-                  <img
-                    src={getImageUrl(bracelet.images?.[0]?.image)}
-                    alt={bracelet.name}
-                    onError={(e) => { e.currentTarget.src = '/img/silver/silver_bracelet.jpg' }}
-                    style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}
-                  />
-                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(2,6,23,0.8) 0%, transparent 60%)' }} />
+  {bracelet.tag && (
+    <div style={{ position: 'absolute', top: 12, left: 0, background: '#2ecc71', color: '#fff', padding: '5px 12px 5px 10px', fontSize: 11, fontWeight: 700, clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)', zIndex: 2 }}>
+      {bracelet.tag}
+    </div>
+  )}
 
-                  {/* Tag */}
-                  <div style={{ position:'absolute', top:'10px', left:'10px', background:tag.bg, border:`1px solid ${tag.border}`, borderRadius:'16px', padding:'3px 10px', color:tag.color, fontSize:'9px', fontWeight:800, letterSpacing:'0.5px', backdropFilter:'blur(8px)' }}>
-                    {bracelet.tag}
-                  </div>
+  <button onClick={e => toggleWishlist(e, bracelet.id)}
+    style={{ position: 'absolute', top: 10, right: 10, width: 30, height: 30, borderRadius: '50%', border: wishlistedIds.has(bracelet.id) ? '1.5px solid #e11d48' : '1px solid #ddd', background: wishlistedIds.has(bracelet.id) ? 'rgba(225,29,72,0.15)' : 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 14, zIndex: 2 }}>
+    {wishlistedIds.has(bracelet.id) ? '❤️' : '🤍'}
+  </button>
 
-                  {/* heart + ID badge */}
-                  <div style={{ position:'absolute', top:'10px', right:'10px', display:'flex', alignItems:'center', gap:'6px', zIndex:10 }}>
-                    <button onClick={e => toggleWishlist(e, bracelet.id)} style={{ width:'30px', height:'30px', borderRadius:'50%', border: wishlistedIds.has(bracelet.id) ? '1.5px solid #e11d48' : '1.5px solid rgba(255,255,255,0.35)', background: wishlistedIds.has(bracelet.id) ? 'rgba(225,29,72,0.18)' : 'rgba(0,0,0,0.4)', backdropFilter:'blur(8px)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:'14px', transition:'all 0.2s ease' }}>
-                      {wishlistedIds.has(bracelet.id) ? '❤️' : '🤍'}
-                    </button>
-                    <div style={{ width:'24px', height:'24px', borderRadius:'50%', background:'rgba(192,192,192,0.15)', border:'1px solid rgba(192,192,192,0.4)', display:'flex', alignItems:'center', justifyContent:'center', color:silverColor, fontSize:'10px', fontWeight:900 }}>
-                      {bracelet.id}
-                    </div>
-                  </div>
+  {bracelet.images?.length > 0
+    ? <img
+        key={isHovered ? 1 : 0}
+        src={getImageUrl(isHovered && bracelet.images.length > 1 ? bracelet.images[1]?.image : bracelet.images[0]?.image)}
+        alt={bracelet.name}
+        style={{ width: '100%', height: '100%', objectFit: 'cover', animation: 'fadeImg 0.5s ease' }}
+        onError={e => e.currentTarget.style.display = 'none'}
+      />
+    : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>⭕</div>
+  }
 
-                  {/* Hover glow ring */}
-                  {isHovered && (
-                    <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', pointerEvents:'none' }}>
-                      <div style={{ width:'70px', height:'70px', borderRadius:'50%', border:'2px solid rgba(192,192,192,0.6)', animation:'glow-pulse 1.5s ease infinite' }} />
-                    </div>
-                  )}
-                </div>
+  <div style={{ position: 'absolute', bottom: 10, right: 10, fontSize: 16, color: '#999', zIndex: 2 }}>🔗</div>
+</div>
 
-                {/* Content */}
-                <div style={{ padding:'14px 16px' }}>
-                  <div style={{ color: isHovered ? silverColor : text, fontWeight:800, fontSize:'13px', marginBottom:'4px', transition:'color 0.3s' }}>{bracelet.name}</div>
-                  <div style={{ color:subtext, fontSize:'10px', lineHeight:'1.5', marginBottom:'10px' }}>{bracelet.description}</div>
-                </div>
-
-                {/* Hover CTA */}
-                {isHovered && (
-                  <div style={{ padding:'0 16px 14px', animation:'fadeInUp 0.2s ease' }}>
-                    <div style={{ width:'100%', padding:'8px', background:'linear-gradient(90deg,#9ca3af,#e2e8f0)', borderRadius:'10px', color:'#000', fontWeight:800, fontSize:'11px', textAlign:'center' }}>
-                      👁 View Details
-                    </div>
-                  </div>
-                )}
+<div style={{ padding: '12px 14px' }}>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+    <span style={{ fontSize: 15, fontWeight: 800, color: '#1a1a1a' }}>
+      {parseFloat(bracelet.price) > 0 ? `₹${parseFloat(bracelet.price).toLocaleString('en-IN')}` : '—'}
+    </span>
+    {parseFloat(bracelet.wastage_charge) > 0 && parseFloat(bracelet.original_price) > parseFloat(bracelet.price) && (
+      <span style={{ fontSize: 12, color: '#999', textDecoration: 'line-through' }}>
+        ₹{parseFloat(bracelet.original_price).toLocaleString('en-IN')}
+      </span>
+    )}
+  </div>
+  {parseFloat(bracelet.wastage_charge) > 0 && parseFloat(bracelet.original_price) > parseFloat(bracelet.price) && (
+    <div style={{ fontSize: 12, color: '#2ecc71', fontWeight: 700, marginBottom: 6 }}>
+      {bracelet.wastage_charge}% Off
+    </div>
+  )}
+  <div style={{ fontSize: 13, color: '#1a1a1a', fontWeight: 600 }}>{bracelet.name}</div>
+</div>
               </div>
             )
           })}

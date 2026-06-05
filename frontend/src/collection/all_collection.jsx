@@ -32,12 +32,14 @@ function ProductCard({ p, navigate }) {
         <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 10, right: 10, fontSize: 20, cursor: 'pointer', zIndex: 2 }}>🤍</div>
 
 {images.length > 0
-  ? <img 
-      src={images[displayIndex]}  // ← இங்க மாத்து
-      alt={p.name} 
-      style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'opacity 0.3s ease' }} 
-      onError={e => e.currentTarget.style.display = 'none'} 
-    />
+  ? 
+  <img 
+  key={displayIndex}
+  src={images[displayIndex]}
+  alt={p.name} 
+  style={{ width: '100%', height: '100%', objectFit: 'cover', animation: 'fadeImg 0.5s ease' }} 
+  onError={e => e.currentTarget.style.display = 'none'} 
+/>
   : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>💍</div>
 }
 
@@ -158,7 +160,7 @@ export default function AllCollection() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#FDF5EE', fontFamily: '"Inter",system-ui,sans-serif' }}>
-      <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}\@keyframes fadeImg{from{opacity:0;transform:scale(1.03)}to{opacity:1;transform:scale(1)}}`}</style>
 
 <CustomerNavbar />
 
@@ -201,6 +203,7 @@ export default function AllCollection() {
 
       {/* PRODUCTS GRID */}
       <div style={{ maxWidth: '100%', margin: '0 auto', padding: '0 16px 60px' }}>
+
         {loading ? (
           <div style={{ textAlign: 'center', padding: '80px 0' }}>
             <div style={{ width: 40, height: 40, border: '3px solid #f3d5d5', borderTop: '3px solid #8B1A1A', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
