@@ -6,19 +6,55 @@ import CustomerFooter from '../collection/CustomerFooter'
 const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
 
 const PAYMENT_OPTIONS = [
-  { key: 'upi', label: 'UPI', icon: '📱', desc: 'GPay, PhonePe, Paytm, BHIM', color: '#7c3aed', rgb: '124,58,237' },
-  { key: 'debit_card', label: 'Debit Card', icon: '💳', desc: 'Visa, Mastercard, RuPay', color: '#0369a1', rgb: '3,105,161' },
-  { key: 'credit_card', label: 'Credit Card', icon: '🏦', desc: 'All major credit cards', color: '#b45309', rgb: '180,83,9' },
-  { key: 'net_banking', label: 'Net Banking', icon: '🖥️', desc: 'All major banks supported', color: '#065f46', rgb: '6,95,70' },
-  { key: 'emi', label: 'EMI', icon: '📅', desc: 'No-cost EMI available', color: '#9d174d', rgb: '157,23,77' },
-  { key: 'cash_on_delivery', label: 'Cash on Delivery', icon: '💰', desc: 'Pay when you receive', color: '#374151', rgb: '55,65,81' },
+  { key: 'upi', label: 'UPI', icon: '📱', desc: 'GPay, PhonePe, Paytm, BHIM', color: '#7c3aed', rgb: '124,58,237',
+    details: [
+      { label: 'UPI ID', value: 'bharathijewellers@upi' },
+      { label: 'Accepted', value: 'GPay · PhonePe · Paytm · BHIM' },
+      { label: 'Charges', value: 'No extra charges' },
+    ]
+  },
+  { key: 'debit_card', label: 'Debit Card', icon: '💳', desc: 'Visa, Mastercard, RuPay', color: '#0369a1', rgb: '3,105,161',
+    details: [
+      { label: 'Accepted', value: 'Visa · Mastercard · RuPay' },
+      { label: 'EMI', value: 'Available on cards above ₹3,000' },
+      { label: 'Security', value: '3D Secure enabled' },
+    ]
+  },
+  { key: 'credit_card', label: 'Credit Card', icon: '🏦', desc: 'All major credit cards', color: '#b45309', rgb: '180,83,9',
+    details: [
+      { label: 'Accepted', value: 'Visa · Mastercard · Amex' },
+      { label: 'No-cost EMI', value: '3, 6, 9, 12 months available' },
+      { label: 'Cashback', value: 'Up to 5% on select cards' },
+    ]
+  },
+  { key: 'net_banking', label: 'Net Banking', icon: '🖥️', desc: 'All major banks supported', color: '#065f46', rgb: '6,95,70',
+    details: [
+      { label: 'Banks', value: 'SBI · HDFC · ICICI · Axis · 50+ banks' },
+      { label: 'Redirect', value: 'You will be redirected to your bank' },
+      { label: 'Charges', value: 'No extra charges' },
+    ]
+  },
+  { key: 'emi', label: 'EMI', icon: '📅', desc: 'No-cost EMI available', color: '#9d174d', rgb: '157,23,77',
+    details: [
+      { label: 'Tenure', value: '3 / 6 / 9 / 12 months' },
+      { label: 'Interest', value: 'No-cost EMI on select banks' },
+      { label: 'Min Amount', value: '₹3,000 and above' },
+    ]
+  },
+  { key: 'cash_on_delivery', label: 'Cash on Delivery', icon: '💰', desc: 'Pay when you receive', color: '#374151', rgb: '55,65,81',
+    details: [
+      { label: 'Pay', value: 'Cash at the time of delivery' },
+      { label: 'Limit', value: 'Available up to ₹50,000' },
+      { label: 'Note', value: 'Keep exact change ready' },
+    ]
+  },
 ]
 
 export default function OrderConfirm() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { product, qty, displayPrice, metal, category } = location.state || {}
-
+const { product, qty: initialQty, displayPrice, metal, category } = location.state || {}
+  const [qty, setQty] = useState(initialQty || 1)
   const [step, setStep] = useState(1)
   const [placing, setPlacing] = useState(false)
   const [orderId, setOrderId] = useState(null)
@@ -303,12 +339,16 @@ export default function OrderConfirm() {
                   </div>
                 </div>
 
-                <div style={{ padding: '18px 28px', borderBottom: '1px solid #f0ebe4', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: DARK }}>Quantity</span>
-                  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ede9e3', borderRadius: 2 }}>
-                    <span style={{ padding: '8px 20px', fontSize: 14, fontWeight: 700, color: DARK }}>{qty}</span>
-                  </div>
-                </div>
+<div style={{ padding: '18px 28px', borderBottom: '1px solid #f0ebe4', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  <span style={{ fontSize: 14, fontWeight: 600, color: DARK }}>Quantity</span>
+  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ede9e3', borderRadius: 2, overflow: 'hidden' }}>
+    <button onClick={() => setQty(q => Math.max(1, q - 1))}
+      style={{ width: 40, height: 40, border: 'none', background: '#f7f4f0', color: DARK, fontSize: 18, fontWeight: 700, cursor: 'pointer', borderRight: '1px solid #ede9e3' }}>−</button>
+    <span style={{ padding: '8px 20px', fontSize: 14, fontWeight: 700, color: DARK, minWidth: 40, textAlign: 'center' }}>{qty}</span>
+    <button onClick={() => setQty(q => q + 1)}
+      style={{ width: 40, height: 40, border: 'none', background: '#f7f4f0', color: DARK, fontSize: 18, fontWeight: 700, cursor: 'pointer', borderLeft: '1px solid #ede9e3' }}>+</button>
+  </div>
+</div>
 
                 <div style={{ padding: '18px 28px' }}>
                   {[
@@ -322,9 +362,16 @@ export default function OrderConfirm() {
                       <span style={{ fontSize: 13, fontWeight: 600, color: r.color || DARK }}>{r.value}</span>
                     </div>
                   ))}
-                  <div style={{ borderTop: '1px dashed #ede9e3', paddingTop: 14, marginTop: 4, display: 'flex', justifyContent: 'space-between' }}>
+<div style={{ borderTop: '1px dashed #ede9e3', paddingTop: 14, marginTop: 4, display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: 15, fontWeight: 700, color: DARK }}>Total</span>
                     <span style={{ fontSize: 18, fontWeight: 800, color: DARK }}>{inr(totalPrice)}</span>
+                  </div>
+                  <div style={{ marginTop: 16, background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 8, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: 20 }}>🚚</span>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#16a34a' }}>Free Delivery</div>
+                      <div style={{ fontSize: 12, color: '#aaa', marginTop: 2 }}>Estimated delivery: <strong style={{ color: DARK }}>3–5 business days</strong></div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -454,6 +501,16 @@ export default function OrderConfirm() {
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 14, fontWeight: 700, color: paymentMethod === opt.key ? GOLD : DARK, marginBottom: 2 }}>{opt.label}</div>
                           <div style={{ fontSize: 11, color: '#aaa' }}>{opt.desc}</div>
+                          {paymentMethod === opt.key && opt.details && (
+                            <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px dashed rgba(184,134,11,0.2)' }}>
+                              {opt.details.map(d => (
+                                <div key={d.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                                  <span style={{ fontSize: 11, color: '#aaa' }}>{d.label}</span>
+                                  <span style={{ fontSize: 11, fontWeight: 600, color: DARK }}>{d.value}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         {paymentMethod === opt.key && (
                           <div style={{ width: 20, height: 20, borderRadius: '50%', background: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

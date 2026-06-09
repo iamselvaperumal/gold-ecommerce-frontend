@@ -168,10 +168,10 @@ useEffect(() => {
 <CustomerNavbar />
 
 {/* ── Category Banner ── */}
-<div style={{ width:'100%', height:'100%',position:'relative', overflow:'hidden' }}>
+<div style={{ width:'100%', height:'460px', position:'relative', overflow:'hidden', }}>
   <img
-    src="/banners/silver 1000-800.jpeg"
-alt="Silver Bangles Banner"
+src="/banners/sample4.jpeg"
+alt="Chain Banner"
     style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}
   />
   <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.45) 0%, transparent 60%)' }} />
@@ -182,7 +182,7 @@ alt="Silver Bangles Banner"
 </div>
 
 
-      <div style={{ position:'relative', zIndex:10, padding:'40px 40px', maxWidth:'100%', margin:'0 auto' }}>
+      <div style={{ position:'relative', zIndex:10, padding:'0px 40px', maxWidth:'100%', margin:'0 auto' }}>
 
         {/* ── Page Header ── */}
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'32px', animation:'fadeInUp 0.4s ease both', flexWrap:'wrap', gap:'16px' }}>
