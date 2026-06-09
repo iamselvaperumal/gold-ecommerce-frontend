@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder,JewelryProduct, JewelryProductImage, HomeBanner, CartItem, Wishlist
+from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder,JewelryProduct, JewelryProductImage, HomeBanner, CartItem, Wishlist, JewelryOrder 
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -505,4 +505,38 @@ class WishlistItemSerializer(serializers.ModelSerializer):
         first_image = obj.product.images.first()
         if first_image and request:
             return request.build_absolute_uri(first_image.image.url)
+        return None
+
+class JewelryOrderSerializer(serializers.ModelSerializer):
+    customer_email = serializers.EmailField(source='user.email', read_only=True)
+    customer_role = serializers.CharField(source='user.role', read_only=True)
+    customer_id_str = serializers.SerializerMethodField()
+
+    class Meta:
+        model = JewelryOrder
+        fields = [
+            'id', 'order_id', 'customer_email', 'customer_role', 'customer_id_str',
+            'product', 'product_name', 'product_metal', 'product_grade',
+            'product_category', 'product_image_url',
+            'customer_name', 'customer_phone', 'customer_alt_phone',
+            'customer_dob', 'customer_anniversary',
+            'pincode', 'address_line1', 'address_line2', 'city', 'state',
+            'quantity', 'unit_price', 'total_price',
+            'payment_method', 'payment_status', 'status',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['order_id', 'created_at', 'updated_at']
+
+    def get_customer_id_str(self, obj):
+        try:
+            role_map = {
+                'customer': ('customer_profile', 'customer_id'),
+                'promotor': ('promotor_profile', 'promotor_id'),
+            }
+            if obj.user.role in role_map:
+                attr, field = role_map[obj.user.role]
+                p = getattr(obj.user, attr)
+                return getattr(p, field)
+        except Exception:
+            pass
         return None

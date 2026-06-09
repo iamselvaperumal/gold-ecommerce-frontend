@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
-from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder, JewelryProduct, JewelryProductImage, HomeBanner, CartItem, Wishlist
+from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder, JewelryProduct, JewelryProductImage, HomeBanner, CartItem, Wishlist, JewelryOrder
 from .serializers import *
 from django.utils import timezone
 from datetime import timedelta
@@ -989,7 +989,85 @@ class WishlistView(APIView):
         Wishlist.objects.filter(user=request.user, product_id=product_id).delete()
         return Response({'message': 'Removed from wishlist'})
 
+class JewelryOrderView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """Customer places a jewelry order"""
+        data = request.data
         
+        product_id = data.get('product_id')
+        product_image_url = data.get('product_image_url', '')
+        
+        try:
+            product = JewelryProduct.objects.get(id=product_id)
+        except JewelryProduct.DoesNotExist:
+            return Response({'error': 'Product not found'}, status=404)
+
+        # Get first image URL if not provided
+        if not product_image_url:
+            first_img = product.images.first()
+            if first_img:
+                product_image_url = request.build_absolute_uri(first_img.image.url)
+
+        order = JewelryOrder.objects.create(
+            user=request.user,
+            product=product,
+            product_name=product.name,
+            product_metal=product.metal,
+            product_grade=product.grade or '',
+            product_category=product.category,
+            product_image_url=product_image_url,
+            customer_name=data.get('customer_name', ''),
+            customer_phone=data.get('customer_phone', ''),
+            customer_alt_phone=data.get('customer_alt_phone', ''),
+            customer_dob=data.get('customer_dob') or None,
+            customer_anniversary=data.get('customer_anniversary') or None,
+            pincode=data.get('pincode', ''),
+            address_line1=data.get('address_line1', ''),
+            address_line2=data.get('address_line2', ''),
+            city=data.get('city', ''),
+            state=data.get('state', ''),
+            quantity=int(data.get('quantity', 1)),
+            unit_price=float(data.get('unit_price', 0)),
+            total_price=float(data.get('total_price', 0)),
+            payment_method=data.get('payment_method', 'upi'),
+            payment_status='pending',
+            status='pending',
+        )
+
+        serializer = JewelryOrderSerializer(order, context={'request': request})
+        return Response({
+            'message': 'Order placed successfully!',
+            'order_id': order.order_id,
+            'data': serializer.data
+        }, status=201)
+    
+
+    def get(self, request):
+        """Super admin sees all orders; customer sees own orders"""
+        if request.user.role == 'super_admin':
+            orders = JewelryOrder.objects.all().order_by('-created_at')
+        else:
+            orders = JewelryOrder.objects.filter(user=request.user).order_by('-created_at')
+        
+        serializer = JewelryOrderSerializer(orders, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def patch(self, request, pk):
+        if request.user.role != 'super_admin':
+            return Response({'error': 'Permission denied'}, status=403)
+        try:
+            order = JewelryOrder.objects.get(id=pk)
+        except JewelryOrder.DoesNotExist:
+            return Response({'error': 'Not found'}, status=404)
+        status_val = request.data.get('status')
+        if status_val:
+            order.status = status_val
+            order.save()
+        return Response(JewelryOrderSerializer(order, context={'request': request}).data)
+    
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def ping(request):

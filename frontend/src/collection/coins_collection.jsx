@@ -23,9 +23,10 @@ export default function CoinsCollection() {
   const gradeFilter = searchParams.get('grade')
   const weightFilter = searchParams.get('weight')
 
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [metalPrices, setMetalPrices] = useState({ gold22k: null, gold24k: null, silver: null })
+const [products, setProducts] = useState([])
+const [loading, setLoading] = useState(true)
+const [metalPrices, setMetalPrices] = useState({ gold22k: null, gold24k: null, silver: null })
+const [hoveredId, setHoveredId] = useState(null)
 
 
   const isGold = metalFilter === 'gold'

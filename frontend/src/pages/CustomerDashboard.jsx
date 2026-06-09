@@ -44,7 +44,7 @@ function HomeBannerSlider() {
   margin: '0 auto',     // ← center pannanum na
   overflow: 'hidden', 
   position: 'relative', 
-  height: '624px',      // ← height also change
+  height: '540px',      // ← height also change
   background: '#f5f0e8' 
 }}>
       <style>{`

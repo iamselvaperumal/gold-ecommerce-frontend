@@ -1450,6 +1450,8 @@ const buildHierarchyOrders = (period, metalKey) => {
             <span style={{ fontSize: '11px', fontWeight: 700, color: '#ffd700' }}>Rate</span>
           </div>
 
+
+
             {/* 🛍️ Add Product Button */}
           <div
             onClick={() => navigate('/add-product')}
@@ -1466,6 +1468,23 @@ const buildHierarchyOrders = (period, metalKey) => {
             <span style={{ fontSize: '16px', lineHeight: 1 }}>🛍️</span>
             <span style={{ fontSize: '11px', fontWeight: 700, color: '#a78bfa' }}>Add Product</span>
           </div>
+
+          {/* 📋 Orders Button — NEW */}
+<div
+  onClick={() => navigate('/admin-orders')}
+  title="View All Jewelry Orders"
+  style={{
+    cursor: 'pointer', padding: '6px 12px', borderRadius: '10px',
+    border: '1px solid rgba(74,222,128,0.45)',
+    background: 'rgba(74,222,128,0.1)',
+    display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.25s ease',
+  }}
+  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(74,222,128,0.25)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(74,222,128,0.1)'; e.currentTarget.style.transform = 'translateY(0)' }}
+>
+  <span style={{ fontSize: '16px', lineHeight: 1 }}>📋</span>
+  <span style={{ fontSize: '11px', fontWeight: 700, color: '#4ade80' }}>Orders</span>
+</div>
 
 
           <div

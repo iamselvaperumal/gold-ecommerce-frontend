@@ -118,8 +118,15 @@ useEffect(() => {
   return (
 <div style={{ minHeight:'100vh', background:bg, color:text, fontFamily:'"Montserrat", sans-serif', position:'relative', overflow:'hidden', transition:'background 0.8s ease, color 0.4s ease' }}>
       <style>{`
+
+
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@400;500;600;700&display=swap');
 
+          /* ── SCROLLBAR STYLE ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #FDF5EE; }
+  ::-webkit-scrollbar-thumb { background: #edd3a3; border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: #f3d54f; }
         @keyframes float-orb    { 0%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-50px) scale(1.1)} 66%{transform:translate(-20px,20px) scale(0.9)} 100%{transform:translate(0,0) scale(1)} }
         @keyframes antigravity  { 0%{transform:translateY(110vh) rotate(0deg);opacity:0} 10%{opacity:var(--op)} 90%{opacity:var(--op)} 100%{transform:translateY(-20vh) rotate(360deg);opacity:0} }
         @keyframes fadeInUp     { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
@@ -160,26 +167,25 @@ useEffect(() => {
       {/* ── Navbar ── */}
 <CustomerNavbar />
 
+{/* ── Category Banner ── */}
+<div style={{ width:'100%', height:'100%',position:'relative', overflow:'hidden' }}>
+  <img
+    src="/banners/silver 1000-800.jpeg"
+alt="Silver Bangles Banner"
+    style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}
+  />
+  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.45) 0%, transparent 60%)' }} />
+  <div style={{ position:'absolute', bottom:40, left:60 }}>
+    <div style={{ color:'rgba(255,255,255,0.75)', fontSize:14, marginBottom:6 }}>Home / Bangles</div>
+    <div style={{ color:'#fff', fontSize:42, fontWeight:800, fontFamily:'"Playfair Display", Georgia, serif' }}>Bangles</div>
+  </div>
+</div>
+
+
       <div style={{ position:'relative', zIndex:10, padding:'40px 40px', maxWidth:'100%', margin:'0 auto' }}>
 
         {/* ── Page Header ── */}
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'32px', animation:'fadeInUp 0.4s ease both', flexWrap:'wrap', gap:'16px' }}>
-          <div>
-            <div style={{ display:'inline-flex', alignItems:'center', gap:'8px', background:'rgba(251,191,36,0.08)', border:'1px solid rgba(251,191,36,0.25)', borderRadius:'20px', padding:'5px 14px', marginBottom:'14px' }}>
-              <span className="sparkle-dot" style={{ color:goldColor, fontSize:'11px' }}>✦</span>
-              <span style={{ color:goldColor, fontSize:'10px', fontWeight:800, letterSpacing:'2px', textTransform:'uppercase' }}>Premium Gold Collection</span>
-            </div>
-<h1 style={{ margin:0, fontSize:'36px', fontWeight:900, letterSpacing:'-0.5px', fontFamily:'"Playfair Display", Georgia, serif', display:'flex', alignItems:'center', gap:'10px' }}>
-  <svg width="36" height="36" viewBox="0 0 32 32" fill="none" stroke="#b8860b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="16" cy="16" r="10"/>
-    <circle cx="16" cy="16" r="6.5"/>
-  </svg>
-  <span style={{ background:'linear-gradient(90deg,#f59e0b,#fbbf24,#ffd700,#fbbf24)', backgroundSize:'200% auto', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', animation:'goldShimmer 3s linear infinite' }}>
-    Gold Bangles
-  </span>
-</h1>
-            <p style={{ color:subtext, fontSize:'13px', margin:'8px 0 0', fontWeight:500 }}>6 exclusive designs · Handcrafted 22K & 24K Gold</p>
-          </div>
 
         </div>
 

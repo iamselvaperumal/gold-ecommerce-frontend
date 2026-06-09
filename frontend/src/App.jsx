@@ -54,6 +54,10 @@ import PlatinumChains from './Platinum/chain'
 import PlatinumBracelets from './Platinum/bracelets'
 import PlatinumBangles from './Platinum/bangles'
 
+import OrderConfirm from './Orders/Orderconfirm'
+import OrderSummary from './Orders/OrderSummary'
+import AdminOrdersPage from './Orders/AdminOrdersPage'
+
 
 
 function ProtectedRoute({ children, role }) {
@@ -171,6 +175,14 @@ export default function App() {
 } />
 
 
+{/* confirm order */}
+<Route path="/order-confirm" element={<OrderConfirm />} />
+<Route path="/order-summary" element={
+  <ProtectedRoute role="customer"><OrderSummary /></ProtectedRoute>
+} />
+<Route path="/admin-orders" element={
+  <ProtectedRoute role="super_admin"><AdminOrdersPage /></ProtectedRoute>
+} />
 
       </Routes>
     </BrowserRouter>

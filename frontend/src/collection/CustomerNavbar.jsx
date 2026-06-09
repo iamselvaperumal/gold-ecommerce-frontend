@@ -4,6 +4,7 @@ import api from '../api'
 import { getCartCountDB } from '../collection/card_section'
 
 
+
 function TodayRateDropdown() {
   const [show, setShow] = useState(false)
   const [rates, setRates] = useState(null)
@@ -654,7 +655,14 @@ useEffect(() => {
                     style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 10, cursor: 'pointer', transition: 'all 0.18s ease', border: '1px solid transparent' }}
                     onMouseEnter={e => { e.currentTarget.style.background = '#fdf2f2'; e.currentTarget.style.borderColor = 'rgba(139,26,26,0.15)'; e.currentTarget.querySelector('.cii').style.color = '#8B1A1A'; e.currentTarget.querySelector('.cii').style.borderColor = '#8B1A1A'; e.currentTarget.querySelector('.cil').style.color = '#8B1A1A' }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.querySelector('.cii').style.color = '#6b5c4a'; e.currentTarget.querySelector('.cii').style.borderColor = '#e8e0d0'; e.currentTarget.querySelector('.cil').style.color = '#1f2937' }}
-                    onClick={() => { const route = CATEGORY_ROUTES[item]; if (route) { setShowDropdown(false); navigate(route) } }}
+                    onClick={() => { 
+  const route = CATEGORY_ROUTES[item]; 
+  if (route) { 
+    setShowDropdown(false); 
+    navigate(route)
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100)
+  } 
+}}
                   >
                     <div className="cii" style={{ width: 36, height: 36, borderRadius: '50%', background: '#faf6f0', border: '1px solid #e8e0d0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#6b5c4a', transition: 'all 0.18s ease' }}>
                       {ITEM_ICONS[item] || <svg width="18" height="18" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="16" cy="16" r="10"/></svg>}
@@ -677,8 +685,9 @@ onClick={() => {
   const priceMap = { '< ₹25K': 'below25k', '₹25K – ₹50K': '25k-50k', '₹50K – ₹1L': '50k-1L', '₹1L & Above': 'above1L' }
   const metalParam = activeCategory !== 'all' && activeCategory !== 'coins' && activeCategory !== 'wedding' && activeCategory !== 'gifting' && activeCategory !== 'offers'
     ? `&metal=${activeCategory}` : ''
-  setShowDropdown(false)
-  navigate(`/collection/all?price=${priceMap[p.label]}${metalParam}`)
+setShowDropdown(false)
+navigate(`/collection/all?price=${priceMap[p.label]}${metalParam}`)
+setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100)
 }}>
                       <div className="ph-box" style={{ width: '90%', height: '190px', borderRadius: 12, background: '#f5f0e8', border: '0.5px solid #e8e0d0', overflow: 'hidden', marginBottom: 8, transition: 'border-color 0.15s' }}>
                         {priceImgMap[p.label] ? <img src={priceImgMap[p.label]} alt={p.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : null}
@@ -711,7 +720,9 @@ const occasionImgMap = {
   const metalParam = activeCategory !== 'all' && activeCategory !== 'coins' && activeCategory !== 'wedding' && activeCategory !== 'gifting' && activeCategory !== 'offers'
     ? `&metal=${activeCategory}` : ''
   setShowDropdown(false)
-  navigate(`/collection/all?occasion=${encodeURIComponent(o.label)}${metalParam}`)
+  setShowDropdown(false)
+navigate(`/collection/all?occasion=${encodeURIComponent(o.label)}${metalParam}`)
+setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100)
 }}>
                       <div className="oh-box" style={{ width: '100%', height: '190px', borderRadius: 12, background: '#f5f0e8', border: '0.5px solid #e8e0d0', overflow: 'hidden', marginBottom: 8, transition: 'border-color 0.15s', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40 }}>
                         {occasionImgMap[o.label] ? <img src={occasionImgMap[o.label]} alt={o.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span>{o.emoji}</span>}
@@ -736,7 +747,11 @@ const occasionImgMap = {
   const g2 = gMap[g.label]
   const metalParam = activeCategory !== 'all' && activeCategory !== 'coins' && activeCategory !== 'wedding' && activeCategory !== 'gifting' && activeCategory !== 'offers'
     ? `&metal=${activeCategory}` : ''
-  if (g2) { setShowDropdown(false); navigate(`/collection/all?gender=${g2}${metalParam}`) }
+  if (g2) { 
+  setShowDropdown(false); 
+  navigate(`/collection/all?gender=${g2}${metalParam}`)
+  setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100)
+}
 }}>
                       <div className="gh-box" style={{ width: '100%', aspectRatio: '0.85', borderRadius: 12, background: '#f5f0e8', border: '0.5px solid #e8e0d0', overflow: 'hidden', marginBottom: 8, transition: 'border-color 0.15s' }}>
                         {genderImgMap[g.label] ? <img src={genderImgMap[g.label]} alt={g.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : null}
@@ -751,12 +766,16 @@ const occasionImgMap = {
             if (panel.type === 'image-grid') {
               const weddingImgMap = { 'Wedding Ring': '/wedding_ring.jpg', 'Wedding Necklaces': '/wedding_necklaces.jpg', 'Wedding Chain': '/wedding_chain.jpg', 'Wedding Bangles': '/wedding_bangesh.jpg', 'Wedding Earring': '/wedding_earring.jpg' }
               return (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 14 }}>
                   {panel.items.map(item => (
                     <div key={item.label} style={{ textAlign: 'center', cursor: 'pointer' }}
                       onMouseEnter={e => e.currentTarget.querySelector('.wh-box').style.borderColor = '#8B1A1A'}
                       onMouseLeave={e => e.currentTarget.querySelector('.wh-box').style.borderColor = '#e8e0d0'}
-                      onClick={() => { setShowDropdown(false); navigate(`/collection/all?wedding_category=${encodeURIComponent(item.label)}`) }}>
+                      onClick={() => { 
+  setShowDropdown(false); 
+  navigate(`/collection/all?wedding_category=${encodeURIComponent(item.label)}`)
+  setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100)
+}}>
                       <div className="wh-box" style={{ width: '90%', height: '190px', borderRadius: 12, background: '#f5f0e8', border: '0.5px solid #e8e0d0', overflow: 'hidden', marginBottom: 8, transition: 'border-color 0.15s' }}>
                         {weddingImgMap[item.label] ? <img src={weddingImgMap[item.label]} alt={item.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>{item.emoji}</span>}
                       </div>
@@ -805,8 +824,9 @@ const occasionImgMap = {
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     onClick={() => {
                       setShowDropdown(false)
-                      if (panel.metal === 'silver') navigate(item.grams ? `/silver-coins?weight=${encodeURIComponent(item.label)}` : '/silver-coins')
-                      else { const grade = panel.metal === 'gold24k' ? '24k' : '22k'; navigate(item.grams ? `/gold-coins?weight=${encodeURIComponent(item.label)}&grade=${grade}` : `/gold-coins?grade=${grade}`) }
+if (panel.metal === 'silver') navigate(item.grams ? `/silver-coins?weight=${encodeURIComponent(item.label)}` : '/silver-coins')
+else { const grade = panel.metal === 'gold24k' ? '24k' : '22k'; navigate(item.grams ? `/gold-coins?weight=${encodeURIComponent(item.label)}&grade=${grade}` : `/gold-coins?grade=${grade}`) }
+setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100)
                     }}>
                     <div style={{ width: 36, height: 36, borderRadius: '50%', background: panel.metal === 'silver' ? 'rgba(192,192,192,0.1)' : 'rgba(184,134,11,0.08)', border: panel.metal === 'silver' ? '1px solid rgba(192,192,192,0.4)' : '1px solid rgba(184,134,11,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: panel.metal === 'silver' ? '#9ca3af' : '#b8860b' }}>
                       {panel.metal === 'silver'
