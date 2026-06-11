@@ -168,7 +168,7 @@ useEffect(() => {
           width: 100%; left: 0;
         }
         .cat-item:hover .cat-icon {
-          transform: translateY(-1px) scale(1.18);
+          transform: translateY(-3px) scale(1.18);
           filter: drop-shadow(0 4px 8px rgba(139,26,26,0.35));
         }
         .cat-item:hover .cat-label {
@@ -474,7 +474,7 @@ onBlur={e => {
                   width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: isActive ? '#8B1A1A' : '#6b5c4a',
                   transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)',
-                  transform: isActive ? 'translateY(-2px) scale(1.15)' : 'translateY(2px) scale(1)',
+                  transform: isActive ? 'translateY(0px) scale(1.15)' : 'translateY(6px) scale(1)',
                   filter: isActive ? 'drop-shadow(0 4px 8px rgba(139,26,26,0.3))' : 'none',
                 }}>{cat.svg}</div>
                 <span className="cat-label" style={{
