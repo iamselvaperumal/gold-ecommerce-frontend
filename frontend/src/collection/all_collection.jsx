@@ -20,7 +20,7 @@ function ProductCard({ p, navigate }) {
   onClick={() => navigate(`/product-display?category=${p.category}&metal=${p.metal}&id=${p.id}`)}
   onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'; setHovered(true) }}
   onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; setHovered(false) }}
-  style={{ background: '#fff', border: '1px solid #e8e8e8', borderRadius: 10, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+  style={{ background: '#fff', border: '1px solid #e8e8e8', borderRadius: 10, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s ease', marginBottom: '75px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
 >
       <div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden' }}>
 

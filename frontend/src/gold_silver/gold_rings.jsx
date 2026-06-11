@@ -122,6 +122,12 @@ return (
 <div style={{ minHeight: '100vh', background: bg, color: text, fontFamily: '"Montserrat", sans-serif', position: 'relative', overflow: 'hidden' }}>
     <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@400;500;600;700&display=swap');
+
+      /* ── SCROLLBAR STYLE ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #FDF5EE; }
+::-webkit-scrollbar-thumb { background: #edd3a3; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #f3d54f; }  
       @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
       @keyframes goldShimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
       @keyframes glow-pulse { 0%,100%{box-shadow:0 0 20px rgba(251,191,36,0.1)} 50%{box-shadow:0 0 40px rgba(251,191,36,0.35)} }
@@ -136,11 +142,20 @@ return (
 
     `}</style>
     <CustomerNavbar />
+{/* ── Category Banner ── */}
+<div style={{ width:'100%', position:'relative', marginBottom:'32px' }}>
+  <img
+    src="/banners/gold_ring.png"
+    alt="Gold Rings Banner"
+    style={{ width:'100%', height:'auto', display:'block' }}
+  />
+  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.45) 0%, transparent 60%)' }} />
+</div>
 
-      <div style={{ position: 'relative', zIndex: 10, padding: '40px 40px', maxWidth: '100%', margin: '0 auto' }}>
+<div style={{ position: 'relative', zIndex: 10, padding: '0px 40px', maxWidth: '100%', margin: '0 auto' }}>
 
         {/* Page Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '40px', animation: 'fadeInUp 0.4s ease both' }}>
+        {/* <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '40px', animation: 'fadeInUp 0.4s ease both' }}>
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.25)', borderRadius: '20px', padding: '5px 14px', marginBottom: '14px' }}>
               <span className="sparkle-dot" style={{ color: goldColor, fontSize: '11px' }}>✦</span>
@@ -157,7 +172,7 @@ return (
             <p style={{ color: subtext, fontSize: '13px', margin: '8px 0 0', fontWeight: 500 }}>{goldRings.length} exclusive designs · Handcrafted excellence</p>
           </div>
 
-        </div>
+        </div> */}
 
 
         {/* Ring Cards Grid */}
@@ -196,7 +211,8 @@ return (
     overflow: 'hidden',
     cursor: 'pointer',
     transition: 'all 0.25s ease',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    marginBottom: '75px'
   }}
 >
   {/* Image Section */}

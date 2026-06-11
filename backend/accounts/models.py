@@ -649,6 +649,8 @@ class JewelryOrder(models.Model):
     # Payment
     payment_method = models.CharField(max_length=30, choices=PAYMENT_CHOICES)
     payment_status = models.CharField(max_length=20, default='pending')
+    razorpay_order_id = models.CharField(max_length=100, blank=True, null=True)
+    razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
 
     # Order status
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')

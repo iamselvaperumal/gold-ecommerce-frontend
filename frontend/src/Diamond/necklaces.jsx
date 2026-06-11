@@ -73,6 +73,11 @@ export default function DiamondNecklaces() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@400;500;600;700&display=swap');
 
+        /* ── SCROLLBAR STYLE ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #FDF5EE; }
+::-webkit-scrollbar-thumb { background: #edd3a3; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #f3d54f; }
         @keyframes fadeInUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
         @keyframes shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
         @keyframes shine { 0%{left:-80%} 100%{left:120%} }
@@ -86,10 +91,21 @@ export default function DiamondNecklaces() {
         .dm-card:hover .dm-shine { opacity:1; animation:shine 0.6s ease; }
       `}</style>
 
-      <CustomerNavbar />
+<CustomerNavbar />
 
-      <div style={{ padding: '40px', maxWidth: '100%', margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
+{/* ── Category Banner ── */}
+<div style={{ width:'100%', position:'relative', marginBottom:'32px' }}>
+  <img
+    src="/banners/diamond_necklace.png"
+    alt="Diamond Necklaces Banner"
+    style={{ width:'100%', height:'auto', display:'block' }}
+  />
+  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.45) 0%, transparent 60%)' }} />
+</div>
+
+<div style={{ padding: '0px 40px', maxWidth: '100%', margin: '0 auto' }}>
+  
+        {/* <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(103,232,249,0.08)', border: '1px solid rgba(103,232,249,0.25)', borderRadius: '20px', padding: '5px 14px', marginBottom: '14px' }}>
               <span style={{ color: ACCENT, fontSize: '11px' }}>✦</span>
@@ -108,16 +124,7 @@ export default function DiamondNecklaces() {
               {filteredProducts.length} exclusive designs
             </p>
           </div>
-
-          {/* <div style={{ display: 'flex', gap: '8px' }}>
-            {GRADES.map(g => (
-              <button key={g} onClick={() => setGradeFilter(g)}
-                style={{ padding: '7px 18px', borderRadius: '20px', border: `1px solid ${gradeFilter === g ? ACCENT : 'rgba(103,232,249,0.3)'}`, background: gradeFilter === g ? 'rgba(103,232,249,0.15)' : 'transparent', color: gradeFilter === g ? ACCENT : '#64748b', fontWeight: 800, fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s ease' }}>
-                {g === 'all' ? 'All' : g.toUpperCase()}
-              </button>
-            ))}
-          </div> */}
-        </div>
+        </div> */}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '20px' }}>
           {loading ? (
@@ -143,7 +150,7 @@ filteredProducts.map((product) => {
         borderRadius: 10, overflow: 'hidden', cursor: 'pointer', position: 'relative',
         border: '1px solid #e8e8e8', background: '#fff',
         boxShadow: isHovered ? '0 8px 24px rgba(0,0,0,0.12)' : '0 2px 8px rgba(0,0,0,0.06)',
-        transition: 'all 0.25s ease',
+        transition: 'all 0.25s ease', marginBottom: '75px',
       }}>
       <div className="dm-img-wrap" style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden', marginBottom: 10 }}>
         {product.tag && (

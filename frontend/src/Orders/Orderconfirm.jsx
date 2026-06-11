@@ -170,39 +170,110 @@ useEffect(() => {
     setShowAddressPopup(false)
   }
 
-  const handlePlaceOrder = async () => {
-    if (!savedAddress) return
-    setPlacing(true)
-    let pm = payTab === 'card' ? 'debit_card' : payTab === 'upi' ? 'upi' : 'net_banking'
-    try {
-      const { default: api } = await import('../api')
-      const res = await api.post('/orders/', {
-        product_id: product.id,
-        product_image_url: firstImage || '',
-        customer_name: savedAddress.name,
-        customer_phone: savedAddress.phone,
-        customer_alt_phone: '',
-        customer_dob: null,
-        customer_anniversary: null,
-        pincode: savedAddress.pincode,
-        address_line1: savedAddress.address,
-        address_line2: savedAddress.locality || '',
-        city: savedAddress.city,
-        state: savedAddress.state,
-        quantity: qty,
-        unit_price: displayPrice,
-        total_price: totalPrice,
-        payment_method: pm,
-      })
-      setOrderId(res.data?.order_id || 'BB' + Date.now())
-      setStep(4)
-    } catch {
-      setOrderId('BBORD' + Date.now())
-      setStep(4)
-    } finally {
+ // Razorpay Script Load Helper
+const loadRazorpay = () => {
+  return new Promise((resolve) => {
+    // Already loaded check
+    if (window.Razorpay) { resolve(true); return }
+    const script = document.createElement('script')
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.onload = () => resolve(true)
+    script.onerror = () => resolve(false)
+    document.body.appendChild(script)
+  })
+}
+
+const handlePlaceOrder = async () => {
+  if (!savedAddress) return
+  setPlacing(true)
+
+  try {
+    // ── STEP 1: Razorpay script load ──
+    const loaded = await loadRazorpay()
+    if (!loaded) {
+      alert('Payment load ஆகலை. Internet check பண்ணு!')
       setPlacing(false)
+      return
     }
+
+    // ── STEP 2: Backend-ல Razorpay order create ──
+    const { default: api } = await import('../api')
+    const orderRes = await api.post('/create-razorpay-order/', {
+      amount: totalPrice
+    })
+    const { razorpay_order_id, amount, currency, key } = orderRes.data
+
+    // ── STEP 3: Razorpay Popup Options ──
+    const options = {
+      key: key,
+      amount: parseInt(amount) * 100,
+      currency: currency,
+      name: "BitByte Jewels",
+      description: product.name,
+      image: firstImage || '',
+      order_id: razorpay_order_id,
+
+      // ✅ Payment Success Handler
+      handler: async function (response) {
+        try {
+          const verifyRes = await api.post('/verify-payment/', {
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            product_id: product.id,
+            customer_name: savedAddress.name,
+            customer_phone: savedAddress.phone,
+            pincode: savedAddress.pincode,
+            address_line1: savedAddress.address,
+            address_line2: savedAddress.locality || '',
+            city: savedAddress.city,
+            state: savedAddress.state,
+            quantity: qty,
+            unit_price: displayPrice,
+            total_price: totalPrice,
+          })
+
+          if (verifyRes.data.status === 'success') {
+            setOrderId(verifyRes.data.order_id)
+            setStep(4)  // ✅ Order Confirmed Page
+          } else {
+            alert('Payment verify ஆகலை! Support-ஐ contact பண்ணு.')
+          }
+        } catch {
+          alert('Something went wrong! Try again.')
+        }
+        setPlacing(false)
+      },
+
+      // ❌ Customer popup close பண்ணா
+      modal: {
+        ondismiss: function () {
+          setPlacing(false)
+        }
+      },
+
+      // Customer details pre-fill
+      prefill: {
+        name: savedAddress.name,
+        contact: savedAddress.phone,
+        email: savedAddress.email || '',
+      },
+
+      // Brand color
+      theme: {
+        color: "#7B1F2E"
+      }
+    }
+
+    // ── STEP 4: Popup திற ──
+    const rzp = new window.Razorpay(options)
+    rzp.open()
+
+  } catch (err) {
+    alert('Order create பண்ண முடியலை! Try again.')
+    setPlacing(false)
   }
+}
 
   const selectedCountry = COUNTRIES.find(c => c.code === country) || COUNTRIES[0]
   const filteredBanks = BANKS.filter(b => b.name.toLowerCase().includes(bankSearch.toLowerCase()))
@@ -291,6 +362,7 @@ useEffect(() => {
             </div>
           </div>
         </div>
+        <div style={{ height: '80px' }} />
         <CustomerFooter />
       </div>
     )
@@ -377,6 +449,7 @@ useEffect(() => {
             <OrderSidebar />
           </div>
         </main>
+        <div style={{ height: '80px' }} />
         <CustomerFooter />
       </div>
     )
@@ -604,6 +677,7 @@ useEffect(() => {
           </div>
           <div style={{ height: 80 }} />
         </main>
+        <div style={{ height: '80px' }} />
         <CustomerFooter />
       </div>
     )
@@ -790,6 +864,7 @@ useEffect(() => {
           </div>
           <div style={{ height: 80 }} />
         </main>
+        <div style={{ marginTop: '75px' }}></div>
         <CustomerFooter />
       </div>
     )

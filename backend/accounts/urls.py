@@ -4,7 +4,7 @@ from .views import (
     LoginView, CreateAdminView, CreateDealerView,
     CreateSubDealerView, CreatePromotorView, CreateCustomerView,
     DashboardView, AdminListForAdminView, DealerListForDealerView,
-    SubDealerListForView, PromotorListForView,  FullHierarchyView, AnnouncementView, AnnouncementReplyView, ProfileUpdateRequestView, ProfileUpdateApproveView,MetalRateView,MetalOrderView, MetalOrderSummaryView, JewelryProductView, JewelryProductDetailView, JewelryProductImageDeleteView, HomeBannerView, HomeBannerDetailView, CartView, CartItemQtyView, WishlistView, JewelryOrderView, ping
+    SubDealerListForView, PromotorListForView,  FullHierarchyView, AnnouncementView, AnnouncementReplyView, ProfileUpdateRequestView, ProfileUpdateApproveView,MetalRateView,MetalOrderView, MetalOrderSummaryView, JewelryProductView, JewelryProductDetailView, JewelryProductImageDeleteView, HomeBannerView, HomeBannerDetailView, CartView, CartItemQtyView, WishlistView, JewelryOrderView, create_razorpay_order, verify_payment, ping
 )
 
 urlpatterns = [
@@ -39,6 +39,8 @@ urlpatterns = [
     path('wishlist/', WishlistView.as_view()),
     path('orders/', JewelryOrderView.as_view()),
     path('orders/<int:pk>/', JewelryOrderView.as_view()),
+    path('create-razorpay-order/', create_razorpay_order),
+    path('verify-payment/', verify_payment),
     
 ]
 

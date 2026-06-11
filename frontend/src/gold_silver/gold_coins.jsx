@@ -118,6 +118,11 @@ return (
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@400;500;600;700&display=swap');
 
+      /* ── SCROLLBAR STYLE ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #FDF5EE; }
+::-webkit-scrollbar-thumb { background: #edd3a3; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #f3d54f; }
       @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
       @keyframes goldShimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
       @keyframes coinFloat { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-8px) rotate(5deg)} }
@@ -132,12 +137,19 @@ return (
 
     `}</style>
 
-    <CustomerNavbar />
+<CustomerNavbar />
 
-      <div style={{ position:'relative', zIndex:10, padding:'40px', maxWidth:'100%', margin:'0 auto' }}>
+{/* ── Category Banner ── */}
+<div style={{ width:'100%', position:'relative', marginBottom:'32px' }}>
+  <img src="/banners/Gold coin2.png" alt="Gold Coins Banner"
+    style={{ width:'100%', height:'auto', display:'block' }} />
+  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.45) 0%, transparent 60%)' }} />
+</div>
+
+<div style={{ position:'relative', zIndex:10, padding:'0px 40px', maxWidth:'100%', margin:'0 auto' }}>
 
         {/* PAGE HEADER */}
-        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'40px', animation:'fadeInUp 0.4s ease both' }}>
+        {/* <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'40px', animation:'fadeInUp 0.4s ease both' }}>
           <div>
             <div style={{ display:'inline-flex', alignItems:'center', gap:'8px', background:'rgba(251,191,36,0.08)', border:'1px solid rgba(251,191,36,0.25)', borderRadius:'20px', padding:'5px 14px', marginBottom:'14px' }}>
               <span className="sparkle-dot" style={{ color:goldColor, fontSize:'11px' }}>✦</span>
@@ -156,8 +168,6 @@ return (
 </h1>
             <p style={{ color:subtext, fontSize:'13px', margin:'8px 0 0', fontWeight:500 }}>{loading ? 'Loading...' : `${products.length} coins available`} · Certified Gold</p>
           </div>
-
-          {/* Grade Toggle + Rate */}
           <div style={{ display:'flex', flexDirection:'column', gap:'12px', alignItems:'flex-end' }}>
             <div style={{ display:'flex', background:inpBg, border:`1px solid ${inpBorder}`, borderRadius:'12px', overflow:'hidden' }}>
               {[{ val:'22k', label:'🏅 22K' }, { val:'24k', label:'🥇 24K' }].map(({ val, label }) => (
@@ -178,7 +188,7 @@ return (
               </div>
             )}
           </div>
-        </div>
+        </div> */}
 
         {/* Weight filter badge */}
         {weightFilter && (
@@ -232,7 +242,7 @@ return (
         borderRadius: 10, overflow: 'hidden', cursor: 'pointer', position: 'relative',
         border: '1px solid #e8e8e8', background: '#fff',
         boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        transition: 'all 0.25s ease',
+        transition: 'all 0.25s ease', marginBottom: '75px',
       }}
     >
       <div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden' }}>

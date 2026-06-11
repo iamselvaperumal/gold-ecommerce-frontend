@@ -557,22 +557,6 @@ export default function CardSection() {
             </div>
           </div>
         )}
-
-        {/* ── FOOTER LINE ── */}
-        <div style={{ marginTop: 80, textAlign: 'center' }}>
-          <hr className="gold-divider" style={{ marginBottom: 20 }} />
-          <div style={{
-            fontFamily: 'Montserrat, sans-serif',
-            fontSize: 9,
-            fontWeight: 600,
-            letterSpacing: 4,
-            textTransform: 'uppercase',
-            color: '#C9A96E',
-            opacity: 0.6,
-          }}>
-            Bharathi Jewellers · Fine Jewellery Since 2024
-          </div>
-        </div>
       </div>
 
               {/* ── FOOTER ── */}

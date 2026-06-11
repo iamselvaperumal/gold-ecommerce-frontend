@@ -152,7 +152,7 @@ const collections = [
         borderRadius: 10,
         overflow: 'hidden',
         cursor: 'pointer',
-        transition: 'all 0.25s ease',
+        transition: 'all 0.25s ease', marginBottom: '75px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
       }}
     >

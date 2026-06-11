@@ -577,8 +577,44 @@ const handleBuy = () => {
     })
   }
 
-  const basePrice = Number(product?.price) || 0
-  const displayPrice = basePrice > 0 ? basePrice : null
+const calcLivePriceMain = () => {
+  if (!liveRate || !product) return Number(product?.price) || null
+  const netWt = parseFloat(product.net_weight) || 0
+  const makingChargePct = parseFloat(product.making_charge) || 0
+  const discountPct = parseFloat(product.wastage_charge) || 0
+  const stoneVal = parseFloat(product.stone_value) || 0
+  let todayRate = 0
+  if (metal === 'gold') todayRate = product.grade === '24k' ? liveRate.gold_24k : liveRate.gold_22k
+  else if (metal === 'silver') todayRate = liveRate.silver_999
+  else if (metal === 'diamond') todayRate = product.grade === '18k' ? liveRate.diamond_18k : liveRate.diamond_22k
+  else if (metal === 'platinum') todayRate = liveRate.platinum_92
+  if (!todayRate || !netWt) return Number(product?.price) || null
+  const makingPerGram = todayRate * (makingChargePct / 100)
+  const rateWithMaking = todayRate + makingPerGram
+  const discountPerGram = rateWithMaking * (discountPct / 100)
+  const effectiveRate = rateWithMaking - discountPerGram
+  return Math.round(((netWt * effectiveRate) + stoneVal) * 1.03)
+}
+
+const calcOriginalPriceMain = () => {
+  if (!liveRate || !product) return Number(product?.original_price) || null
+  const netWt = parseFloat(product.net_weight) || 0
+  const makingChargePct = parseFloat(product.making_charge) || 0
+  const stoneVal = parseFloat(product.stone_value) || 0
+  let todayRate = 0
+  if (metal === 'gold') todayRate = product.grade === '24k' ? liveRate.gold_24k : liveRate.gold_22k
+  else if (metal === 'silver') todayRate = liveRate.silver_999
+  else if (metal === 'diamond') todayRate = product.grade === '18k' ? liveRate.diamond_18k : liveRate.diamond_22k
+  else if (metal === 'platinum') todayRate = liveRate.platinum_92
+  if (!todayRate || !netWt) return Number(product?.original_price) || null
+  const makingPerGram = todayRate * (makingChargePct / 100)
+  const rateWithMaking = todayRate + makingPerGram
+  return Math.round(((netWt * rateWithMaking) + stoneVal) * 1.03)
+}
+
+const displayPrice = calcLivePriceMain()
+const displayOriginalPrice = calcOriginalPriceMain()
+
   const calculatedWeightText = product?.net_weight ? `${parseFloat(product.net_weight)} gm` : '—'
   const productName = product?.name || product?.title || 'Jewellery Product'
   const productDesc = product?.desc || product?.description || product?.short_description || 'Premium handcrafted jewellery from BitByte Jewellers.'
@@ -868,7 +904,7 @@ const handleBuy = () => {
 
               {(() => {
                 const discountPct = parseFloat(product?.wastage_charge) || 0
-                const originalAmt = parseFloat(product?.original_price) || 0
+                const originalAmt = displayOriginalPrice || 0
                 const hasDiscount = discountPct > 0 && originalAmt > 0 && displayPrice
                 return (
                   <>

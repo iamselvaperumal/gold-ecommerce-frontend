@@ -8,7 +8,13 @@ from .models import User, AdminProfile, DealerProfile, SubDealerProfile, Promoto
 from .serializers import *
 from django.utils import timezone
 from datetime import timedelta
-
+import razorpay
+import hmac
+import hashlib
+from django.conf import settings
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 def get_user_profile_id(user):
     """Returns the user's role-specific ID string."""
@@ -1107,6 +1113,99 @@ class JewelryOrderView(APIView):
             order.save()
         return Response(JewelryOrderSerializer(order, context={'request': request}).data)
     
+# ── VIEW 1: Razorpay Order Create ──
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_razorpay_order(request):
+    try:
+        amount = request.data.get('amount')  # Frontend ₹ amount அனுப்பும்
+        
+        client = razorpay.Client(
+            auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+        )
+        
+        # Razorpay-ல order create பண்ணு
+        razorpay_order = client.order.create({
+            "amount": int(float(amount)) * 100,  # Paise-ல அனுப்பணும்
+            "currency": "INR",
+            "payment_capture": 1
+        })
+        
+        return Response({
+            "razorpay_order_id": razorpay_order["id"],
+            "amount": amount,
+            "currency": "INR",
+            "key": settings.RAZORPAY_KEY_ID
+        })
+        
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
+
+
+# ── VIEW 2: Payment Verify + Order Save ──
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def verify_payment(request):
+    try:
+        data = request.data
+        
+        # Signature verify பண்ணு (Security check)
+        body = data['razorpay_order_id'] + "|" + data['razorpay_payment_id']
+        
+        expected_sig = hmac.new(
+            settings.RAZORPAY_KEY_SECRET.encode(),
+            body.encode(),
+            hashlib.sha256
+        ).hexdigest()
+        
+        if expected_sig != data['razorpay_signature']:
+            return Response({"status": "failed", "msg": "Invalid signature"}, status=400)
+        
+        # ✅ Payment genuine! - Order Database-ல save பண்ணு
+        # உன் existing Order model இருந்தா இங்க use பண்ணு
+        order_id = "BB" + data['razorpay_payment_id'][-8:].upper()
+        
+        # ✅ JewelryOrder model-ல save பண்ணு
+        try:
+            product = JewelryProduct.objects.get(id=data.get('product_id'))
+            order = JewelryOrder.objects.create(
+                user=request.user,
+                product=product,
+                product_name=product.name,
+                product_metal=product.metal,
+                product_grade=product.grade or '',
+                product_category=product.category,
+                product_image_url=data.get('product_image_url', ''),
+                customer_name=data.get('customer_name', ''),
+                customer_phone=data.get('customer_phone', ''),
+                customer_alt_phone='',
+                pincode=data.get('pincode', ''),
+                address_line1=data.get('address_line1', ''),
+                address_line2=data.get('address_line2', ''),
+                city=data.get('city', ''),
+                state=data.get('state', ''),
+                quantity=int(data.get('quantity', 1)),
+                unit_price=float(data.get('unit_price', 0)),
+                total_price=float(data.get('total_price', 0)),
+                payment_method='razorpay',
+                payment_status='paid',
+                status='confirmed',
+                razorpay_order_id=data['razorpay_order_id'],
+                razorpay_payment_id=data['razorpay_payment_id'],
+            )
+            order_id = order.order_id
+        except Exception:
+            order_id = "BB" + data['razorpay_payment_id'][-8:].upper()
+        
+        return Response({
+            "status": "success",
+            "order_id": order_id,
+            "payment_id": data['razorpay_payment_id']
+        })
+        
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])

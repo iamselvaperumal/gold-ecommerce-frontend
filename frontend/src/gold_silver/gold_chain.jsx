@@ -100,6 +100,11 @@ return (
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@400;500;600;700&display=swap');
 
+      /* ── SCROLLBAR STYLE ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #FDF5EE; }
+::-webkit-scrollbar-thumb { background: #edd3a3; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #f3d54f; }
       @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
       @keyframes goldShimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
       @keyframes glow-pulse { 0%,100%{box-shadow:0 0 20px rgba(251,191,36,0.1)} 50%{box-shadow:0 0 40px rgba(251,191,36,0.35)} }
@@ -114,36 +119,17 @@ return (
     `}</style>
     <CustomerNavbar />
 
-      <div style={{ position: 'relative', zIndex: 10, padding: '40px', maxWidth: '100%', margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '40px', animation: 'fadeInUp 0.4s ease both' }}>
-          <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.25)', borderRadius: '20px', padding: '5px 14px', marginBottom: '14px' }}>
-              <span className="sparkle-dot" style={{ color: goldColor, fontSize: '11px' }}>✦</span>
-              <span style={{ color: goldColor, fontSize: '10px', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase' }}>Premium Gold Collection</span>
-            </div>
+    {/* ── Category Banner ── */}
+<div style={{ width:'100%', position:'relative', marginBottom:'32px' }}>
+  <img
+    src="/banners/gold_chian.png"
+    alt="Gold Chain Banner"
+    style={{ width:'100%', height:'auto', display:'block' }}
+  />
+  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.45) 0%, transparent 60%)' }} />
+</div>
 
-<h1 style={{ margin: 0, fontSize: '36px', fontWeight: 900, letterSpacing: '-0.5px', fontFamily: '"Playfair Display", Georgia, serif', display: 'flex', alignItems: 'center', gap: '10px' }}>
-  <svg width="36" height="36" viewBox="0 0 32 32" fill="none" stroke="#b8860b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <ellipse cx="10" cy="10" rx="4" ry="2.5" transform="rotate(-45 10 10)"/>
-    <ellipse cx="16" cy="16" rx="4" ry="2.5" transform="rotate(-45 16 16)"/>
-    <ellipse cx="22" cy="22" rx="4" ry="2.5" transform="rotate(-45 22 22)"/>
-  </svg>
-  <span style={{ background: 'linear-gradient(90deg,#d97706,#fbbf24,#fde68a,#fbbf24)', backgroundSize: '200% auto', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', animation: 'goldShimmer 3s linear infinite' }}>
-    Gold Chain
-  </span>
-</h1>
-
-            <p style={{ color: subtext, fontSize: '13px', margin: '8px 0 0', fontWeight: 500 }}>5 exclusive designs · Handcrafted Gold 22K</p>
-          </div>
-
-          {goldPrice && (
-            <div style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.25)', borderRadius: '10px', padding: '12px 20px', textAlign: 'right' }}>
-              <div style={{ color: subtext, fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Live Rate Gold 22K</div>
-              <div style={{ color: goldColor, fontWeight: 900, fontSize: '18px', fontFamily: 'monospace' }}>₹{goldPrice.toFixed(2)}/gm</div>
-            </div>
-          )}
-        </div>
-
+      <div style={{ position: 'relative', zIndex: 10, padding: '0 40px', maxWidth: '100%', margin: '0 auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '18px' }}>
           {loading ? (
   <div style={{ gridColumn:'span 3', textAlign:'center', color:subtext, padding:'60px 0' }}>⏳ Loading...</div>
@@ -173,7 +159,7 @@ goldChains.map((product) => {
         borderRadius: 10, overflow: 'hidden', cursor: 'pointer', position: 'relative',
         border: '1px solid #e8e8e8', background: '#fff',
         boxShadow: isHovered ? '0 8px 24px rgba(0,0,0,0.12)' : '0 2px 8px rgba(0,0,0,0.06)',
-        transition: 'all 0.25s ease',
+        transition: 'all 0.25s ease', marginBottom: '75px',
       }}>
       <div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden', marginBottom: 10 }}>
         {product.tag && (

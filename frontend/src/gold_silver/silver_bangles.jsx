@@ -96,6 +96,11 @@ return (
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@400;500;600;700&display=swap');
 
+      /* ── SCROLLBAR STYLE ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #FDF5EE; }
+::-webkit-scrollbar-thumb { background: #edd3a3; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #f3d54f; }
       @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
       @keyframes silverShimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
       @keyframes glow-pulse { 0%,100%{box-shadow:0 0 20px rgba(192,192,192,0.1)} 50%{box-shadow:0 0 40px rgba(192,192,192,0.35)} }
@@ -111,10 +116,20 @@ return (
     `}</style>
     <CustomerNavbar />
     
-      <div style={{ position:'relative', zIndex:10, padding:'40px', maxWidth:'100%', margin:'0 auto' }}>
+{/* ── Category Banner ── */}
+<div style={{ width:'100%', position:'relative', marginBottom:'32px' }}>
+  <img
+    src="/banners/silver_bangles.png"
+    alt="Silver Bangles Banner"
+    style={{ width:'100%', height:'auto', display:'block' }}
+  />
+  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.45) 0%, transparent 60%)' }} />
+</div>
+
+<div style={{ position:'relative', zIndex:10, padding:'0px 40px', maxWidth:'100%', margin:'0 auto' }}>
 
         {/* ── Page Header ── */}
-        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'40px', animation:'fadeInUp 0.4s ease both' }}>
+        {/* <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'40px', animation:'fadeInUp 0.4s ease both' }}>
           <div>
             <div style={{ display:'inline-flex', alignItems:'center', gap:'8px', background:'rgba(192,192,192,0.08)', border:'1px solid rgba(192,192,192,0.25)', borderRadius:'20px', padding:'5px 14px', marginBottom:'14px' }}>
               <span className="sparkle-dot" style={{ color:silverColor, fontSize:'11px' }}>✦</span>
@@ -132,14 +147,14 @@ return (
             <p style={{ color:subtext, fontSize:'13px', margin:'8px 0 0', fontWeight:500 }}>5 exclusive designs · Handcrafted Silver 999</p>
           </div>
 
-          {/* Rate panel */}
+
           {silverPrice && (
             <div style={{ background:'rgba(192,192,192,0.08)', border:'1px solid rgba(192,192,192,0.25)', borderRadius:'10px', padding:'12px 20px', textAlign:'right' }}>
               <div style={{ color:subtext, fontSize:'10px', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.5px' }}>Live Rate (Silver 999)</div>
               <div style={{ color:silverColor, fontWeight:900, fontSize:'18px', fontFamily:'monospace' }}>₹{silverPrice.toFixed(2)}/gm</div>
             </div>
           )}
-        </div>
+        </div> */}
 
 
         {/* ── Bangle Cards — 5 cards ── */}
@@ -167,7 +182,8 @@ return (
     overflow: 'hidden',
     cursor: 'pointer',
     transition: 'all 0.25s ease',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    marginBottom: '75px'
   }}>
 <div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden' }}>
 

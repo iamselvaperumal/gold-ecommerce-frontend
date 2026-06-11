@@ -170,7 +170,7 @@ useEffect(() => {
 {/* ── Category Banner ── */}
 <div style={{ width:'100%', height:'100%', position:'relative', overflow:'hidden', }}>
   <img
-src="/banners/sample8.jpeg"
+src="/banners/gold_bangles.png"
 alt="Chain Banner"
     style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}
   />

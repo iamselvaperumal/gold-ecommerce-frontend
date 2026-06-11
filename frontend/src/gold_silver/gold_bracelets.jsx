@@ -101,6 +101,11 @@ const inpBorder = '#d1d5db'
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@400;500;600;700&display=swap');
 
+        /* ── SCROLLBAR STYLE ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #FDF5EE; }
+::-webkit-scrollbar-thumb { background: #edd3a3; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #f3d54f; }
         @keyframes float-orb { 0%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-50px) scale(1.1)} 66%{transform:translate(-20px,20px) scale(0.9)} 100%{transform:translate(0,0) scale(1)} }
         @keyframes antigravity { 0%{transform:translateY(110vh) rotate(0deg);opacity:0} 10%{opacity:var(--op)} 90%{opacity:var(--op)} 100%{transform:translateY(-20vh) rotate(360deg);opacity:0} }
         @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
@@ -127,29 +132,21 @@ const inpBorder = '#d1d5db'
       {/* Navbar */}
 <CustomerNavbar />
 
-      <div style={{ position: 'relative', zIndex: 10, padding: '40px 40px', maxWidth: '100%', margin: '0 auto' }}>
+{/* ── Category Banner ── */}
+<div style={{ width:'100%', position:'relative', marginBottom:'32px' }}>
+  <img
+    src="/banners/gold_bracelet.png"
+    alt="Gold Bracelets Banner"
+    style={{ width:'100%', height:'auto', display:'block' }}
+  />
+  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.45) 0%, transparent 60%)' }} />
+  <div style={{ position:'absolute', bottom:40, left:60 }}>
+    <div style={{ color:'rgba(255,255,255,0.75)', fontSize:14, marginBottom:6 }}>Home / Gold Bracelets</div>
+    <div style={{ color:'#fff', fontSize:42, fontWeight:800, fontFamily:'"Playfair Display", Georgia, serif' }}>Gold Bracelets</div>
+  </div>
+</div>
 
-        {/* Page Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '40px', animation: 'fadeInUp 0.4s ease both' }}>
-          <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.25)', borderRadius: '20px', padding: '5px 14px', marginBottom: '14px' }}>
-              <span className="sparkle-dot" style={{ color: goldColor, fontSize: '11px' }}>✦</span>
-              <span style={{ color: goldColor, fontSize: '10px', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase' }}>Premium Gold Collection</span>
-            </div>
-<h1 style={{ margin: 0, fontSize: '36px', fontWeight: 900, letterSpacing: '-0.5px', fontFamily: '"Playfair Display", Georgia, serif', display: 'flex', alignItems: 'center', gap: '10px' }}>
-  <svg width="36" height="36" viewBox="0 0 32 32" fill="none" stroke="#b8860b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M8 12c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
-    <path d="M8 20c0 4.4 3.6 8 8 8s8-3.6 8-8"/>
-    <rect x="5" y="12" width="6" height="8" rx="2"/>
-    <rect x="21" y="12" width="6" height="8" rx="2"/>
-  </svg>
-  <span style={{ background: `linear-gradient(90deg,#f59e0b,#fbbf24,#ffd700)`, backgroundSize: '200% auto', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', animation: 'goldShimmer 3s linear infinite' }}>Gold Bracelets</span>
-</h1>
-            <p style={{ color: subtext, fontSize: '13px', margin: '8px 0 0', fontWeight: 500 }}>{goldBracelets.length} exclusive designs · Handcrafted excellence</p>
-          </div>
-
-
-        </div>
+      <div style={{ position: 'relative', zIndex: 10, padding: '0px 40px', maxWidth: '100%', margin: '0 auto' }}>
 
         {/* Bracelet Cards Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '18px' }}>
@@ -185,7 +182,7 @@ const inpBorder = '#d1d5db'
         borderRadius: 10, overflow: 'hidden', cursor: 'pointer', position: 'relative',
         border: '1px solid #e8e8e8', background: '#fff',
         boxShadow: isHovered ? '0 8px 24px rgba(0,0,0,0.12)' : '0 2px 8px rgba(0,0,0,0.06)',
-        transition: 'all 0.25s ease',
+        transition: 'all 0.25s ease', marginBottom: '75px',
       }}>
       <div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden', marginBottom: 10 }}>
         {product.tag && (
