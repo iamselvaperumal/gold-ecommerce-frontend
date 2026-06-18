@@ -751,7 +751,7 @@ class JewelryProductView(APIView):
             return Response({'message': 'Product created!', 'data': serializer.data}, status=201)
         return Response(serializer.errors, status=400)
 
-    def get(self, request):
+   
     def get(self, request):
         if request.user.is_authenticated and getattr(request.user, 'role', None) == 'super_admin':
             qs = JewelryProduct.objects.all().prefetch_related('images')
