@@ -8,6 +8,7 @@ import DealerDashboard from './pages/DealerDashboard'
 import SubDealerDashboard from './pages/SubDealerDashboard'
 import PromotorDashboard from './pages/PromotorDashboard'
 import CustomerDashboard from './pages/CustomerDashboard'
+import Profile from './collection/profile'
 import RingCollection from './collection/ring_collection'
 import BanglesCollection from './collection/bangles_collection'
 import GoldRings from './gold_silver/gold_rings'
@@ -60,6 +61,7 @@ import AdminOrdersPage from './Orders/Adminorderspage'
 
 
 
+
 function ProtectedRoute({ children, role }) {
   const token = localStorage.getItem('token')
   const userRole = localStorage.getItem('role')
@@ -101,6 +103,7 @@ export default function App() {
       <ProtectedRoute role="customer"><CustomerDashboard /></ProtectedRoute>
        } />
        
+       <Route path="/profile" element={<Profile />} />
 
         {/* ring Routes */}
        <Route path="/collection/rings" element={<RingCollection />} />

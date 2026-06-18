@@ -752,7 +752,13 @@ class JewelryProductView(APIView):
         return Response(serializer.errors, status=400)
 
     def get(self, request):
-        qs = JewelryProduct.objects.filter(is_active=True).prefetch_related('images')
+    def get(self, request):
+        if request.user.is_authenticated and getattr(request.user, 'role', None) == 'super_admin':
+            qs = JewelryProduct.objects.all().prefetch_related('images')
+        else:
+            qs = JewelryProduct.objects.filter(is_active=True).prefetch_related('images')
+
+        # ── Existing filters (உன்னோட பழைய code — same) ──
 
         # ── Existing filters (உன்னோட பழைய code — same) ──
         category = request.query_params.get('category')

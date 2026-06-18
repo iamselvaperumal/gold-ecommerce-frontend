@@ -144,6 +144,10 @@ useEffect(() => {
     return () => clearTimeout(timer)
   }, [searchQuery])
 
+  const handleLogout = () => {
+    localStorage.clear()
+    navigate('/login')   // unga login route வேற இருந்தா மாத்திக்கோங்க
+  }
 
   return (
     <>
@@ -431,6 +435,21 @@ onBlur={e => {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>{cartCount}</span>
             )}
+          </span>
+
+          {/* Logout */}
+          <span
+            style={{ cursor: 'pointer', color: '#8B1A1A', transition: 'transform 0.2s, color 0.2s', display: 'flex', alignItems: 'center' }}
+            onClick={handleLogout}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.15)'; e.currentTarget.style.color = '#6b1212' }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = '#8B1A1A' }}
+            title="Logout"
+          >
+            <svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 4H6a2 2 0 00-2 2v20a2 2 0 002 2h6"/>
+              <path d="M21 22l6-6-6-6"/>
+              <path d="M27 16H12"/>
+            </svg>
           </span>
 
         </div>

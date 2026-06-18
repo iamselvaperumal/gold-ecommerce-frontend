@@ -296,7 +296,9 @@ if (livePrice) fd.append('price', livePrice)
 
   const handleToggleHide = async (p) => {
   try {
-    await api.patch(`/jewelry-products/${p.id}/`, { is_active: !p.is_active })
+    const newStatus = !p.is_active
+    await api.patch(`/jewelry-products/${p.id}/`, { is_active: newStatus })
+    alert(newStatus ? '✅ Product Shown! Customers can see this now.' : '🙈 Product Hided! Customers cannot see this anymore.')
     fetchProducts()
   } catch { alert('Failed to update') }
 }
@@ -690,7 +692,7 @@ const handleDelete = async (id) => {
     </button>
     <button onClick={() => handleToggleHide(p)}
       style={{ padding: '7px 18px', background: p.is_active ? 'rgba(251,191,36,0.2)' : 'rgba(74,222,128,0.2)', border: `1px solid ${p.is_active ? '#fbbf24' : '#4ade80'}`, borderRadius: '20px', color: p.is_active ? '#fbbf24' : '#4ade80', fontWeight: 800, fontSize: '11px', cursor: 'pointer' }}>
-      {p.is_active ? '🙈 Hide' : '👁 Show'}
+      {p.is_active ? '🙈 Hide' : '✅ Hided'}
     </button>
     <button onClick={() => handleDelete(p.id)}
       style={{ padding: '7px 18px', background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.5)', borderRadius: '20px', color: '#f87171', fontWeight: 800, fontSize: '11px', cursor: 'pointer' }}>
