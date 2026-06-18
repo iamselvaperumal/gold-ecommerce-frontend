@@ -642,7 +642,7 @@ const options = {
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0, marginLeft: 16 }}>
                           <button onClick={() => setShowAddressPopup(true)} style={{ padding: '7px 18px', background: '#fff', border: '1px solid #e2d9d0', borderRadius: 4, color: DARK, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Edit Address</button>
-                          <button onClick={() => setStep(3)} style={{ padding: '8px 18px', background: RED, border: 'none', borderRadius: 4, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Use This Address</button>
+                          <button disabled={placing} onClick={handlePlaceOrder} style={{ padding: '8px 18px', background: placing ? '#ccc' : RED, border: 'none', borderRadius: 4, color: '#fff', fontSize: 12, fontWeight: 700, cursor: placing ? 'not-allowed' : 'pointer' }}>{placing ? 'Processing...' : 'Use This Address'}</button>
                         </div>
                       </div>
                     </div>
@@ -682,9 +682,9 @@ const options = {
           {/* Bottom bar */}
           <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#fff', borderTop: '1px solid #e2d9d0', padding: '16px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100, boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: RED }}>Total ({qty} Item{qty > 1 ? 's' : ''}) : {inr(totalPrice)}</div>
-            <button className="oc-btn" disabled={!savedAddress} onClick={() => { if(savedAddress){ setStep(3); window.scrollTo({ top: 0, behavior: 'smooth' }) } }}
-              style={{ padding: '14px 32px', background: savedAddress ? RED : '#ccc', border: 'none', borderRadius: 2, color: '#fff', fontWeight: 700, fontSize: 13, letterSpacing: '1px', textTransform: 'uppercase', cursor: savedAddress ? 'pointer' : 'not-allowed' }}>
-              Proceed To Buy
+           <button className="oc-btn" disabled={!savedAddress || placing} onClick={handlePlaceOrder}
+              style={{ padding: '14px 32px', background: (savedAddress && !placing) ? RED : '#ccc', border: 'none', borderRadius: 2, color: '#fff', fontWeight: 700, fontSize: 13, letterSpacing: '1px', textTransform: 'uppercase', cursor: (savedAddress && !placing) ? 'pointer' : 'not-allowed' }}>
+              {placing ? 'Processing...' : 'Proceed To Buy'}
             </button>
           </div>
           <div style={{ height: 80 }} />

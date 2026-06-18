@@ -760,7 +760,6 @@ class JewelryProductView(APIView):
 
         # ── Existing filters (உன்னோட பழைய code — same) ──
 
-        # ── Existing filters (உன்னோட பழைய code — same) ──
         category = request.query_params.get('category')
         if category:
             qs = qs.filter(category=category)

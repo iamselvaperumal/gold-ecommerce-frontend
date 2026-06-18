@@ -360,6 +360,19 @@ const addMetalToCart = async (metalType, metalLabel, weightObj, price, img) => {
     setOrderPopup(true)
   }
 
+  const goToCoinCheckout = (metalKey, label, grams, price) => {
+  const metal = metalKey.startsWith('gold') ? 'gold' : 'silver'
+  const grade = metalKey.includes('22k') ? '22k' : metalKey.includes('24k') ? '24k' : '999'
+  navigate('/order-confirm', {
+    state: {
+      product: { id: null, name: `${metal === 'gold' ? 'Gold' : 'Silver'} ${grade.toUpperCase()} Coin (${label})`, grade, net_weight: grams, images: [] },
+      qty: 1,
+      displayPrice: parseFloat(price),
+      metal,
+    }
+  })
+}
+
 
   const fetchAnnouncements = async () => {
     try {
@@ -1460,7 +1473,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
                                   style={{ flex: 1, padding: '5px 0', background: 'rgba(192,192,192,0.15)', border: '1px solid rgba(192,192,192,0.45)', borderRadius: '8px', color: '#c0c0c0', fontSize: '9px', fontWeight: 800, cursor: 'pointer' }}
                                 >🪙 Cart</button>
                                 <button
-                                  onClick={e => { e.stopPropagation(); setOrderMetal('silver_999'); setOrderWeight(w.label); setOrderCount(1); setOrderMsg(''); setOrderPopup(true) }}
+                                 onClick={e => { e.stopPropagation(); goToCoinCheckout('silver_999', w.label, w.grams, priceSilver) }}
                                   style={{ flex: 1, padding: '5px 0', background: 'linear-gradient(90deg,#9ca3af,#e5e7eb)', border: 'none', borderRadius: '8px', color: '#000', fontSize: '9px', fontWeight: 900, cursor: 'pointer' }}
                                 >🛒 Buy</button>
                               </div>
@@ -1525,7 +1538,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
                                     style={{ flex: 1, padding: '5px 0', background: 'rgba(251,191,36,0.2)', border: '1px solid rgba(251,191,36,0.5)', borderRadius: '8px', color: '#fbbf24', fontSize: '9px', fontWeight: 800, cursor: 'pointer' }}
                                   >🪙 Cart</button>
                                   <button
-                                    onClick={e => { e.stopPropagation(); setOrderMetal('gold_22k'); setOrderWeight(w.label); setOrderCount(1); setOrderMsg(''); setOrderPopup(true) }}
+                                    onClick={e => { e.stopPropagation(); goToCoinCheckout('gold_22k', w.label, w.grams, price22k) }}
                                     style={{ flex: 1, padding: '5px 0', background: 'linear-gradient(90deg,#f59e0b,#fbbf24)', border: 'none', borderRadius: '8px', color: '#000', fontSize: '9px', fontWeight: 900, cursor: 'pointer' }}
                                   >🛒 Buy</button>
                                 </div>
@@ -1585,7 +1598,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
                                     style={{ flex: 1, padding: '5px 0', background: 'rgba(255,215,0,0.2)', border: '1px solid rgba(255,215,0,0.5)', borderRadius: '8px', color: '#ffd700', fontSize: '9px', fontWeight: 800, cursor: 'pointer' }}
                                   >🪙 Cart</button>
                                   <button
-                                    onClick={e => { e.stopPropagation(); setOrderMetal('gold_24k'); setOrderWeight(w.label); setOrderCount(1); setOrderMsg(''); setOrderPopup(true) }}
+                                    onClick={e => { e.stopPropagation(); goToCoinCheckout('gold_24k', w.label, w.grams, price24k) }}
                                     style={{ flex: 1, padding: '5px 0', background: 'linear-gradient(90deg,#d97706,#ffd700)', border: 'none', borderRadius: '8px', color: '#000', fontSize: '9px', fontWeight: 900, cursor: 'pointer' }}
                                   >🛒 Buy</button>
                                 </div>
