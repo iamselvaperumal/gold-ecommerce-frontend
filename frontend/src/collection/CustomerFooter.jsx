@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 
-const logo = '/BJ-logo.png'
+const logo = '/logo.png'
 
 export default function CustomerFooter() {
   const navigate = useNavigate()
@@ -44,14 +44,14 @@ export default function CustomerFooter() {
 {/* Brand */}
 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
 <img src={logo} alt="Bharathi Jewellers" style={{ 
-  width: 80, height: 80, objectFit: 'contain', 
+  width: 80, height: 45, objectFit: 'contain', 
   filter: 'drop-shadow(0 0 8px rgba(180,140,60,0.2))',
-  transform: 'scale(2.6)',   // ← இதை மட்டும் adjust பண்ணு
+  transform: 'scale(2.6)', 
   transformOrigin: 'center center', marginTop:'10px',
 }} />
   <div style={{ paddingTop: 8 }}>   {/* ← text vertical center */}
-    <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 32, fontWeight: 700,  marginTop:'7px', color: '#7a4e10', letterSpacing: 1.5, fontStyle: 'italic', lineHeight: 1 }}>Bharathi</div>
-    <div style={{ fontSize: 8, fontWeight: 600, color: '#b89050', letterSpacing: 3.5, textTransform: 'uppercase', marginTop: 4 }}>✦ Jewellers ✦</div>
+    <div style={{fontFamily: 'sans-serif', fontSize: 32, fontWeight: 700,  marginTop:'7px', color: 'red', letterSpacing: 1.5, fontStyle: 'italic', lineHeight: 1 }}>Team 369</div>
+    {/* <div style={{ fontSize: 8, fontWeight: 600, color: '#b89050', letterSpacing: 3.5, textTransform: 'uppercase', marginTop: 4 }}>✦ Jewellers ✦</div> */}
   </div>
 </div>
 

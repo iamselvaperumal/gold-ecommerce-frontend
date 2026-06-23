@@ -217,15 +217,15 @@ padding: '0 24px',
   }}
 >
   <img
-    src="/BJ-logo.png"
+    src="/logo.png"
     alt="Bharathi Jewellers"
     style={{ 
-      height: '170px',            // ← 150px → 70px
+      height: '100px',            // ← 150px → 70px
       width: '150px',             // ← 175px → 70px
       objectFit: 'contain',
       display: 'block',
       marginLeft: '-40px',
-      marginBottom: '-10px',       // ← -30px → 0
+      marginBottom: '0px',       // ← -30px → 0
     }}
   />
 <span style={{
@@ -240,8 +240,8 @@ padding: '0 24px',
   textAlign: 'center',
 }}>
   {/* <span style={{ fontSize: '8px', letterSpacing: '4px', opacity: 0.7 }}>✦ ✦ ✦</span> */}
-  <span style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', lineHeight: 1.3 }}>Bharathi</span>
-  <span style={{ fontSize: '11px', fontWeight: 550, letterSpacing: '3px', textTransform: 'uppercase', lineHeight: 1.3 }}>Jewellers</span>
+<span style={{ fontSize: '17px', fontWeight: 600, fontStyle: 'normal', fontFamily: 'sans-serif', color: 'red', letterSpacing: '3px', textTransform: 'uppercase', lineHeight: 1.3 }}>Team 369</span>
+  {/* <span style={{ fontSize: '11px', fontWeight: 550, letterSpacing: '3px', textTransform: 'uppercase', lineHeight: 1.3 }}>Jewellers</span> */}
   {/* <span style={{ fontSize: '8px', letterSpacing: '4px', opacity: 0.7 }}>✦ ✦ ✦</span> */}
 </span>
 </div>
