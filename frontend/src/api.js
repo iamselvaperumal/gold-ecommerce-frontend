@@ -18,7 +18,7 @@ api.interceptors.response.use(
   async (error) => {
     const original = error.config
 
-    // Skip refresh for login and refresh endpoints
+    // Skip refresh for login and refresh endpoints — no retry
     if (
       original.url?.includes('/login/') ||
       original.url?.includes('/login/refresh/')
@@ -30,15 +30,22 @@ api.interceptors.response.use(
       original._retry = true
       try {
         const refresh = localStorage.getItem('refresh')
-        if (refresh) {
-          const res = await axios.post(
-            `${BASE_URL}/login/refresh/`,
-            { refresh }
-          )
-          localStorage.setItem('token', res.data.access)
-          original.headers.Authorization = `Bearer ${res.data.access}`
-          return api(original)
+
+        // Refresh token இல்லன்னா — direct logout, no API call
+        if (!refresh || refresh === 'null' || refresh === 'undefined') {
+          localStorage.clear()
+          window.location.href = '/login'
+          return Promise.reject(error)
         }
+
+        const res = await axios.post(
+          `${BASE_URL}/login/refresh/`,
+          { refresh }
+        )
+        localStorage.setItem('token', res.data.access)
+        original.headers.Authorization = `Bearer ${res.data.access}`
+        return api(original)
+
       } catch {
         // Refresh failed → force logout
         localStorage.clear()

@@ -108,7 +108,11 @@ draw() {
   setError('')
 
   // Clear stale tokens
-  localStorage.clear()
+ // Clear stale tokens before fresh login
+localStorage.removeItem('token')
+localStorage.removeItem('refresh')
+localStorage.removeItem('role')
+localStorage.removeItem('email')
 
   const attemptLogin = () => api.post('/login/', { email, password })
 
