@@ -37,8 +37,10 @@ import CoinsCollection from './collection/coins_collection'
 import GoldCoins from './gold_silver/gold_coins'
 import SilverCoins from './gold_silver/silver_coins'
 import WishlistPage from './collection/WishlistPage'
+
 import CustomerNavbar from './collection/CustomerNavbar'
 import CustomerFooter from './collection/CustomerFooter'
+import BBLive from './collection/bb-live'
 // ── DIAMOND IMPORTS ──         ← ADD ALL 6
 import DiamondRings from './Diamond/ring'
 import DiamondNecklaces from './Diamond/necklaces'
@@ -186,6 +188,7 @@ export default function App() {
 
 {/* confirm order */}
 <Route path="/order-confirm" element={<OrderConfirm />} />
+<Route path="/bj-live" element={<BBLive />} />
 <Route path="/order-summary" element={
   <ProtectedRoute role="customer"><OrderSummary /></ProtectedRoute>
 } />
