@@ -17,6 +17,15 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const original = error.config
+
+    // Skip refresh for login and refresh endpoints
+    if (
+      original.url?.includes('/login/') ||
+      original.url?.includes('/login/refresh/')
+    ) {
+      return Promise.reject(error)
+    }
+
     if (error.response?.status === 401 && !original._retry) {
       original._retry = true
       try {
@@ -31,17 +40,19 @@ api.interceptors.response.use(
           return api(original)
         }
       } catch {
-        // auto logout
-        // localStorage.clear()
-        // window.location.href = '/login'
+        // Refresh failed → force logout
+        localStorage.clear()
+        window.location.href = '/login'
+        return Promise.reject(error)
       }
     }
 
-    // auto logout
-    // if (error.response?.status === 401) {
-    //   localStorage.clear()
-    //   window.location.href = '/login'
-    // }
+    // If still 401 after retry → force logout
+    if (error.response?.status === 401 && original._retry) {
+      localStorage.clear()
+      window.location.href = '/login'
+    }
+
     return Promise.reject(error)
   }
 )

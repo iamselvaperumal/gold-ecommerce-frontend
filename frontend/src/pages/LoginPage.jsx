@@ -102,79 +102,74 @@ draw() {
     return () => { window.removeEventListener('resize',handleResize); window.removeEventListener('mousemove',handleMouseMove); cancelAnimationFrame(animationFrameId) }
   }, [dark])
 
-  const [serverReady, setServerReady] = useState(false)
-const pingInterval = useRef(null)
-
-useEffect(() => {
-  const wakeUp = async () => {
-    try {
-      await fetch('https://bitbyte-backend-f66f.onrender.com/api/ping/')
-      setServerReady(true)          // ✅ mark server as ready
-      clearInterval(pingInterval.current)
-    } catch {
-      // retry continue
-    }
-  }
-  wakeUp()
-  pingInterval.current = setInterval(wakeUp, 3000)
-  return () => clearInterval(pingInterval.current)
-}, [])
-
-const handleLogin = async (e) => {
+ const handleLogin = async (e) => {
   e.preventDefault()
   setLoading(true)
   setError('')
 
-  // ✅ Wait for server to wake up before attempting login
-  if (!serverReady) {
-    setError('⏳ Server is starting up, please wait...')
-    await new Promise((resolve) => {
-      const check = setInterval(() => {
-        if (serverReady) { clearInterval(check); resolve() }
-      }, 500)
-      setTimeout(() => { clearInterval(check); resolve() }, 15000) // max 15s wait
-    })
-  }
+  // Clear stale tokens
+  localStorage.clear()
 
   const attemptLogin = () => api.post('/login/', { email, password })
 
-    try {
-      let res
-      try {
-        res = await attemptLogin()
-      } catch (firstErr) {
-        const isServerSleep = !firstErr.response || firstErr.response?.status >= 500
-        if (isServerSleep) {
-          setError('⏳ Server starting... Retrying')
-          await new Promise(resolve => setTimeout(resolve, 2000))
-          res = await attemptLogin()
-        } else {
-          throw firstErr
-        }
-      }
-
-      localStorage.clear()
-      localStorage.setItem('token', res.data.access)
-      localStorage.setItem('refresh', res.data.refresh)
-      localStorage.setItem('role', res.data.role)
-      localStorage.setItem('email', res.data.email)
-
-      const role = res.data.role
-      // NEW
-      if (role === 'super_admin') navigate('/super-admin', { replace: true })
-      else if (role === 'admin') navigate('/admin', { replace: true })
-      else if (role === 'dealer') navigate('/dealer', { replace: true })
-      else if (role === 'sub_dealer') navigate('/sub-dealer', { replace: true })
-      else if (role === 'promotor') navigate('/promotor', { replace: true })
-      else navigate('/customer', { replace: true })
-
-    } catch (err) {
-      const msg = err.response?.data?.error || err.response?.data?.detail || 'Invalid email or password'
-      setError(msg)
-    }
-
-    setLoading(false)
+  const doNavigate = (role) => {
+    if (role === 'super_admin') navigate('/super-admin', { replace: true })
+    else if (role === 'admin') navigate('/admin', { replace: true })
+    else if (role === 'dealer') navigate('/dealer', { replace: true })
+    else if (role === 'sub_dealer') navigate('/sub-dealer', { replace: true })
+    else if (role === 'promotor') navigate('/promotor', { replace: true })
+    else navigate('/customer', { replace: true })
   }
+
+  const saveAndGo = (data) => {
+    localStorage.setItem('token', data.access)
+    localStorage.setItem('refresh', data.refresh)
+    localStorage.setItem('role', data.role)
+    localStorage.setItem('email', data.email)
+    doNavigate(data.role)
+  }
+
+  // Attempt 1
+  try {
+    const res = await attemptLogin()
+    saveAndGo(res.data)
+    return
+  } catch (err1) {
+    // If wrong credentials (400/401/403) → no retry, show error immediately
+    if (err1.response && err1.response.status < 500) {
+      const msg = err1.response?.data?.error || err1.response?.data?.detail || 'Invalid email or password'
+      setError(msg)
+      setLoading(false)
+      return
+    }
+    // Server sleeping (no response or 5xx) → show message and retry
+    setError('⏳ Server starting up... Please wait')
+  }
+
+  // Wait for server to wake up (max 20 retries × 2s = 40s)
+  for (let i = 0; i < 20; i++) {
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    try {
+      const res = await attemptLogin()
+      saveAndGo(res.data)
+      return
+    } catch (retryErr) {
+      // Wrong credentials during retry
+      if (retryErr.response && retryErr.response.status < 500) {
+        const msg = retryErr.response?.data?.error || retryErr.response?.data?.detail || 'Invalid email or password'
+        setError(msg)
+        setLoading(false)
+        return
+      }
+      // Still sleeping, continue retry
+      setError(`⏳ Server starting up... (${i + 1}/20)`)
+    }
+  }
+
+  // All retries failed
+  setError('❌ Server not responding. Please try again in a minute.')
+  setLoading(false)
+}
 
   return (
     <div style={{ minHeight:'100vh', background: bg, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px', position:'relative', overflow:'hidden', fontFamily:'"Inter",system-ui,sans-serif', transition:'background 0.8s ease' }}>
@@ -253,9 +248,9 @@ const handleLogin = async (e) => {
               style={{ width:'100%', background: inpBg, border:`1px solid ${inpBorder}`, borderRadius:'12px', padding:'13px 16px', color: text, fontSize:'14px', outline:'none', transition:'border .2s', boxSizing:'border-box' }}
               onFocus={e => e.target.style.borderColor = accent} onBlur={e => e.target.style.borderColor = inpBorder} />
           </div>
-  <button type="submit" disabled={loading || !serverReady} className="btn-shimmer"
-  style={{ padding:'14px', background:'linear-gradient(90deg,#22d3ee,#4ade80)', border:'none', borderRadius:'14px', fontWeight:800, color:'#006165', fontSize:'14px', textTransform:'uppercase', letterSpacing:'0.1em', cursor: (loading || !serverReady) ? 'not-allowed' : 'pointer', marginTop:'4px', opacity: (loading || !serverReady) ? 0.6 : 1 }}>
-  {loading ? 'Logging in...' : !serverReady ? '⏳ Connecting...' : 'Login'}
+<button type="submit" disabled={loading} className="btn-shimmer"
+  style={{ padding:'14px', background:'linear-gradient(90deg,#22d3ee,#4ade80)', border:'none', borderRadius:'14px', fontWeight:800, color:'#006165', fontSize:'14px', textTransform:'uppercase', letterSpacing:'0.1em', cursor: loading ? 'not-allowed' : 'pointer', marginTop:'4px', opacity: loading ? 0.6 : 1 }}>
+  {loading ? '⏳ Logging in...' : 'Login'}
 </button>
         </form>
       </div>

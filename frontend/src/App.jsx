@@ -65,12 +65,18 @@ import AdminOrdersPage from './Orders/Adminorderspage'
 function ProtectedRoute({ children, role }) {
   const token = localStorage.getItem('token')
   const userRole = localStorage.getItem('role')
+
+  // Clear bad tokens automatically
   if (!token || token === 'undefined' || token === 'null') {
+    localStorage.clear()
     return <Navigate to="/login" replace />
   }
+
   if (role && userRole !== role) {
+    localStorage.clear()
     return <Navigate to="/login" replace />
   }
+
   return children
 }
 

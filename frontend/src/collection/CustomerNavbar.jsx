@@ -203,7 +203,7 @@ padding: '0 24px',
       }}>
 
 <div
-  onClick={() => navigate('/')}
+  onClick={() => navigate('/customer')}
   style={{ 
     display: 'flex', 
     flexDirection: 'row',        // ← column → row
