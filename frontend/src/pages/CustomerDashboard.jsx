@@ -1758,7 +1758,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
         <div style={{ marginBottom: '40px', marginTop: '40px', textAlign: 'center' }}>
 
           <div style={{ fontSize: 28, fontWeight: 700, color: '#1a0a0a', marginBottom: 6 }}>
-            Bharathy World
+            Team 369 Wolrd
           </div>
           <div style={{ fontSize: 14, color: '#7c5c4a', marginBottom: 32 }}>
             A companion for every occasion
@@ -1776,9 +1776,9 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   onMouseEnter={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1.04)'}
   onMouseLeave={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1)'}
 >
-  <img className="bw-img" src="/marriage_woman.jpg" alt="Wedding"
+  <img className="bw-img" src="/wedding.png" alt="Wedding"
     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }} />
-  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(139,26,26,0.65) 0%, transparent 55%)' }} />
+  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,  transparent 55%)' }} />
   <div style={{ position: 'absolute', bottom: 24, left: 24 }}>
     <div style={{ color: '#fff', fontWeight: 700, fontSize: 22 }}>Wedding</div>
   </div>
@@ -1793,7 +1793,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 >
   <img className="bw-img" src="/gold_Woman.jpg" alt="Gold"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(139,26,26,0.65) 0%, transparent 55%)' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,  transparent 55%)' }} />
                 <div style={{ position: 'absolute', bottom: 24, left: 24 }}>
                   <div style={{ color: '#fff', fontWeight: 700, fontSize: 22 }}>Gold</div>
                 </div>
@@ -1813,7 +1813,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 >
   <img className="bw-img" src="/diamond_woman.jpg" alt="Diamond"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(139,26,26,0.65) 0%, transparent 55%)' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,  transparent 55%)' }} />
                 <div style={{ position: 'absolute', bottom: 24, left: 24 }}>
                   <div style={{ color: '#fff', fontWeight: 700, fontSize: 22 }}>Diamond</div>
                 </div>
@@ -1826,9 +1826,9 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   onMouseEnter={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1.04)'}
   onMouseLeave={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1)'}
 >
-  <img className="bw-img" src="/dailywear_woman.jpg" alt="Dailywear"
+  <img className="bw-img" src="/dailywera.png" alt="Dailywear"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(139,26,26,0.65) 0%, transparent 55%)' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,  transparent 55%)' }} />
                 <div style={{ position: 'absolute', bottom: 24, left: 24 }}>
                   <div style={{ color: '#fff', fontWeight: 700, fontSize: 22 }}>Dailywear</div>
                 </div>

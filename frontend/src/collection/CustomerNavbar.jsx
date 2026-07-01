@@ -239,10 +239,8 @@ padding: '0 24px',
   marginTop: '2px',
   textAlign: 'center',
 }}>
-  {/* <span style={{ fontSize: '8px', letterSpacing: '4px', opacity: 0.7 }}>✦ ✦ ✦</span> */}
+
 <span style={{ fontSize: '17px', fontWeight: 600, fontStyle: 'normal', fontFamily: 'sans-serif', color: 'red', letterSpacing: '3px', textTransform: 'uppercase', lineHeight: 1.3 }}>Team 369</span>
-  {/* <span style={{ fontSize: '11px', fontWeight: 550, letterSpacing: '3px', textTransform: 'uppercase', lineHeight: 1.3 }}>Jewellers</span> */}
-  {/* <span style={{ fontSize: '8px', letterSpacing: '4px', opacity: 0.7 }}>✦ ✦ ✦</span> */}
 </span>
 </div>
 
@@ -734,10 +732,10 @@ setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100)
 
             if (panel.type === 'occasion-grid') {
 const occasionImgMap = { 
-  'Office Wear': '/Office Wear.jpg', 
-  'Modern Wear': '/Modern Wear.jpg', 
-  'Casual Wear': '/Casual Wear.jpg', 
-  'Traditional Wear': '/Traditional Wear.jpg', 
+  'Office Wear': '/office-women.png', 
+  'Modern Wear': '/modern-women.png', 
+  'Casual Wear': '/Casual Wear.png', 
+  'Traditional Wear': '/trdisional.png', 
   'Wedding': '/gift_wedding.jpg', 
   'Birthday': '/gift_birthday.jpg', 
   'Anniversary': '/gift_anniversary.jpg', 

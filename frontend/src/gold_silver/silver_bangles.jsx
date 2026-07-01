@@ -185,7 +185,7 @@ return (
   onClick={() => navigate(`/product-display?category=bangles&metal=silver&id=${bangle.id}`)}
   onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'; setHoveredBangle(bangle.id) }}
   onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; setHoveredBangle(null) }}
-  style={{
+     style={{
     background: '#fff',
     border: '1px solid #e8e8e8',
     borderRadius: 10,
@@ -196,9 +196,9 @@ return (
     marginBottom: '75px'
   }}>
 <div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden' }}>
-
   {bangle.tag && (
     <div style={{ position: 'absolute', top: 12, left: 0, background: '#2ecc71', color: '#fff', padding: '5px 12px 5px 10px', fontSize: 11, fontWeight: 700, clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)', zIndex: 2 }}>
+        style={{ width: '100%', height: '100%', objectFit: 'cover', animation: 'fadeImg 0.5s ease' }}
       {bangle.tag}
     </div>
   )}
@@ -213,7 +213,8 @@ return (
         key={isHovered ? 1 : 0}
         src={getImageUrl(isHovered && bangle.images.length > 1 ? bangle.images[1]?.image : bangle.images[0]?.image)}
         alt={bangle.name}
-        style={{ width: '100%', height: '100%', objectFit: 'cover', animation: 'fadeImg 0.5s ease' }}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center', padding: 14, boxSizing: 'border-box', animation: 'fadeImg 0.5s ease' }}
+
         onError={e => e.currentTarget.style.display = 'none'}
       />
     : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>⭕</div>
@@ -243,6 +244,8 @@ return (
         {hasDiscount && <span style={{ fontSize: 15, color: '#999', textDecoration: 'line-through' }}>₹{originalAmt.toLocaleString('en-IN')}</span>}
       </div>
       {hasDiscount && <div style={{ fontSize: 13, color: '#2ecc71', fontWeight: 700, marginBottom: 6 }}>{discPct}% Off</div>}
+
+
     </>
   })()}
   <div style={{ fontSize: 18, color: '#1a1a1a', fontWeight: 600,
