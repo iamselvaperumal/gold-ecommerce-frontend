@@ -342,7 +342,9 @@ export default function PromotorDashboard() {
   const [showHierarchy, setShowHierarchy] = useState(false)
   const [msg, setMsg]                 = useState('')
   const [msgType, setMsgType]         = useState('success')
-  const [form, setForm]               = useState(emptyForm)
+ const [form, setForm]               = useState(emptyForm)
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
 const [showAnnouncements, setShowAnnouncements] = useState(false)
 const [updateMessage, setUpdateMessage] = useState('')
 const [proofDocument, setProofDocument] = useState(null)
@@ -771,6 +773,11 @@ const handleSubmit = async e => {
     return
   }
 
+  if (form.password !== confirmPassword) {
+    setPasswordError('❌ Passwords do not match')
+    return
+  }
+
   try {
     const payload = { ...form }
     if (!payload.dob) delete payload.dob
@@ -779,6 +786,7 @@ const handleSubmit = async e => {
     await api.post('/customers/', payload)
     setMsg('✅ Customer created successfully!'); setMsgType('success')
     setShowForm(false); fetchAll(); setForm(emptyForm)
+    setConfirmPassword(''); setPasswordError('')
   } catch(err) {
     console.log('ERROR:', JSON.stringify(err.response?.data, null, 2))
     setMsg('❌ Error: ' + JSON.stringify(err.response?.data)); setMsgType('error')
@@ -1591,6 +1599,24 @@ const handleSubmit = async e => {
         </div>
         <div><label style={lbl}>Password *</label>
           <input type="password" name="password" value={form.password} onChange={handleChange} required className="pr-inp" style={inp}/>
+        </div>
+      </div>
+
+      {/* Confirm Password */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'14px' }}>
+        <div>
+          <label style={lbl}>Confirm Password *</label>
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={e => { setConfirmPassword(e.target.value); setPasswordError('') }}
+            required
+            className="pr-inp"
+            style={{ ...inp, border: `1px solid ${passwordError ? '#f87171' : inpBorder}` }}
+          />
+          {passwordError && (
+            <div style={{ color: '#f87171', fontSize: '12px', marginTop: '6px' }}>{passwordError}</div>
+          )}
         </div>
       </div>
 

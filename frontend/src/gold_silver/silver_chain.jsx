@@ -182,20 +182,20 @@ return (
   onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'; setHoveredItem(item.id) }}
   onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; setHoveredItem(null) }}
   style={{
-    background: '#fff',
-    border: '1px solid #e8e8e8',
+    background: '#fffdfa',
+    border: '1px solid rgba(192,192,192,0.35)',
     borderRadius: 10,
     overflow: 'hidden',
     cursor: 'pointer',
     transition: 'all 0.25s ease',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-    marginBottom: '75px'
+    boxShadow: '0 4px 14px rgba(0,0,0,0.06)',
+    marginBottom: '25px'
   }}
 >
-<div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden' }}>
+<div style={{ height: 300, background: '#f1f1f1', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
 
   {item.tag && (
-    <div style={{ position: 'absolute', top: 12, left: 0, background: '#2ecc71', color: '#fff', padding: '5px 12px 5px 10px', fontSize: 11, fontWeight: 700, clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)', zIndex: 2 }}>
+<div style={{ position: 'absolute', top: 12, left: 0, background: '#1a1a1a', color: '#d4af37', padding: '5px 14px 5px 12px', fontSize: 11, fontWeight: 500, letterSpacing: '0.5px', clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)', zIndex: 2 }}>
       {item.tag}
     </div>
   )}
@@ -210,7 +210,7 @@ return (
         key={isHovered ? 1 : 0}
         src={getImageUrl(isHovered && item.images.length > 1 ? item.images[1]?.image : item.images[0]?.image)}
         alt={item.name}
-        style={{ width: '100%', height: '100%', objectFit: 'cover', animation: 'fadeImg 0.5s ease' }}
+        style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center', padding: 14, boxSizing: 'border-box', animation: 'fadeImg 0.5s ease' }}
         onError={e => e.currentTarget.style.display = 'none'}
       />
     : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>⛓️</div>
@@ -234,12 +234,12 @@ return (
     const hasDiscount = discPct > 0 && originalAmt > price && price > 0
     return <>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-        <span style={{ fontSize: 16, fontWeight: 800, color: '#1a1a1a' }}>
+       <span style={{ fontSize: 17, fontWeight: 500, color: '#1a1a1a' }}>
           {price > 0 ? `₹${price.toLocaleString('en-IN')}` : '—'}
         </span>
         {hasDiscount && <span style={{ fontSize: 15, color: '#999', textDecoration: 'line-through' }}>₹{originalAmt.toLocaleString('en-IN')}</span>}
       </div>
-      {hasDiscount && <div style={{ fontSize: 13, color: '#2ecc71', fontWeight: 700, marginBottom: 6 }}>{discPct}% Off</div>}
+     {hasDiscount && <div style={{ fontSize: 12, color: '#8a6d2f', fontWeight: 600, letterSpacing: '0.3px', marginTop: 7, marginBottom: 6 }}>{discPct}% OFF</div>}
     </>
   })()}
   <div style={{ fontSize: 18, color: '#1a1a1a', fontWeight: 600,

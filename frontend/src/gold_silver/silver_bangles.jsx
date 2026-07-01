@@ -185,20 +185,19 @@ return (
   onClick={() => navigate(`/product-display?category=bangles&metal=silver&id=${bangle.id}`)}
   onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'; setHoveredBangle(bangle.id) }}
   onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; setHoveredBangle(null) }}
-     style={{
-    background: '#fff',
-    border: '1px solid #e8e8e8',
+    style={{
+    background: '#fffdfa',
+    border: '1px solid rgba(192,192,192,0.35)',
     borderRadius: 10,
     overflow: 'hidden',
     cursor: 'pointer',
     transition: 'all 0.25s ease',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-    marginBottom: '75px'
+    boxShadow: '0 4px 14px rgba(0,0,0,0.06)',
+    marginBottom: '25px'
   }}>
-<div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden' }}>
-  {bangle.tag && (
-    <div style={{ position: 'absolute', top: 12, left: 0, background: '#2ecc71', color: '#fff', padding: '5px 12px 5px 10px', fontSize: 11, fontWeight: 700, clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)', zIndex: 2 }}>
-        style={{ width: '100%', height: '100%', objectFit: 'cover', animation: 'fadeImg 0.5s ease' }}
+<div style={{ height: 300, background: '#f1f1f1', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+   {bangle.tag && (
+    <div style={{ position: 'absolute', top: 12, left: 0, background: '#1a1a1a', color: '#c0c0c0', padding: '5px 14px 5px 12px', fontSize: 11, fontWeight: 500, letterSpacing: '0.5px', clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)', zIndex: 2 }}>
       {bangle.tag}
     </div>
   )}
@@ -238,13 +237,12 @@ return (
     const hasDiscount = discPct > 0 && originalAmt > price && price > 0
     return <>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-        <span style={{ fontSize: 16, fontWeight: 800, color: '#1a1a1a' }}>
+        <span style={{ fontSize: 17, fontWeight: 500, color: '#1a1a1a' }}>
           {price > 0 ? `₹${price.toLocaleString('en-IN')}` : '—'}
         </span>
         {hasDiscount && <span style={{ fontSize: 15, color: '#999', textDecoration: 'line-through' }}>₹{originalAmt.toLocaleString('en-IN')}</span>}
       </div>
-      {hasDiscount && <div style={{ fontSize: 13, color: '#2ecc71', fontWeight: 700, marginBottom: 6 }}>{discPct}% Off</div>}
-
+      {hasDiscount && <div style={{ fontSize: 12, color: '#71717a', fontWeight: 600, letterSpacing: '0.3px', marginTop: 7, marginBottom: 6 }}>{discPct}% OFF</div>}
 
     </>
   })()}

@@ -540,6 +540,8 @@ export default function DealerDashboard() {
   const [msg, setMsg] = useState('')
   const [msgType, setMsgType] = useState('success')
   const [form, setForm] = useState(emptyForm)
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
   const [showAnnouncements, setShowAnnouncements] = useState(false)
   const [showRequests, setShowRequests] = useState(false)
 const [profileRequests, setProfileRequests] = useState([])
@@ -1009,6 +1011,11 @@ const handleSubmit = async e => {
     return
   }
 
+  if (form.password !== confirmPassword) {
+    setPasswordError('❌ Passwords do not match')
+    return
+  }
+
   try {
     const payload = { ...form }
     if (!payload.dob) delete payload.dob
@@ -1016,6 +1023,7 @@ const handleSubmit = async e => {
     await api.post('/sub-dealers/', payload)
     setMsg('✅ Sub Dealer created successfully!'); setMsgType('success')
     setShowForm(false); fetchSubDealers(); setForm(emptyForm); setSelectedDealer(null)
+    setConfirmPassword(''); setPasswordError('')
   } catch (err) {
     setMsg('❌ Error: ' + JSON.stringify(err.response?.data)); setMsgType('error')
   }
@@ -1800,6 +1808,20 @@ const handleSubmit = async e => {
 )}
                 <div><label style={lbl}>Email *</label><input type="email" name="email" value={form.email} onChange={handleChange} required placeholder="email@example.com" className="dl-inp" style={inp} /></div>
                 <div><label style={lbl}>Password *</label><input type="password" name="password" value={form.password} onChange={handleChange} required className="dl-inp" style={inp} /></div>
+                <div>
+                  <label style={lbl}>Confirm Password *</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={e => { setConfirmPassword(e.target.value); setPasswordError('') }}
+                    required
+                    className="dl-inp"
+                    style={{ ...inp, border: `1px solid ${passwordError ? '#f87171' : inpBorder}` }}
+                  />
+                  {passwordError && (
+                    <div style={{ color: '#f87171', fontSize: '12px', marginTop: '6px' }}>{passwordError}</div>
+                  )}
+                </div>
               </div>
 
               <p style={secLabel('#fcd34d')}>Address</p>

@@ -575,6 +575,8 @@ export default function AdminDashboard() {
   const [msg, setMsg] = useState('')
   const [msgType, setMsgType] = useState('success')
   const [form, setForm] = useState(emptyForm)
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
   const [showAnnouncements, setShowAnnouncements] = useState(false)
   const [updateForm, setUpdateForm] = useState({})
   const [updateMessage, setUpdateMessage] = useState('')
@@ -1071,6 +1073,11 @@ const handleSubmit = async e => {
     return
   }
 
+  if (form.password !== confirmPassword) {
+    setPasswordError('❌ Passwords do not match')
+    return
+  }
+
   try {
     const payload = { ...form }
     if (!payload.dob) delete payload.dob
@@ -1078,12 +1085,12 @@ const handleSubmit = async e => {
     await api.post('/dealers/', payload)
     setMsg('✅ Dealer created successfully!'); setMsgType('success')
     setShowForm(false); fetchDealers(); setForm(emptyForm); setSelectedAdmin(null)
+    setConfirmPassword(''); setPasswordError('')
   } catch (err) {
     console.log('ERROR DETAILS:', JSON.stringify(err.response?.data))
     setMsg('❌ Error: ' + JSON.stringify(err.response?.data)); setMsgType('error')
   }
 }
-
   const card = { background: cardBg, border: cardBorder, borderRadius: '20px', padding: '32px 36px', marginBottom: '24px' }
   const secHead = (color = '#a5f3fc') => ({ color, fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 20px', paddingBottom: '14px', borderBottom: cardBorder })
   const secLabel = (color = '#a5f3fc') => ({ color, fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '4px 0 0', paddingBottom: '10px', borderBottom: cardBorder })
@@ -2154,8 +2161,22 @@ const handleSubmit = async e => {
                     />
                   </div>
                 )}
-                <div><label style={lbl}>Email *</label><input type="email" name="email" value={form.email} onChange={handleChange} required placeholder="email@example.com" className="ad-inp" style={inp} /></div>
+               <div><label style={lbl}>Email *</label><input type="email" name="email" value={form.email} onChange={handleChange} required placeholder="email@example.com" className="ad-inp" style={inp} /></div>
                 <div><label style={lbl}>Password *</label><input type="password" name="password" value={form.password} onChange={handleChange} required className="ad-inp" style={inp} /></div>
+                <div>
+                  <label style={lbl}>Confirm Password *</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={e => { setConfirmPassword(e.target.value); setPasswordError('') }}
+                    required
+                    className="ad-inp"
+                    style={{ ...inp, border: `1px solid ${passwordError ? '#f87171' : inpBorder}` }}
+                  />
+                  {passwordError && (
+                    <div style={{ color: '#f87171', fontSize: '12px', marginTop: '6px' }}>{passwordError}</div>
+                  )}
+                </div>
               </div>
 
               <p style={secLabel('#86efac')}>Address</p>

@@ -686,6 +686,8 @@ export default function SuperAdminDashboard() {
     aadhaar_no: '', pan_no: '', occupation: 'employee', occupation_detail: '',
     annual_salary: '', admin_name: '', admin_id: '', admin_contact_no: ''
   })
+   const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
   const [showAnnouncement, setShowAnnouncement] = useState(false)
   const [announcementForm, setAnnouncementForm] = useState({ title: '', message: '', roles: [] })
   const [announcementMsg, setAnnouncementMsg] = useState('')
@@ -1276,6 +1278,12 @@ const fetchMetalPrices = async () => {
 
   const handleSubmit = async e => {
     e.preventDefault()
+
+    if (form.password !== confirmPassword) {
+      setPasswordError('❌ Passwords do not match')
+      return
+    }
+
     try {
       const cleanedForm = {
         ...form,
@@ -1291,6 +1299,8 @@ const fetchMetalPrices = async () => {
       await api.post('/admins/', cleanedForm)
       setMsg('✅ Admin created successfully!')
       setShowForm(false)
+      setConfirmPassword('')
+      setPasswordError('')
       fetchAdmins()
     } catch (err) {
       console.log('❌ ERROR RESPONSE:', err.response?.data)  // ← ADD
@@ -4380,6 +4390,26 @@ setOrderPopupState({
                   <input type="password" name="password" value={form.password} onChange={handleChange} required className="sa-inp" style={s.inp} />
                 </div>
               </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '4px' }}>
+                <div>
+                  <label style={s.lbl}>Confirm Password *</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={e => { setConfirmPassword(e.target.value); setPasswordError('') }}
+                    required
+                    className="sa-inp"
+                    style={{ ...s.inp, border: `1px solid ${passwordError ? '#f87171' : inpBorder}` }}
+                  />
+                  {passwordError && (
+                    <div style={{ color: '#f87171', fontSize: '12px', marginTop: '6px' }}>
+                      {passwordError}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <p style={s.secSub}>📍 Address</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
                 <div><label style={s.lbl}>Door No *</label><input name="door_no" value={form.door_no} onChange={handleChange} required className="sa-inp" style={s.inp} /></div>
