@@ -128,7 +128,7 @@ class DealerListForDealerView(APIView):
     def get(self, request):
         if request.user.role not in ['promotor', 'sub_dealer', 'dealer', 'admin', 'super_admin']:
             return Response({'error': 'Permission denied'}, status=403)
-        dealers = DealerProfile.objects.all()
+        dealers = DealerProfile.objects.select_related('user', 'assigned_admin').all()
         serializer = DealerListSerializer(dealers, many=True)
         return Response(serializer.data)
 
@@ -350,7 +350,9 @@ class CreateCustomerView(APIView):
     def get(self, request):
         if request.user.role not in ['promotor', 'sub_dealer', 'dealer', 'admin', 'super_admin']:
             return Response({'error': 'Permission denied'}, status=403)
-        customers = CustomerProfile.objects.all().order_by('-created_at')
+        customers = CustomerProfile.objects.select_related(
+            'user', 'assigned_promotor'
+        ).all().order_by('-created_at')
         serializer = CustomerListSerializer(customers, many=True)
         return Response(serializer.data)
 
@@ -361,7 +363,9 @@ class PromotorListForView(APIView):
     def get(self, request):
         if request.user.role not in ['promotor', 'sub_dealer', 'dealer', 'admin', 'super_admin']:
             return Response({'error': 'Permission denied'}, status=403)
-        promotors = PromotorProfile.objects.all()
+        promotors = PromotorProfile.objects.select_related(
+            'user', 'assigned_sub_dealer__assigned_dealer__assigned_admin'
+        ).all()
         serializer = PromotorListSerializer(promotors, many=True)
         return Response(serializer.data)
 
@@ -372,7 +376,7 @@ class SubDealerListForView(APIView):
     def get(self, request):
         if request.user.role not in ['promotor', 'sub_dealer', 'dealer', 'admin', 'super_admin']:
             return Response({'error': 'Permission denied'}, status=403)
-        sub_dealers = SubDealerProfile.objects.all()
+        sub_dealers = SubDealerProfile.objects.select_related('user', 'assigned_dealer').all()
         serializer = SubDealerListSerializer(sub_dealers, many=True)
         return Response(serializer.data)
 
