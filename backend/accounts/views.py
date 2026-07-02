@@ -1200,6 +1200,107 @@ def verify_payment(request):
         return Response({"error": str(e)}, status=400)
 
 
+def _orders_for_user(user):
+    orders = JewelryOrder.objects.filter(user=user).order_by('-created_at')
+    result = []
+    for o in orders:
+        result.append({
+            'id': o.id,
+            'order_id': o.order_id,
+            'product_name': o.product_name,
+            'metal': o.product_metal,
+            'grade': o.product_grade,
+            'category': o.product_category,
+            'net_weight': str(o.product.net_weight) if o.product and o.product.net_weight else None,
+            'quantity': o.quantity,
+            'unit_price': float(o.unit_price),
+            'total_price': float(o.total_price),
+            'status': o.status,
+            'created_at': o.created_at,
+        })
+    return result
+
+
+def _build_customer(c):
+    return {
+        'type': 'customer', 'id': c.id, 'customer_id': c.customer_id,
+        'first_name': c.first_name, 'last_name': c.last_name,
+        'mobile_number': c.mobile_number, 'city_name': c.city_name,
+        'orders': _orders_for_user(c.user),
+    }
+
+def _build_promotor(p):
+    return {
+        'type': 'promotor', 'id': p.id, 'promotor_id': p.promotor_id,
+        'first_name': p.first_name, 'last_name': p.last_name,
+        'mobile_number': p.mobile_number, 'city_name': p.city_name,
+        'customers': [_build_customer(c) for c in p.assigned_customers.all()],
+    }
+
+def _build_sub_dealer(sd):
+    return {
+        'type': 'sub_dealer', 'id': sd.id, 'sub_dealer_id': sd.sub_dealer_id,
+        'first_name': sd.first_name, 'last_name': sd.last_name,
+        'mobile_number': sd.mobile_number, 'city_name': sd.city_name,
+        'promotors': [_build_promotor(p) for p in sd.assigned_promotors.all()],
+    }
+
+def _build_dealer(d):
+    return {
+        'type': 'dealer', 'id': d.id, 'dealer_id': d.dealer_id,
+        'first_name': d.first_name, 'last_name': d.last_name,
+        'mobile_number': d.mobile_number, 'city_name': d.city_name,
+        'sub_dealers': [_build_sub_dealer(sd) for sd in d.assigned_sub_dealers.all()],
+    }
+
+def _build_admin(a):
+    return {
+        'type': 'admin', 'id': a.id, 'admin_id': a.admin_id,
+        'first_name': a.first_name, 'last_name': a.last_name,
+        'mobile_number': a.mobile_number, 'city_name': a.city_name,
+        'dealers': [_build_dealer(d) for d in a.assigned_dealers.all()],
+    }
+
+
+class HierarchySubtreeOrdersView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        role = request.query_params.get('role')
+        node_id = request.query_params.get('id')
+        if not role or not node_id:
+            return Response({'error': 'role and id required'}, status=400)
+
+        try:
+            if role == 'admin':
+                node = AdminProfile.objects.prefetch_related(
+                    'assigned_dealers__assigned_sub_dealers__assigned_promotors__assigned_customers'
+                ).get(id=node_id)
+                root = _build_admin(node)
+            elif role == 'dealer':
+                node = DealerProfile.objects.prefetch_related(
+                    'assigned_sub_dealers__assigned_promotors__assigned_customers'
+                ).get(id=node_id)
+                root = _build_dealer(node)
+            elif role == 'sub_dealer':
+                node = SubDealerProfile.objects.prefetch_related(
+                    'assigned_promotors__assigned_customers'
+                ).get(id=node_id)
+                root = _build_sub_dealer(node)
+            elif role == 'promotor':
+                node = PromotorProfile.objects.prefetch_related('assigned_customers').get(id=node_id)
+                root = _build_promotor(node)
+            elif role == 'customer':
+                node = CustomerProfile.objects.get(id=node_id)
+                root = _build_customer(node)
+            else:
+                return Response({'error': 'invalid role'}, status=400)
+        except Exception as e:
+            return Response({'error': str(e)}, status=404)
+
+        return Response({'root': root})
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def ping(request):

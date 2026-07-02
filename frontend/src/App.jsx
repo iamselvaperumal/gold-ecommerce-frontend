@@ -61,6 +61,9 @@ import OrderConfirm from './Orders/Orderconfirm'
 import OrderSummary from './Orders/Ordersummary'
 import AdminOrdersPage from './Orders/Adminorderspage'
 
+import SuperAdminHierarchySalesCount from './Hierarchy_SalesCount/superadmin_Hierarchy_SalesCount'
+
+
 
 
 
@@ -195,6 +198,9 @@ export default function App() {
 <Route path="/admin-orders" element={
   <ProtectedRoute role="super_admin"><AdminOrdersPage /></ProtectedRoute>
 } />
+
+<Route path="/hierarchy-sales-count" element={<SuperAdminHierarchySalesCount />} />
+
 
       </Routes>
     </BrowserRouter>

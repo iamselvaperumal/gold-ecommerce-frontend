@@ -4,7 +4,9 @@ from .views import (
     LoginView, CreateAdminView, CreateDealerView,
     CreateSubDealerView, CreatePromotorView, CreateCustomerView,
     DashboardView, AdminListForAdminView, DealerListForDealerView,
-    SubDealerListForView, PromotorListForView,  FullHierarchyView, AnnouncementView, AnnouncementReplyView, ProfileUpdateRequestView, ProfileUpdateApproveView,MetalRateView,MetalOrderView, MetalOrderSummaryView, JewelryProductView, JewelryProductDetailView, JewelryProductImageDeleteView, HomeBannerView, HomeBannerDetailView, CartView, CartItemQtyView, WishlistView, JewelryOrderView, create_razorpay_order, verify_payment, ping
+    SubDealerListForView, PromotorListForView,  FullHierarchyView, AnnouncementView, AnnouncementReplyView, ProfileUpdateRequestView, ProfileUpdateApproveView,MetalRateView,MetalOrderView, MetalOrderSummaryView, JewelryProductView, JewelryProductDetailView, JewelryProductImageDeleteView, HomeBannerView, HomeBannerDetailView, CartView, CartItemQtyView, WishlistView, JewelryOrderView, create_razorpay_order, verify_payment, ping,
+    HierarchySubtreeOrdersView 
+
 )
 
 urlpatterns = [
@@ -21,6 +23,7 @@ urlpatterns = [
     path('promotors/list/', PromotorListForView.as_view()),      # NEW
     path('customers/', CreateCustomerView.as_view()),            # NEW
     path('hierarchy/full/', FullHierarchyView.as_view()),  # ✅ correct
+    path('hierarchy/subtree-orders/', HierarchySubtreeOrdersView.as_view()),  # ← NEW
     path('dashboard/', DashboardView.as_view()),
     path('announcements/', AnnouncementView.as_view()),
     path('announcements/<int:pk>/replies/', AnnouncementReplyView.as_view()),

@@ -113,29 +113,46 @@ function TreeNode({ node, role, depth = 0, dark, text, subtext, colorIdx = 0, an
           background: `linear-gradient(90deg,rgba(${hexToRgb(c)},0.2),${c})`,
         }} />
 
-        {/* Print Button */}
-        <button
-          onClick={e => {
-            e.stopPropagation()
-            printPersonCard(node, role, cfg, c, ancestors, superAdminEmail)
-          }}
-          style={{
-            marginTop: '8px', width: '100%',
-            padding: '3px 0', fontSize: '9px', fontWeight: 700,
-            background: `rgba(${hexToRgb(c)},0.1)`,
-            border: `1px solid rgba(${hexToRgb(c)},0.35)`,
-            borderRadius: '6px', color: c, cursor: 'pointer',
-            letterSpacing: '0.8px', transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = `rgba(${hexToRgb(c)},0.25)`
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = `rgba(${hexToRgb(c)},0.1)`
-          }}
-        >
-          🖨️ PRINT
-        </button>
+        {/* Print + Sales Count Buttons */}
+        <div style={{ marginTop: '8px', display: 'flex', gap: '6px' }}>
+          <button
+            onClick={e => {
+              e.stopPropagation()
+              printPersonCard(node, role, cfg, c, ancestors, superAdminEmail)
+            }}
+            style={{
+              flex: 1,
+              padding: '3px 0', fontSize: '9px', fontWeight: 700,
+              background: `rgba(${hexToRgb(c)},0.1)`,
+              border: `1px solid rgba(${hexToRgb(c)},0.35)`,
+              borderRadius: '6px', color: c, cursor: 'pointer',
+              letterSpacing: '0.8px', transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = `rgba(${hexToRgb(c)},0.25)` }}
+            onMouseLeave={e => { e.currentTarget.style.background = `rgba(${hexToRgb(c)},0.1)` }}
+          >
+            🖨️ PRINT
+          </button>
+
+          <button
+            onClick={e => {
+              e.stopPropagation()
+              window.open(`/hierarchy-sales-count?role=${role}&id=${node.id}`, '_blank')
+            }}
+            style={{
+              flex: 1,
+              padding: '3px 0', fontSize: '9px', fontWeight: 700,
+              background: 'rgba(74,222,128,0.1)',
+              border: '1px solid rgba(74,222,128,0.4)',
+              borderRadius: '6px', color: '#4ade80', cursor: 'pointer',
+              letterSpacing: '0.8px', transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(74,222,128,0.25)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(74,222,128,0.1)' }}
+          >
+            📊 SALES
+          </button>
+        </div>
 
         {/* Expand indicator */}
         {hasChildren && (
