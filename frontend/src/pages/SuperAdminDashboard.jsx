@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
 import logo from '../assets/logo.png'
@@ -26,7 +26,7 @@ const ROLE_CFG = {
 }
 
 // ─── TREE NODE COMPONENT ───────────────────────────────────────────────────────
-function TreeNode({ node, role, depth = 0, dark, text, subtext, colorIdx = 0, ancestors = [], superAdminEmail = '' }) {
+function TreeNode({ node, role, depth = 0, dark, text, subtext, colorIdx = 0, ancestors = [], superAdminEmail = '', flatMode = false }) {
   const [expanded, setExpanded] = useState(depth < 2)
   const cfg = ROLE_CFG[role]
   const c = COLORS[colorIdx % COLORS.length]
@@ -45,7 +45,7 @@ function TreeNode({ node, role, depth = 0, dark, text, subtext, colorIdx = 0, an
     promotor: node.customers,
   }[role] || []
 
-  const hasChildren = children.length > 0
+  const hasChildren = !flatMode && children.length > 0
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 0 }}>
@@ -667,6 +667,7 @@ function createAdminPopup(a, i, anchorEl, dark, subtext, text) {
   _popupEl = el
 }
 
+
 export default function SuperAdminDashboard() {
   const navigate = useNavigate()
   const [dark, setDark] = useState(true)
@@ -675,6 +676,15 @@ export default function SuperAdminDashboard() {
   const [hierarchyLoading, setHierarchyLoading] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [showHierarchy, setShowHierarchy] = useState(false)
+  const [hierarchyFilter, setHierarchyFilter] = useState(null)
+ const [hierarchySearch, setHierarchySearch] = useState('')
+const [debouncedSearch, setDebouncedSearch] = useState('')
+
+// Debounce — typing niruthi 300ms aana appuram than search run aagum
+useEffect(() => {
+  const t = setTimeout(() => setDebouncedSearch(hierarchySearch.trim()), 120)
+  return () => clearTimeout(t)
+}, [hierarchySearch])
   const [activeAdmin, setActiveAdmin] = useState(null)
   const hideTimer = useRef(null)
   const [msg, setMsg] = useState('')
@@ -1261,9 +1271,11 @@ const fetchMetalPrices = async () => {
 
 
   const handleOpenHierarchy = () => {
-    setShowHierarchy(true)
-    fetchHierarchy()
-  }
+  setShowHierarchy(true)
+  setHierarchyFilter(null)
+  setHierarchySearch('')
+  fetchHierarchy()
+}
 
   const handleChange = e => {
     const { name, value } = e.target
@@ -1307,6 +1319,65 @@ const fetchMetalPrices = async () => {
       setMsg('❌ Error: ' + JSON.stringify(err.response?.data))
     }
   }
+
+
+
+  const flattenByRole = (role) => {
+  if (!hierarchyData) return []
+  const result = []
+  hierarchyData.admins.forEach(admin => {
+    if (role === 'admin') { result.push({ node: admin, ancestors: [] }); return }
+    admin.dealers.forEach(dealer => {
+      if (role === 'dealer') { result.push({ node: dealer, ancestors: [{ node: admin, role: 'admin' }] }); return }
+      dealer.sub_dealers.forEach(sd => {
+        if (role === 'sub_dealer') { result.push({ node: sd, ancestors: [{ node: admin, role: 'admin' }, { node: dealer, role: 'dealer' }] }); return }
+        sd.promotors.forEach(pr => {
+          if (role === 'promotor') { result.push({ node: pr, ancestors: [{ node: admin, role: 'admin' }, { node: dealer, role: 'dealer' }, { node: sd, role: 'sub_dealer' }] }); return }
+          pr.customers.forEach(cus => {
+            if (role === 'customer') { result.push({ node: cus, ancestors: [{ node: admin, role: 'admin' }, { node: dealer, role: 'dealer' }, { node: sd, role: 'sub_dealer' }, { node: pr, role: 'promotor' }] }) }
+          })
+        })
+      })
+    })
+  })
+  return result
+}
+
+const searchAllHierarchy = (query) => {
+  if (!hierarchyData || !query.trim()) return []
+  const q = query.trim().toLowerCase()
+  const result = []
+
+  const checkMatch = (node, idKey) => {
+    const idVal = (node[idKey] || '').toString().toLowerCase()
+    const nameVal = `${node.first_name || ''} ${node.last_name || ''}`.toLowerCase()
+    const phoneVal = (node.mobile_number || '').toString().toLowerCase()
+    return idVal.includes(q) || nameVal.includes(q) || phoneVal.includes(q)
+  }
+
+  hierarchyData.admins.forEach(admin => {
+    if (checkMatch(admin, 'admin_id')) result.push({ node: admin, role: 'admin', ancestors: [] })
+    admin.dealers.forEach(dealer => {
+      if (checkMatch(dealer, 'dealer_id')) result.push({ node: dealer, role: 'dealer', ancestors: [{ node: admin, role: 'admin' }] })
+      dealer.sub_dealers.forEach(sd => {
+        if (checkMatch(sd, 'sub_dealer_id')) result.push({ node: sd, role: 'sub_dealer', ancestors: [{ node: admin, role: 'admin' }, { node: dealer, role: 'dealer' }] })
+        sd.promotors.forEach(pr => {
+          if (checkMatch(pr, 'promotor_id')) result.push({ node: pr, role: 'promotor', ancestors: [{ node: admin, role: 'admin' }, { node: dealer, role: 'dealer' }, { node: sd, role: 'sub_dealer' }] })
+          pr.customers.forEach(cus => {
+            if (checkMatch(cus, 'customer_id')) result.push({ node: cus, role: 'customer', ancestors: [{ node: admin, role: 'admin' }, { node: dealer, role: 'dealer' }, { node: sd, role: 'sub_dealer' }, { node: pr, role: 'promotor' }] })
+          })
+        })
+      })
+    })
+  })
+  return result
+}
+
+// ✅ NEW — idha inga add pannunga (function-ku keezha)
+const searchResults = useMemo(() => {
+  if (!debouncedSearch) return []
+  return searchAllHierarchy(debouncedSearch)
+}, [debouncedSearch, hierarchyData])
 
   // ── ORDER HIERARCHY BUILDER ─────────────────────────────────────────────────
 const buildHierarchyOrders = (period, metalKey) => {
@@ -3054,40 +3125,80 @@ setOrderPopupState({
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.80)', backdropFilter: 'blur(10px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <div
-              onClick={e => e.stopPropagation()}
-              style={{ background: dark ? '#0a1628' : '#f8fafc', border: '1px solid rgba(103,232,249,0.2)', borderRadius: '24px', width: '95%', maxWidth: '1100px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-            >
+  onClick={e => e.stopPropagation()}
+  style={{ background: dark ? '#0a1628' : '#f8fafc', border: '1px solid rgba(103,232,249,0.2)', borderRadius: '24px', width: '98%', maxWidth: '1400px', height: '90vh', maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+>
 
               {/* HEADER - fixed top */}
               <div style={{ flexShrink: 0, padding: '20px 28px', borderBottom: '1px solid rgba(103,232,249,0.1)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
                 <div>
                   <span style={{ color: '#a5f3fc', fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>🏢 Full Organization Hierarchy</span>
-                  {totalStats && (
-                    <div style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
-                      {[
-                        { label: 'Admins', count: totalStats.admins, color: '#22d3ee' },
-                        { label: 'Dealers', count: totalStats.dealers, color: '#4ade80' },
-                        { label: 'Sub Dealers', count: totalStats.subDealers, color: '#f59e0b' },
-                        { label: 'Promotors', count: totalStats.promotors, color: '#a78bfa' },
-                        { label: 'Customers', count: totalStats.customers, color: '#f472b6' },
-                      ].map(s => (
-                        <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: `rgba(${hexToRgb(s.color)},0.08)`, border: `1px solid rgba(${hexToRgb(s.color)},0.25)`, borderRadius: '20px', padding: '3px 12px' }}>
-                          <span style={{ color: s.color, fontWeight: 800, fontSize: '13px' }}>{s.count}</span>
-                          <span style={{ color: subtext, fontSize: '11px' }}>{s.label}</span>
-                        </div>
-                      ))}
+                 {totalStats && (
+  <div style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
+    {[
+      { label: 'Super Admin', roleKey: 'super_admin', count: 1, color: '#ffd700' },
+      { label: 'Admins', roleKey: 'admin', count: totalStats.admins, color: '#22d3ee' },
+      { label: 'Dealers', roleKey: 'dealer', count: totalStats.dealers, color: '#4ade80' },
+      { label: 'Sub Dealers', roleKey: 'sub_dealer', count: totalStats.subDealers, color: '#f59e0b' },
+      { label: 'Promotors', roleKey: 'promotor', count: totalStats.promotors, color: '#a78bfa' },
+      { label: 'Customers', roleKey: 'customer', count: totalStats.customers, color: '#f472b6' },
+    ].map(s => {
+      const isActive = hierarchyFilter === s.roleKey
+      return (
+        <div
+          key={s.label}
+          onClick={() => setHierarchyFilter(isActive ? null : s.roleKey)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            background: isActive ? `rgba(${hexToRgb(s.color)},0.22)` : `rgba(${hexToRgb(s.color)},0.08)`,
+            border: `1px solid rgba(${hexToRgb(s.color)},${isActive ? 0.8 : 0.25})`,
+            borderRadius: '20px', padding: '3px 12px', cursor: 'pointer',
+            transform: isActive ? 'translateY(-2px)' : 'none',
+            boxShadow: isActive ? `0 4px 14px rgba(${hexToRgb(s.color)},0.3)` : 'none',
+            transition: 'all 0.25s ease',
+          }}
+        >
+          <span style={{ color: s.color, fontWeight: 800, fontSize: '13px' }}>{s.count}</span>
+          <span style={{ color: subtext, fontSize: '11px' }}>{s.label}</span>
+        </div>
+      )
+    })}
+  </div>
+)}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                  {(
+  <div style={{ position: 'relative' }}>
+                      <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '13px', color: subtext, pointerEvents: 'none' }}>🔍</span>
+                      <input
+                        value={hierarchySearch}
+                        onChange={e => setHierarchySearch(e.target.value)}
+                        placeholder="Search ID, Name, Phone..."
+                        style={{
+                          width: '220px', background: inpBg, border: `1px solid ${inpBorder}`,
+                          borderRadius: '10px', padding: '8px 12px 8px 32px', color: text,
+                          fontSize: '12px', outline: 'none', boxSizing: 'border-box',
+                        }}
+                        onFocus={e => e.target.style.borderColor = '#22d3ee'}
+                        onBlur={e => e.target.style.borderColor = inpBorder}
+                      />
+                      {hierarchySearch && (
+                        <button
+                          onClick={() => setHierarchySearch('')}
+                          style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: subtext, cursor: 'pointer', fontSize: '12px', padding: '2px' }}
+                        >✕</button>
+                      )}
                     </div>
                   )}
+                  <button
+                    onClick={() => { setShowHierarchy(false); setActiveAdmin(null); removeAdminPopup() }}
+                    style={{ background: 'transparent', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px', whiteSpace: 'nowrap' }}
+                  >✕ Close</button>
                 </div>
-                <button
-                  onClick={() => { setShowHierarchy(false); setActiveAdmin(null); removeAdminPopup() }}
-                  style={{ background: 'transparent', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px', whiteSpace: 'nowrap', flexShrink: 0 }}
-                >✕ Close</button>
               </div>
 
-              {/* SCROLL AREA - middle scrolls */}
-              <div style={{ flex: 1, overflowX: 'auto', overflowY: 'auto', padding: '28px 32px', scrollBehavior: 'smooth', scrollbarWidth: 'thin', scrollbarColor: 'rgba(34,211,238,0.4) rgba(255,255,255,0.03)' }}>
-
+{/* SCROLL AREA - middle scrolls */}
+<div style={{ flex: 1, minHeight: '65vh', overflowX: 'auto', overflowY: 'auto', padding: '28px 32px', scrollBehavior: 'smooth', scrollbarWidth: 'thin', scrollbarColor: 'rgba(34,211,238,0.4) rgba(255,255,255,0.03)' }}>
                 {/* Loading */}
                 {hierarchyLoading && (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 0', gap: '16px' }}>
@@ -3096,52 +3207,153 @@ setOrderPopupState({
                   </div>
                 )}
 
-                {/* Tree */}
-                {!hierarchyLoading && hierarchyData && (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 'max-content', margin: '0 auto' }}>
+               {/* Tree */}
+{!hierarchyLoading && hierarchyData && (
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 'max-content', margin: '0 auto' }}>
 
-                    {/* Super Admin Root Node */}
-                    <div style={{ background: 'linear-gradient(135deg,rgba(255,215,0,0.12),rgba(255,215,0,0.05))', border: '1px solid rgba(255,215,0,0.5)', borderRadius: '16px', padding: '16px 48px', fontWeight: 800, fontSize: '16px', color: '#ffd700', animation: 'pulseGlow 3s ease-in-out infinite', boxShadow: '0 0 24px rgba(255,215,0,0.1)', textAlign: 'center' }}>
-                      🛡️ Super Admin
-                      <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 400, marginTop: '4px' }}>
-                        {localStorage.getItem('email')}
-                      </div>
-                    </div>
+    {/* ── SEARCH RESULTS MODE — overrides everything else ── */}
+    {hierarchySearch.trim() ? (() => {
+  // ✅ Role filter (Admin/Dealer/etc tabs) + search results combine pannurathu
+  const filteredResults = hierarchyFilter && hierarchyFilter !== 'super_admin'
+    ? searchResults.filter(item => item.role === hierarchyFilter)
+    : searchResults
 
-                    {/* Stem */}
-                    <div style={{ width: 2, height: 32, background: 'linear-gradient(180deg,#ffd700,rgba(255,215,0,0.3))' }} />
+  if (debouncedSearch !== hierarchySearch.trim()) {
+    return (
+      <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>
+        🔍 Searching...
+      </div>
+    )
+  }
+  if (filteredResults.length === 0) {
+    return (
+      <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>
+        No {hierarchyFilter ? hierarchyFilter.replace('_', ' ') + ' ' : ''}results found for "{hierarchySearch}"
+      </div>
+    )
+  }
+  return (
+    <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '1100px' }}>
+      {filteredResults.map((item, idx) => (
+        <TreeNode
+          key={item.node.id || idx}
+          node={item.node}
+          role={item.role}
+          depth={0}
+          dark={dark}
+          text={text}
+          subtext={subtext}
+          colorIdx={idx}
+          ancestors={item.ancestors}
+          superAdminEmail={localStorage.getItem('email') || ''}
+          flatMode={true}
+        />
+      ))}
+    </div>
+  )
+})() : (
+      <>
+        {/* Back button when filtered */}
+        {hierarchyFilter && (
+          <button
+            onClick={() => { setHierarchyFilter(null); setHierarchySearch('') }}
+            style={{ marginBottom: '20px', padding: '8px 18px', background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.35)', borderRadius: '10px', color: '#22d3ee', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+          >
+            ← Back to Full Tree
+          </button>
+        )}
 
-                    {hierarchyData.admins.length > 0 && (
-                      <>
-                        <div style={{ height: 2, background: 'linear-gradient(90deg,transparent,rgba(255,215,0,0.5),transparent)', width: '80%' }} />
-                        <div style={{ display: 'flex', gap: '32px', justifyContent: 'center', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                          {hierarchyData.admins.map((admin, ai) => (
-                            <div key={admin.id} className="tree-node-enter" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                              <div style={{ width: 2, height: 24, background: 'rgba(255,215,0,0.5)' }} />
-                              <TreeNode
-                                node={admin}
-                                role="admin"
-                                depth={0}
-                                dark={dark}
-                                text={text}
-                                subtext={subtext}
-                                colorIdx={ai}
-                                ancestors={[]}
-                                superAdminEmail={localStorage.getItem('email') || ''}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </>
-                    )}
+    {/* Super Admin Root Node — full tree AND super_admin filter la mattum */}
+    {(!hierarchyFilter || hierarchyFilter === 'super_admin') && (
+      <>
+        <div style={{ background: 'linear-gradient(135deg,rgba(255,215,0,0.12),rgba(255,215,0,0.05))', border: '1px solid rgba(255,215,0,0.5)', borderRadius: '20px', padding: '24px 64px', fontWeight: 800, fontSize: '20px', color: '#ffd700', animation: 'pulseGlow 3s ease-in-out infinite', boxShadow: '0 0 24px rgba(255,215,0,0.1)', textAlign: 'center' }}>
+          🛡️ Super Admin
+          <div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: 400, marginTop: '6px' }}>
+            {localStorage.getItem('email')}
+          </div>
+        </div>
+        {!hierarchyFilter && <div style={{ width: 2, height: 32, background: 'rgba(34,211,238,0.6)' }} />}
+      </>
+    )}
 
-                    {hierarchyData.admins.length === 0 && (
-                      <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No admins created yet.</div>
-                    )}
+    {/* Full Tree Mode */}
+    {!hierarchyFilter && hierarchyData.admins.length > 0 && (
+      <>
+        <div style={{ height: 2, background: 'rgba(34,211,238,0.5)', width: '100%' }} />
+        <div style={{ display: 'flex', gap: '32px', justifyContent: 'center', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          {hierarchyData.admins.map((admin, ai) => (
+            <div key={admin.id} className="tree-node-enter" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ width: 2, height: 24, background: 'rgba(255,215,0,0.5)' }} />
+              <TreeNode
+                node={admin}
+                role="admin"
+                depth={0}
+                dark={dark}
+                text={text}
+                subtext={subtext}
+                colorIdx={ai}
+                ancestors={[]}
+                superAdminEmail={localStorage.getItem('email') || ''}
+              />
+            </div>
+          ))}
+        </div>
+      </>
+    )}
 
-                  </div>
-                )}
+    {!hierarchyFilter && hierarchyData.admins.length === 0 && (
+      <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No admins created yet.</div>
+    )}
 
+   {/* Filtered Flat Mode — Admin/Dealer/SubDealer/Promotor/Customer mattum */}
+{hierarchyFilter && hierarchyFilter !== 'super_admin' && (() => {
+  const cfg = ROLE_LABELS[hierarchyFilter]
+  const idKey = cfg?.idKey || 'id'
+  let flatList = flattenByRole(hierarchyFilter)
+
+ if (hierarchySearch.trim()) {
+  const q = hierarchySearch.trim().toLowerCase()
+  flatList = flatList.filter(item => {
+    const n = item.node
+    const idVal = (n[idKey] || '').toString().toLowerCase()
+    const nameVal = `${n.first_name || ''} ${n.last_name || ''}`.toLowerCase()
+    const phoneVal = (n.mobile_number || '').toString().toLowerCase()
+    return idVal.includes(q) || nameVal.includes(q) || phoneVal.includes(q)
+  })
+}
+
+  if (flatList.length === 0) {
+    return (
+      <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>
+        {hierarchySearch.trim() ? `No results found for "${hierarchySearch}"` : `No ${hierarchyFilter.replace('_', ' ')} found.`}
+      </div>
+    )
+  }
+  return (
+    <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '1000px' }}>
+      {flatList.map((item, idx) => (
+        <TreeNode
+          key={item.node.id || idx}
+          node={item.node}
+          role={hierarchyFilter}
+          depth={0}
+          dark={dark}
+          text={text}
+          subtext={subtext}
+          colorIdx={idx}
+          ancestors={item.ancestors}
+          superAdminEmail={localStorage.getItem('email') || ''}
+          flatMode={true}
+        />
+      ))}
+    </div>
+  )
+})()}
+      </>
+    )}
+
+  </div>
+)}
                 {!hierarchyLoading && !hierarchyData && (
                   <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>Failed to load hierarchy.</div>
                 )}
@@ -3242,6 +3454,7 @@ setOrderPopupState({
 {orderPopupState.visible && orderPopupState.period && orderPopupState.metalKey && (() => {
   if (!hierarchyData) return null
 
+  
   const hData = buildHierarchyOrders(orderPopupState.period, orderPopupState.metalKey)
   if (!hData) return null
 
