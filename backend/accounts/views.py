@@ -5,6 +5,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
 from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder, JewelryProduct, JewelryProductImage, HomeBanner, CartItem, Wishlist, JewelryOrder
+from django.db.models import Prefetch
 from .serializers import *
 from django.utils import timezone
 from datetime import timedelta
@@ -383,55 +384,38 @@ class FullHierarchyView(APIView):
         if request.user.role not in ['super_admin', 'admin', 'dealer', 'sub_dealer']:
             return Response({'error': 'Permission denied'}, status=403)
 
+        # ✅ Nested prefetch - loop-ku ulla query podathu,
+        # ella data-yum ore 5-6 queries-la fetch pannidum (N+1 fix)
+        customers_pf = Prefetch(
+            'assigned_customers',
+            queryset=CustomerProfile.objects.filter(assigned_promotor__isnull=False)
+        )
+        promotors_pf = Prefetch(
+            'assigned_promotors',
+            queryset=PromotorProfile.objects.filter(assigned_sub_dealer__isnull=False).prefetch_related(customers_pf)
+        )
+        sub_dealers_pf = Prefetch(
+            'assigned_sub_dealers',
+            queryset=SubDealerProfile.objects.filter(assigned_dealer__isnull=False).prefetch_related(promotors_pf)
+        )
+        dealers_pf = Prefetch(
+            'assigned_dealers',
+            queryset=DealerProfile.objects.filter(assigned_admin__isnull=False).prefetch_related(sub_dealers_pf)
+        )
+
         if request.user.role == 'admin':
-            try:
-                current_admin = AdminProfile.objects.get(user=request.user)
-                admins = [current_admin]
-            except AdminProfile.DoesNotExist:
-                admins = []
+            admins = AdminProfile.objects.filter(user=request.user).prefetch_related(dealers_pf)
         else:
-            admins = AdminProfile.objects.all()
+            admins = AdminProfile.objects.all().prefetch_related(dealers_pf)
 
         tree = []
-
         for admin in admins:
-            dealers = DealerProfile.objects.filter(
-                assigned_admin=admin
-            ) | DealerProfile.objects.filter(
-                assigned_admin__isnull=True,
-                created_by=admin.user
-            )
-            dealers = dealers.distinct()
             dealer_list = []
-
-            for dealer in dealers:
-                sub_dealers = SubDealerProfile.objects.filter(
-                    assigned_dealer=dealer
-                ) | SubDealerProfile.objects.filter(
-                    assigned_dealer__isnull=True,
-                    created_by=dealer.user
-                )
-                sub_dealers = sub_dealers.distinct()
+            for dealer in admin.assigned_dealers.all():
                 sub_dealer_list = []
-
-                for sd in sub_dealers:
-                    promotors = PromotorProfile.objects.filter(
-                        assigned_sub_dealer=sd
-                    ) | PromotorProfile.objects.filter(
-                        assigned_sub_dealer__isnull=True,
-                        created_by=sd.user
-                    )
-                    promotors = promotors.distinct()
+                for sd in dealer.assigned_sub_dealers.all():
                     promotor_list = []
-
-                    for pr in promotors:
-                        customers = CustomerProfile.objects.filter(
-                            assigned_promotor=pr
-                        ) | CustomerProfile.objects.filter(
-                            assigned_promotor__isnull=True,
-                            created_by=pr.user
-                        )
-                        customers = customers.distinct()
+                    for pr in sd.assigned_promotors.all():
                         customer_list = [
                             {
                                 'id': c.id,
@@ -441,7 +425,7 @@ class FullHierarchyView(APIView):
                                 'mobile_number': c.mobile_number,
                                 'city_name': c.city_name,
                             }
-                            for c in customers
+                            for c in pr.assigned_customers.all()
                         ]
                         promotor_list.append({
                             'id': pr.id,
