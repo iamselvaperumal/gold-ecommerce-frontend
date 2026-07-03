@@ -659,13 +659,30 @@ class JewelryOrder(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # def save(self, *args, **kwargs):
+    #     if not self.order_id:
+    #         from django.utils import timezone
+    #         year = timezone.now().year
+    #         count = JewelryOrder.objects.count() + 1
+    #         self.order_id = f"BBORD{year}{count:06d}"
+    #     super().save(*args, **kwargs)
+
+    # def __str__(self):
+    #     return f"{self.order_id} - {self.product_name}"
+    
     def save(self, *args, **kwargs):
         if not self.order_id:
             from django.utils import timezone
             year = timezone.now().year
             count = JewelryOrder.objects.count() + 1
-            self.order_id = f"BBORD{year}{count:06d}"
+            new_id = f"BBORD{year}{count:06d}"
+            # Duplicate irundha, next number try pannu — unique varaikkum
+            while JewelryOrder.objects.filter(order_id=new_id).exists():
+                count += 1
+                new_id = f"BBORD{year}{count:06d}"
+            self.order_id = new_id
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.order_id} - {self.product_name}"
+        
