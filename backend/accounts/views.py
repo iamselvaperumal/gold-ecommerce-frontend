@@ -1172,10 +1172,16 @@ def verify_payment(request):
         # உன் existing Order model இருந்தா இங்க use பண்ணு
         order_id = "BB" + data['razorpay_payment_id'][-8:].upper()
         
-        # ✅ JewelryOrder model-ல save பண்ணு
+        
 
+        # ✅ JewelryOrder model-ல save பண்ணு
         try:
             product = JewelryProduct.objects.get(id=data.get('product_id'))
+            product_image_url = data.get('product_image_url', '')
+            if not product_image_url:
+                first_img = product.images.first()
+                if first_img:
+                    product_image_url = request.build_absolute_uri(first_img.image.url)
             order = JewelryOrder.objects.create(
                 user=request.user,
                 product=product,
@@ -1183,7 +1189,7 @@ def verify_payment(request):
                 product_metal=product.metal,
                 product_grade=product.grade or '',
                 product_category=product.category,
-                product_image_url=data.get('product_image_url', ''),
+                product_image_url=product_image_url,
                 customer_name=data.get('customer_name', ''),
                 customer_phone=data.get('customer_phone', ''),
                 customer_alt_phone='',
@@ -1220,6 +1226,11 @@ def _orders_for_user(user):
     orders = JewelryOrder.objects.filter(user=user).order_by('-created_at')
     result = []
     for o in orders:
+        img_url = o.product_image_url
+        if not img_url and o.product:
+            first_img = o.product.images.first()
+            if first_img:
+                img_url = first_img.image.url
         result.append({
             'id': o.id,
             'order_id': o.order_id,
@@ -1228,7 +1239,7 @@ def _orders_for_user(user):
             'grade': o.product_grade,
             'category': o.product_category,
             'net_weight': str(o.product.net_weight) if o.product and o.product.net_weight else None,
-            'product_image_url': o.product_image_url,
+            'product_image_url': img_url,
             'quantity': o.quantity,
             'unit_price': float(o.unit_price),
             'total_price': float(o.total_price),

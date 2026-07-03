@@ -137,7 +137,7 @@ function TreeNode({ node, role, depth = 0, dark, text, subtext, colorIdx = 0, an
           <button
             onClick={e => {
               e.stopPropagation()
-              window.open(`/hierarchy-sales-count?role=${role}&id=${node.id}`, '_blank')
+              window.open(`/hierarchy-sales-count?role=${role}&id=${node.id}`, 'hierarchy_sales_count_tab')
             }}
             style={{
               flex: 1,
