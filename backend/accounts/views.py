@@ -1159,6 +1159,7 @@ def verify_payment(request):
         order_id = "BB" + data['razorpay_payment_id'][-8:].upper()
         
         # ✅ JewelryOrder model-ல save பண்ணு
+
         try:
             product = JewelryProduct.objects.get(id=data.get('product_id'))
             order = JewelryOrder.objects.create(
@@ -1187,7 +1188,8 @@ def verify_payment(request):
                 razorpay_payment_id=data['razorpay_payment_id'],
             )
             order_id = order.order_id
-        except Exception:
+        except Exception as e:
+            print('❌ JewelryOrder SAVE FAILED:', repr(e))
             order_id = "BB" + data['razorpay_payment_id'][-8:].upper()
         
         return Response({
