@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import api from '../api'
 
+const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
+
 const ROLE_CFG = {
   admin:      { color: '#22d3ee', label: '🛡️ ADMIN',      idKey: 'admin_id',      childKey: 'dealers' },
   dealer:     { color: '#4ade80', label: '🏪 DEALER',      idKey: 'dealer_id',     childKey: 'sub_dealers' },
@@ -17,7 +19,12 @@ function hexToRgb(hex) {
   return `${r},${g},${b}`
 }
 
-// Walk down and collect ALL orders under this node (itself + every descendant)
+function getImageUrl(url) {
+  if (!url) return null
+  if (url.startsWith('http')) return url
+  return `${API_BASE}/${url.replace(/^\/+/, '')}`
+}
+
 function collectOrders(node) {
   if (!node) return []
   if (node.type === 'customer') return node.orders || []
@@ -82,7 +89,6 @@ export default function SuperAdminHierarchySalesCount() {
 
   const orders = selected ? collectOrders(selected) : []
 
-  // Group orders by metal + grade + product name
   const grouped = {}
   orders.forEach(o => {
     const key = `${o.metal}__${o.grade}__${o.product_name}`
@@ -90,6 +96,7 @@ export default function SuperAdminHierarchySalesCount() {
       grouped[key] = {
         metal: o.metal, grade: o.grade, product_name: o.product_name,
         category: o.category, net_weight: o.net_weight,
+        image: o.product_image_url,
         totalQty: 0, totalAmount: 0, lastRate: 0,
       }
     }
@@ -117,12 +124,10 @@ export default function SuperAdminHierarchySalesCount() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 24, alignItems: 'start' }}>
-        {/* LEFT: hierarchy */}
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: 16, maxHeight: '85vh', overflowY: 'auto' }}>
           <TreeItem node={root} selectedId={selected ? `${selected.type}-${selected.id}` : null} onSelect={setSelected} depth={0} />
         </div>
 
-        {/* RIGHT: order details */}
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: 24 }}>
           {selected && (
             <>
@@ -148,40 +153,50 @@ export default function SuperAdminHierarchySalesCount() {
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {groupedList.map((g, i) => (
-                    <div key={i} style={{
-                      background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: 12, padding: '14px 18px',
-                      display: 'grid', gridTemplateColumns: '1fr 1.4fr 1fr 1fr 0.6fr 1.2fr', gap: 10, alignItems: 'center'
-                    }}>
-                      <div>
-                        <div style={{ fontSize: 9, color: '#94a3b8', textTransform: 'uppercase' }}>Metal</div>
-                        <div style={{ fontWeight: 700, textTransform: 'capitalize' }}>{g.metal}</div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 9, color: '#94a3b8', textTransform: 'uppercase' }}>Product</div>
-                        <div style={{ fontWeight: 700 }}>{g.product_name}</div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 9, color: '#94a3b8', textTransform: 'uppercase' }}>Grade</div>
-                        <div style={{ fontWeight: 700 }}>{g.grade || g.category}</div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 9, color: '#94a3b8', textTransform: 'uppercase' }}>Weight</div>
-                        <div style={{ fontWeight: 700 }}>{g.net_weight ? `${g.net_weight} gm` : '—'}</div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 9, color: '#94a3b8', textTransform: 'uppercase' }}>Qty</div>
-                        <div style={{ fontWeight: 700 }}>{g.totalQty}</div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 9, color: '#94a3b8', textTransform: 'uppercase' }}>Rate / Total</div>
-                        <div style={{ fontWeight: 700, color: '#fbbf24' }}>
-                          ₹{g.lastRate.toLocaleString('en-IN')} / ₹{g.totalAmount.toLocaleString('en-IN')}
+                  {groupedList.map((g, i) => {
+                    const imgUrl = getImageUrl(g.image)
+                    return (
+                      <div key={i} style={{
+                        background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: 12, padding: '14px 18px',
+                        display: 'grid', gridTemplateColumns: '56px 1fr 1.2fr 1fr 1fr 0.6fr 1.2fr', gap: 12, alignItems: 'center'
+                      }}>
+                        <div style={{ width: 56, height: 56, borderRadius: 8, overflow: 'hidden', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          {imgUrl ? (
+                            <img src={imgUrl} alt={g.product_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.currentTarget.style.display = 'none' }} />
+                          ) : (
+                            <span style={{ fontSize: 20 }}>💍</span>
+                          )}
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 9, color: '#94a3b8', textTransform: 'uppercase' }}>Metal</div>
+                          <div style={{ fontWeight: 700, textTransform: 'capitalize' }}>{g.metal}</div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 9, color: '#94a3b8', textTransform: 'uppercase' }}>Product</div>
+                          <div style={{ fontWeight: 700 }}>{g.product_name}</div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 9, color: '#94a3b8', textTransform: 'uppercase' }}>Grade</div>
+                          <div style={{ fontWeight: 700 }}>{g.grade || g.category}</div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 9, color: '#94a3b8', textTransform: 'uppercase' }}>Weight</div>
+                          <div style={{ fontWeight: 700 }}>{g.net_weight ? `${g.net_weight} gm` : '—'}</div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 9, color: '#94a3b8', textTransform: 'uppercase' }}>Qty</div>
+                          <div style={{ fontWeight: 700 }}>{g.totalQty}</div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 9, color: '#94a3b8', textTransform: 'uppercase' }}>Rate / Total</div>
+                          <div style={{ fontWeight: 700, color: '#fbbf24' }}>
+                            ₹{g.lastRate.toLocaleString('en-IN')} / ₹{g.totalAmount.toLocaleString('en-IN')}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </>

@@ -146,11 +146,18 @@ function TreeNode({ node, role, depth = 0, dark, text, subtext, colorIdx = 0, an
               border: '1px solid rgba(74,222,128,0.4)',
               borderRadius: '6px', color: '#4ade80', cursor: 'pointer',
               letterSpacing: '0.8px', transition: 'all 0.2s ease',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
             }}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(74,222,128,0.25)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(74,222,128,0.1)' }}
           >
             📊 SALES
+            <span style={{
+              background: '#4ade80', color: '#000', borderRadius: '10px',
+              padding: '0 5px', fontSize: '9px', fontWeight: 900, minWidth: '14px',
+            }}>
+              {node.order_count || 0}
+            </span>
           </button>
         </div>
 

@@ -5,7 +5,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
 from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder, JewelryProduct, JewelryProductImage, HomeBanner, CartItem, Wishlist, JewelryOrder
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Count
 from .serializers import *
 from django.utils import timezone
 from datetime import timedelta
@@ -407,6 +407,11 @@ class FullHierarchyView(APIView):
             queryset=DealerProfile.objects.filter(assigned_admin__isnull=False).prefetch_related(sub_dealers_pf)
         )
 
+        # ✅ Order count per customer — oru query-la ella customer order count-um edukurom
+        order_counts = dict(
+            JewelryOrder.objects.values('user_id').annotate(c=Count('id')).values_list('user_id', 'c')
+        )
+
         if request.user.role == 'admin':
             admins = AdminProfile.objects.filter(user=request.user).prefetch_related(dealers_pf)
         else:
@@ -428,9 +433,11 @@ class FullHierarchyView(APIView):
                                 'last_name': c.last_name,
                                 'mobile_number': c.mobile_number,
                                 'city_name': c.city_name,
+                                'order_count': order_counts.get(c.user_id, 0),
                             }
                             for c in pr.assigned_customers.all()
                         ]
+                        promotor_order_count = sum(c['order_count'] for c in customer_list)
                         promotor_list.append({
                             'id': pr.id,
                             'promotor_id': pr.promotor_id,
@@ -439,8 +446,10 @@ class FullHierarchyView(APIView):
                             'mobile_number': pr.mobile_number,
                             'city_name': pr.city_name,
                             'customers': customer_list,
+                            'order_count': promotor_order_count,
                         })
 
+                    sub_dealer_order_count = sum(pr['order_count'] for pr in promotor_list)
                     sub_dealer_list.append({
                         'id': sd.id,
                         'sub_dealer_id': sd.sub_dealer_id,
@@ -449,8 +458,10 @@ class FullHierarchyView(APIView):
                         'mobile_number': sd.mobile_number,
                         'city_name': sd.city_name,
                         'promotors': promotor_list,
+                        'order_count': sub_dealer_order_count,
                     })
 
+                dealer_order_count = sum(sd['order_count'] for sd in sub_dealer_list)
                 dealer_list.append({
                     'id': dealer.id,
                     'dealer_id': dealer.dealer_id,
@@ -459,8 +470,10 @@ class FullHierarchyView(APIView):
                     'mobile_number': dealer.mobile_number,
                     'city_name': dealer.city_name,
                     'sub_dealers': sub_dealer_list,
+                    'order_count': dealer_order_count,
                 })
 
+            admin_order_count = sum(d['order_count'] for d in dealer_list)
             tree.append({
                 'id': admin.id,
                 'admin_id': admin.admin_id,
@@ -469,6 +482,7 @@ class FullHierarchyView(APIView):
                 'mobile_number': admin.mobile_number,
                 'city_name': admin.city_name,
                 'dealers': dealer_list,
+                'order_count': admin_order_count,
             })
 
         return Response({'super_admin_email': request.user.email, 'admins': tree})
@@ -1214,6 +1228,7 @@ def _orders_for_user(user):
             'grade': o.product_grade,
             'category': o.product_category,
             'net_weight': str(o.product.net_weight) if o.product and o.product.net_weight else None,
+            'product_image_url': o.product_image_url,
             'quantity': o.quantity,
             'unit_price': float(o.unit_price),
             'total_price': float(o.total_price),
