@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import SuperAdminDashboard from './pages/SuperAdminDashboard'
+import SuperadminHierarchy from './Hierarchy/Superadmin_Hierarchy'
+import SuperAdminHierarchySalesCount from './Hierarchy/superadmin_Hierarchy_SalesCount'
 import AdminDashboard from './pages/AdminDashboard'
 import DealerDashboard from './pages/DealerDashboard'
 import SubDealerDashboard from './pages/SubDealerDashboard'
@@ -61,7 +63,7 @@ import OrderConfirm from './Orders/Orderconfirm'
 import OrderSummary from './Orders/Ordersummary'
 import AdminOrdersPage from './Orders/Adminorderspage'
 
-import SuperAdminHierarchySalesCount from './Hierarchy_SalesCount/superadmin_Hierarchy_SalesCount'
+
 
 
 
@@ -98,6 +100,9 @@ export default function App() {
         <Route path="/super-admin" element={
           <ProtectedRoute role="super_admin"><SuperAdminDashboard /></ProtectedRoute>
         } />
+
+        <Route path="/admin-hierarchy" element={<SuperadminHierarchy />} />
+        
         <Route path="/admin" element={
           <ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>
         } />

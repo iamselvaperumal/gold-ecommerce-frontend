@@ -2330,10 +2330,10 @@ setOrderPopupState({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0 }}>Admin Management</h2>
           <div style={{ display: 'flex', gap: '12px' }}>
-            <button onClick={handleOpenHierarchy}
-              style={{ padding: '11px 28px', background: 'rgba(165,243,252,0.08)', border: '1px solid rgba(103,232,249,0.3)', borderRadius: '12px', fontWeight: 700, color: '#a5f3fc', fontSize: '14px', cursor: 'pointer' }}>
-              🏢 Admin Hierarchy
-            </button>
+            <button onClick={() => navigate('/admin-hierarchy')}
+  style={{ padding: '11px 28px', background: 'rgba(165,243,252,0.08)', border: '1px solid rgba(103,232,249,0.3)', borderRadius: '12px', fontWeight: 700, color: '#a5f3fc', fontSize: '14px', cursor: 'pointer' }}>
+  🏢 Admin Hierarchy
+</button>
             <button onClick={() => setShowForm(!showForm)} className="sa-grad-btn"
               style={{ padding: '11px 28px', background: 'linear-gradient(90deg,#22d3ee,#4ade80)', border: 'none', borderRadius: '12px', fontWeight: 800, color: '#006165', fontSize: '14px', cursor: 'pointer' }}>
               {showForm ? 'Cancel' : '+ Create Admin'}
@@ -3143,7 +3143,7 @@ setOrderPopupState({
 
 
         {/* ── FULL HIERARCHY MODAL ── */}
-        {showHierarchy && (
+        {/* {showHierarchy && (
           <div
             onClick={() => { setShowHierarchy(false); setActiveAdmin(null); removeAdminPopup() }}
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.80)', backdropFilter: 'blur(10px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -3153,7 +3153,7 @@ setOrderPopupState({
   style={{ background: dark ? '#0a1628' : '#f8fafc', border: '1px solid rgba(103,232,249,0.2)', borderRadius: '24px', width: '98%', maxWidth: '1400px', height: '90vh', maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
 >
 
-              {/* HEADER - fixed top */}
+          
               <div style={{ flexShrink: 0, padding: '20px 28px', borderBottom: '1px solid rgba(103,232,249,0.1)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
                 <div>
                   <span style={{ color: '#a5f3fc', fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>🏢 Full Organization Hierarchy</span>
@@ -3221,9 +3221,9 @@ setOrderPopupState({
                 </div>
               </div>
 
-{/* SCROLL AREA - middle scrolls */}
+
 <div style={{ flex: 1, minHeight: '65vh', overflowX: 'auto', overflowY: 'auto', padding: '28px 32px', scrollBehavior: 'smooth', scrollbarWidth: 'thin', scrollbarColor: 'rgba(34,211,238,0.4) rgba(255,255,255,0.03)' }}>
-                {/* Loading */}
+
                 {hierarchyLoading && (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 0', gap: '16px' }}>
                     <div style={{ width: 32, height: 32, border: '3px solid rgba(34,211,238,0.2)', borderTop: '3px solid #22d3ee', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
@@ -3231,13 +3231,13 @@ setOrderPopupState({
                   </div>
                 )}
 
-               {/* Tree */}
+
 {!hierarchyLoading && hierarchyData && (
   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 'max-content', margin: '0 auto' }}>
 
-    {/* ── SEARCH RESULTS MODE — overrides everything else ── */}
+
     {hierarchySearch.trim() ? (() => {
-  // ✅ Role filter (Admin/Dealer/etc tabs) + search results combine pannurathu
+
   const filteredResults = hierarchyFilter && hierarchyFilter !== 'super_admin'
     ? searchResults.filter(item => item.role === hierarchyFilter)
     : searchResults
@@ -3277,7 +3277,7 @@ setOrderPopupState({
   )
 })() : (
       <>
-        {/* Back button when filtered */}
+
         {hierarchyFilter && (
           <button
             onClick={() => { setHierarchyFilter(null); setHierarchySearch('') }}
@@ -3287,7 +3287,7 @@ setOrderPopupState({
           </button>
         )}
 
-    {/* Super Admin Root Node — full tree AND super_admin filter la mattum */}
+
     {(!hierarchyFilter || hierarchyFilter === 'super_admin') && (
       <>
         <div style={{ background: 'linear-gradient(135deg,rgba(255,215,0,0.12),rgba(255,215,0,0.05))', border: '1px solid rgba(255,215,0,0.5)', borderRadius: '20px', padding: '24px 64px', fontWeight: 800, fontSize: '20px', color: '#ffd700', animation: 'pulseGlow 3s ease-in-out infinite', boxShadow: '0 0 24px rgba(255,215,0,0.1)', textAlign: 'center' }}>
@@ -3300,7 +3300,7 @@ setOrderPopupState({
       </>
     )}
 
-    {/* Full Tree Mode */}
+
     {!hierarchyFilter && hierarchyData.admins.length > 0 && (
       <>
         <div style={{ height: 2, background: 'rgba(34,211,238,0.5)', width: '100%' }} />
@@ -3329,7 +3329,7 @@ setOrderPopupState({
       <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No admins created yet.</div>
     )}
 
-   {/* Filtered Flat Mode — Admin/Dealer/SubDealer/Promotor/Customer mattum */}
+
 {hierarchyFilter && hierarchyFilter !== 'super_admin' && (() => {
   const cfg = ROLE_LABELS[hierarchyFilter]
   const idKey = cfg?.idKey || 'id'
@@ -3384,7 +3384,7 @@ setOrderPopupState({
 
               </div>
 
-              {/* LEGEND - fixed bottom */}
+
               {!hierarchyLoading && (
                 <div style={{ flexShrink: 0, padding: '14px 28px', borderTop: '1px solid rgba(103,232,249,0.08)', display: 'flex', gap: '14px', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
                   {[
@@ -3408,7 +3408,7 @@ setOrderPopupState({
 
             </div>
           </div>
-        )}
+        )} */}
 
 
 
