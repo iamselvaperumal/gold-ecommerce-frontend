@@ -1,8 +1,6 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
-
-const COLORS = ['#22d3ee', '#a78bfa', '#34d399', '#f472b6', '#f59e0b', '#60a5fa']
 
 // ── SVG ICONS ──
 const IconShield = ({ color, size = 14 }) => (
@@ -82,13 +80,18 @@ const IconChevronDown = ({ color, size = 10 }) => (
   </svg>
 )
 
+// ── ROLE CONFIG — every role has ONE fixed color. This color is used for the node's
+// border AND for the curvy connector line that leads INTO that role's nodes. ──
 const ROLE_CFG = {
-  admin: { color: '#22d3ee', Icon: IconShield, label: 'ADMIN', idKey: 'admin_id' },
-  dealer: { color: '#4ade80', Icon: IconStore, label: 'DEALER', idKey: 'dealer_id' },
-  sub_dealer: { color: '#f59e0b', Icon: IconLink, label: 'SUB DEALER', idKey: 'sub_dealer_id' },
-  promotor: { color: '#a78bfa', Icon: IconStar, label: 'PROMOTOR', idKey: 'promotor_id' },
-  customer: { color: '#f472b6', Icon: IconUser, label: 'CUSTOMER', idKey: 'customer_id' },
+  super_admin: { color: '#a78bfa', Icon: IconShield, label: 'SUPER ADMIN' },
+  admin: { color: '#22c55e', Icon: IconShield, label: 'ADMIN', idKey: 'admin_id' },
+  dealer: { color: '#38bdf8', Icon: IconStore, label: 'DEALER', idKey: 'dealer_id' },
+  sub_dealer: { color: '#ef4444', Icon: IconLink, label: 'SUB DEALER', idKey: 'sub_dealer_id' },
+  promotor: { color: '#d4a017', Icon: IconStar, label: 'PROMOTOR', idKey: 'promotor_id' },
+  customer: { color: '#fb7185', Icon: IconUser, label: 'CUSTOMER', idKey: 'customer_id' },
 }
+const CHILD_ROLE = { admin: 'dealer', dealer: 'sub_dealer', sub_dealer: 'promotor', promotor: 'customer' }
+const CHILD_KEY = { admin: 'dealers', dealer: 'sub_dealers', sub_dealer: 'promotors', promotor: 'customers' }
 
 // ── raw SVG strings for innerHTML (DOM popup-ku react component use panna mudiyathu) ──
 function iconSvg(paths, color, size = 14) {
@@ -204,12 +207,12 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, super
     s.textContent = `
       #chain-popup::-webkit-scrollbar{width:6px}
       #chain-popup::-webkit-scrollbar-track{background:rgba(255,255,255,0.03);border-radius:10px;margin:4px 0}
-      #chain-popup::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#22d3ee,#4ade80);border-radius:10px;box-shadow:0 0 6px rgba(34,211,238,0.4)}
-      #chain-popup::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#67e8f9,#86efac)}
-      #chain-popup{scrollbar-color:rgba(34,211,238,0.5) rgba(255,255,255,0.03)}
+      #chain-popup::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#22c55e,#38bdf8);border-radius:10px;box-shadow:0 0 6px rgba(34,197,94,0.4)}
+      #chain-popup::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#4ade80,#7dd3fc)}
+      #chain-popup{scrollbar-color:rgba(34,197,94,0.5) rgba(255,255,255,0.03)}
       @keyframes acpSlideIn{from{opacity:0;transform:translateX(18px) scale(0.95)}to{opacity:1;transform:translateX(0) scale(1)}}
       @keyframes acpPulse{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
-      @keyframes acpGlow{0%,100%{box-shadow:0 0 0px rgba(34,211,238,0)}50%{box-shadow:0 0 20px rgba(34,211,238,0.22)}}
+      @keyframes acpGlow{0%,100%{box-shadow:0 0 0px rgba(34,197,94,0)}50%{box-shadow:0 0 20px rgba(34,197,94,0.22)}}
       @keyframes acpShimmer{0%{background-position:-200% center}100%{background-position:200% center}}
       @keyframes acpBadgePop{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}}
     `
@@ -220,10 +223,10 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, super
   el.style.cssText = `
     position:fixed; z-index:9999;
     background:${isDark ? 'rgba(5,10,20,0.97)' : 'rgba(248,250,252,0.98)'};
-    border:1px solid ${isDark ? 'rgba(34,211,238,0.22)' : 'rgba(37,99,235,0.18)'};
+    border:1px solid ${isDark ? 'rgba(34,197,94,0.22)' : 'rgba(37,99,235,0.18)'};
     border-radius:20px; padding:20px;
     box-shadow:${isDark
-      ? '0 32px 80px rgba(0,0,0,0.85), 0 0 0 1px rgba(34,211,238,0.06), inset 0 1px 0 rgba(255,255,255,0.04)'
+      ? '0 32px 80px rgba(0,0,0,0.85), 0 0 0 1px rgba(34,197,94,0.06), inset 0 1px 0 rgba(255,255,255,0.04)'
       : '0 32px 80px rgba(0,0,0,0.15), 0 0 0 1px rgba(37,99,235,0.05)'};
     animation:acpSlideIn 0.3s cubic-bezier(0.22,1,0.36,1) both;
     min-width:200px; max-width:260px;
@@ -236,6 +239,8 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, super
   `
 
   const totalNodes = chain.length
+  const saColor = ROLE_CFG.super_admin.color
+  const saRgb = hexToRgb(saColor)
 
   const itemsHtml = chain.map((item, idx) => {
     const isLast = idx === chain.length - 1
@@ -244,8 +249,8 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, super
     const arrowHtml = idx > 0 ? `
       <div style="display:flex;justify-content:center;padding:5px 0;">
         <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
-          <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:7px solid rgba(34,211,238,0.5);"></div>
-          <div style="width:1.5px;height:16px;background:linear-gradient(180deg,rgba(34,211,238,0.1),rgba(34,211,238,0.65));"></div>
+          <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:7px solid rgba(34,197,94,0.5);"></div>
+          <div style="width:1.5px;height:16px;background:linear-gradient(180deg,rgba(34,197,94,0.1),rgba(34,197,94,0.65));"></div>
         </div>
       </div>` : ''
 
@@ -254,20 +259,20 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, super
         ${arrowHtml}
         <div style="
           border-radius:14px;padding:14px 16px;
-          background:${isDark ? 'linear-gradient(135deg,rgba(255,215,0,0.09),rgba(255,140,0,0.04))' : 'linear-gradient(135deg,rgba(255,215,0,0.14),rgba(255,140,0,0.06))'};
-          border:1px solid rgba(255,215,0,0.28);
+          background:${isDark ? `linear-gradient(135deg,rgba(${saRgb},0.09),rgba(${saRgb},0.04))` : `linear-gradient(135deg,rgba(${saRgb},0.14),rgba(${saRgb},0.06))`};
+          border:1px solid rgba(${saRgb},0.3);
           position:relative;overflow:hidden;
         ">
-          <div style="position:absolute;top:-10px;right:-10px;width:70px;height:70px;background:radial-gradient(circle,rgba(255,215,0,0.14),transparent 70%);pointer-events:none;"></div>
+          <div style="position:absolute;top:-10px;right:-10px;width:70px;height:70px;background:radial-gradient(circle,rgba(${saRgb},0.14),transparent 70%);pointer-events:none;"></div>
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-            <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#ffd700,#ff8c00);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(255,215,0,0.35);">${iconSvg(ICON_PATHS.shield, '#1a1200', 15)}</div>
+            <div style="width:30px;height:30px;border-radius:9px;background:${saColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(${saRgb},0.35);">${iconSvg(ICON_PATHS.shield, '#1a1030', 15)}</div>
             <div>
-              <div style="font-size:9px;color:#ffd700;font-weight:800;letter-spacing:1.8px;">SUPER ADMIN</div>
-              <div style="font-size:8px;color:rgba(255,215,0,0.45);margin-top:2px;letter-spacing:0.5px;">ROOT • FULL ACCESS</div>
+              <div style="font-size:9px;color:${saColor};font-weight:800;letter-spacing:1.8px;">SUPER ADMIN</div>
+              <div style="font-size:8px;color:rgba(${saRgb},0.6);margin-top:2px;letter-spacing:0.5px;">ROOT • FULL ACCESS</div>
             </div>
             <div style="margin-left:auto;display:flex;align-items:center;gap:5px;">
-              <div style="width:7px;height:7px;border-radius:50%;background:#4ade80;animation:acpPulse 1.8s ease-in-out infinite;box-shadow:0 0 8px rgba(74,222,128,0.9);"></div>
-              <span style="font-size:9px;color:#4ade80;font-weight:700;">LIVE</span>
+              <div style="width:7px;height:7px;border-radius:50%;background:#22c55e;animation:acpPulse 1.8s ease-in-out infinite;box-shadow:0 0 8px rgba(34,197,94,0.9);"></div>
+              <span style="font-size:9px;color:#22c55e;font-weight:700;">LIVE</span>
             </div>
           </div>
           <div style="font-size:12px;color:${isDark ? '#cbd5e1' : '#475569'};word-break:break-all;font-family:monospace;letter-spacing:0.3px;">${item.data.email || '—'}</div>
@@ -301,7 +306,7 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, super
         ${isLast ? `<div style="position:absolute;top:-15px;right:-15px;width:80px;height:80px;background:radial-gradient(circle,rgba(${rc},0.18),transparent 70%);pointer-events:none;"></div>` : ''}
 
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px;">
-          <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,${cfg.color},rgba(${rc},0.45));display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(${rc},0.3);">${iconSvg(ICON_PATHS[iconKey], '#020617', 15)}</div>
+          <div style="width:30px;height:30px;border-radius:9px;background:${cfg.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(${rc},0.3);">${iconSvg(ICON_PATHS[iconKey], '#020617', 15)}</div>
           <div style="flex:1;min-width:0;">
             <div style="font-size:9px;color:${cfg.color};font-weight:800;letter-spacing:1.8px;">${cfg.label}</div>
             <div style="font-size:9px;color:${cfg.color};font-family:monospace;opacity:0.6;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${idVal}</div>
@@ -333,21 +338,21 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, super
   }).join('')
 
   el.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid ${isDark ? 'rgba(34,211,238,0.1)' : 'rgba(37,99,235,0.08)'};">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid ${isDark ? 'rgba(34,197,94,0.1)' : 'rgba(37,99,235,0.08)'};">
       <div style="display:flex;align-items:center;gap:9px;">
-        <div style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#22d3ee,#4ade80);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(34,211,238,0.4);">${iconSvg(ICON_PATHS.link, '#020617', 13)}</div>
+        <div style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#22c55e,#38bdf8);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(34,197,94,0.4);">${iconSvg(ICON_PATHS.link, '#020617', 13)}</div>
         <div>
-          <div style="font-size:11px;color:${isDark ? '#22d3ee' : '#2563eb'};font-weight:800;letter-spacing:1.8px;">HIERARCHY CHAIN</div>
+          <div style="font-size:11px;color:${isDark ? '#4ade80' : '#16a34a'};font-weight:800;letter-spacing:1.8px;">HIERARCHY CHAIN</div>
           <div style="font-size:9px;color:${isDark ? '#475569' : '#94a3b8'};margin-top:2px;">${totalNodes} level${totalNodes !== 1 ? 's' : ''} deep</div>
         </div>
       </div>
       <div style="
         font-size:9px;font-weight:800;padding:4px 11px;border-radius:20px;
-        background:linear-gradient(90deg,rgba(34,211,238,0.15),rgba(74,222,128,0.12),rgba(34,211,238,0.15));
+        background:linear-gradient(90deg,rgba(34,197,94,0.15),rgba(56,189,248,0.12),rgba(34,197,94,0.15));
         background-size:200% auto;
         animation:acpShimmer 2.5s linear infinite;
-        border:1px solid rgba(34,211,238,0.22);
-        color:${isDark ? '#67e8f9' : '#2563eb'};
+        border:1px solid rgba(34,197,94,0.22);
+        color:${isDark ? '#4ade80' : '#16a34a'};
         letter-spacing:1px;">● LIVE</div>
     </div>
 
@@ -378,102 +383,83 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, super
   el.addEventListener('mouseleave', () => scheduleHideChainPopup())
 }
 
-function TreeNode({ node, role, depth = 0, dark, text, subtext, colorIdx = 0, ancestors = [], superAdminEmail = '', flatMode = false }) {
+// ── TREE NODE — recursive, works for any number of children.
+// The `.otree-children` wrapper draws the curvy connector down to ITS children,
+// colored with that child role's own color (not the parent's), and every sibling
+// branch is a real, separate DOM subtree so no branch can ever cross another. ──
+function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], superAdminEmail = '', flatMode = false }) {
   const navigate = useNavigate()
-  const [expanded, setExpanded] = useState(depth < 2)
   const cfg = ROLE_CFG[role]
-  const c = COLORS[colorIdx % COLORS.length]
+  const c = cfg.color
   const Icon = cfg.Icon
-
-  const childRole = { admin: 'dealer', dealer: 'sub_dealer', sub_dealer: 'promotor', promotor: 'customer' }[role]
-  const children = { admin: node.dealers, dealer: node.sub_dealers, sub_dealer: node.promotors, promotor: node.customers }[role] || []
-  const hasChildren = !flatMode && children.length > 0
+  const childRole = CHILD_ROLE[role]
+  const children = childRole ? (node[CHILD_KEY[role]] || []) : []
+  const hasChildren = !flatMode && !!childRole && children.length > 0
+  const [expanded, setExpanded] = useState(depth < 2)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 0 }}>
-      <div
-        onClick={() => hasChildren && setExpanded(!expanded)}
-        style={{
-          background: dark ? `rgba(${hexToRgb(c)},0.06)` : `rgba(${hexToRgb(c)},0.08)`,
-          border: `1px solid rgba(${hexToRgb(c)},0.35)`, borderRadius: '12px', padding: '12px 16px',
-          minWidth: '160px', maxWidth: '200px', cursor: hasChildren ? 'pointer' : 'default',
-          transition: 'all 0.3s ease', position: 'relative',
-        }}
-        onMouseEnter={e => {
-          e.currentTarget.style.transform = 'translateY(-3px)'
-          e.currentTarget.style.boxShadow = `0 8px 24px rgba(${hexToRgb(c)},0.25)`
-          e.currentTarget.style.borderColor = `rgba(${hexToRgb(c)},0.7)`
-          showChainPopup(e.currentTarget, ancestors, { node, role }, dark, text, subtext, superAdminEmail)
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.transform = 'translateY(0)'
-          e.currentTarget.style.boxShadow = 'none'
-          e.currentTarget.style.borderColor = `rgba(${hexToRgb(c)},0.35)`
-          scheduleHideChainPopup()
-        }}
+    <div className="otree-node-wrap">
+       <div
+        className="otree-card"
+        data-role={role}
+        style={{ '--nc': c }}
+        onClick={() => hasChildren && setExpanded(v => !v)}
+        onMouseEnter={e => showChainPopup(e.currentTarget, ancestors, { node, role }, dark, text, subtext, superAdminEmail)}
+        onMouseLeave={() => scheduleHideChainPopup()}
       >
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: '9px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px', marginBottom: '8px', background: `rgba(${hexToRgb(c)},0.15)`, color: c, border: `1px solid rgba(${hexToRgb(c)},0.35)` }}>
+        <div className="otree-badge" style={{ '--nc': c }}>
           <Icon color={c} size={11} /> {cfg.label}
         </div>
-        <div style={{ color: c, fontFamily: 'monospace', fontSize: '10px', marginBottom: '4px', wordBreak: 'break-all' }}>
-          {node[cfg.idKey]}
-        </div>
-        <div style={{ color: text, fontWeight: 700, fontSize: '13px', marginBottom: '6px' }}>
-          {node.first_name} {node.last_name || ''}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: subtext, fontSize: '11px', marginBottom: '2px' }}>
+        <div className="otree-id" style={{ color: c }}>{node[cfg.idKey]}</div>
+        <div className="otree-name" style={{ color: text }}>{node.first_name} {node.last_name || ''}</div>
+        <div className="otree-sub" style={{ color: subtext }}>
           <IconPhone color={subtext} /> {node.mobile_number}
         </div>
         {node.city_name && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: subtext, fontSize: '11px' }}>
+          <div className="otree-sub" style={{ color: subtext }}>
             <IconMapPin color={subtext} /> {node.city_name}
           </div>
         )}
-        <div style={{ marginTop: '8px', width: '100%', height: 2, borderRadius: 2, background: `linear-gradient(90deg,rgba(${hexToRgb(c)},0.2),${c})` }} />
 
-        <div style={{ marginTop: '8px', display: 'flex', gap: '6px' }}>
+        <div className="otree-actions">
           <button
             onClick={e => { e.stopPropagation(); printPersonCard(node, role, cfg, c, ancestors, superAdminEmail) }}
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '3px 0', fontSize: '9px', fontWeight: 700, background: `rgba(${hexToRgb(c)},0.1)`, border: `1px solid rgba(${hexToRgb(c)},0.35)`, borderRadius: '6px', color: c, cursor: 'pointer' }}
+            className="otree-btn" style={{ '--nc': c }}
           >
             <IconPrinter color={c} /> PRINT
           </button>
           <button
             onClick={e => { e.stopPropagation(); navigate(`/hierarchy-sales-count?role=${role}&id=${node.id}`) }}
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '3px 0', fontSize: '9px', fontWeight: 700, background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.4)', borderRadius: '6px', color: '#4ade80', cursor: 'pointer' }}
+            className="otree-btn otree-btn-sales"
           >
-            <IconChart color="#4ade80" /> SALES
+            <IconChart color="#22c55e" /> SALES
           </button>
         </div>
 
         {hasChildren && (
-          <div style={{ position: 'absolute', top: '8px', right: '10px', color: c, transition: 'transform 0.3s ease', transform: expanded ? 'rotate(0deg)' : 'rotate(180deg)' }}>
+          <div className="otree-toggle" style={{ color: c, transform: expanded ? 'rotate(0deg)' : 'rotate(180deg)' }}>
             <IconChevronDown color={c} />
           </div>
         )}
         {hasChildren && (
-          <div style={{ position: 'absolute', bottom: '-10px', left: '50%', transform: 'translateX(-50%)', background: c, color: '#000', fontSize: '9px', fontWeight: 800, padding: '1px 7px', borderRadius: '20px', whiteSpace: 'nowrap' }}>
-            {children.length} {childRole?.replace('_', ' ')}
+          <div className="otree-count" style={{ background: c }}>
+            {children.length} {childRole.replace('_', ' ')}
           </div>
         )}
       </div>
 
       {hasChildren && expanded && (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-          <div style={{ width: 2, height: 28, background: `linear-gradient(180deg,${c},rgba(${hexToRgb(c)},0.3))`, marginTop: '10px' }} />
-          <div style={{ position: 'relative', width: '100%' }}>
-            {children.length > 1 && (
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `rgba(${hexToRgb(c)},0.45)` }} />
-            )}
-            <div style={{ display: 'flex', justifyContent: children.length === 1 ? 'center' : 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-              {children.map((child, ci) => (
-                <div key={child.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: children.length === 1 ? '0 0 auto' : 1 }}>
-                  <div style={{ width: 2, height: 20, background: `rgba(${hexToRgb(c)},0.5)` }} />
-                  <TreeNode node={child} role={childRole} depth={depth + 1} dark={dark} text={text} subtext={subtext} colorIdx={colorIdx + ci + 1} ancestors={[...ancestors, { node, role }]} superAdminEmail={superAdminEmail} />
-                </div>
-              ))}
+        <div className="otree-children" style={{ '--lc': ROLE_CFG[childRole].color }}>
+          {children.map(child => (
+            <div className="otree-item" key={child.id}>
+              <TreeNode
+                node={child} role={childRole} depth={depth + 1}
+                dark={dark} text={text} subtext={subtext}
+                ancestors={[...ancestors, { node, role }]}
+                superAdminEmail={superAdminEmail}
+              />
             </div>
-          </div>
+          ))}
         </div>
       )}
     </div>
@@ -489,11 +475,54 @@ export default function SuperadminHierarchy() {
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
 
+  // ADD this after your existing useState lines (near `const [debouncedSearch, ...]`)
+const treeWrapperRef = useRef(null)
+const scrollAreaRef = useRef(null)
+const [levelTops, setLevelTops] = useState({})
+
+useLayoutEffect(() => {
+  const wrapper = treeWrapperRef.current
+  if (!wrapper) return
+
+  const measure = () => {
+    const wrapperRect = wrapper.getBoundingClientRect()
+    const roles = ['admin', 'dealer', 'sub_dealer', 'promotor', 'customer']
+    const tops = {}
+    roles.forEach(role => {
+      const el = wrapper.querySelector(`[data-role="${role}"]`)
+      if (el) {
+        const rect = el.getBoundingClientRect()
+        tops[role] = (rect.top - wrapperRect.top) + rect.height / 2
+      }
+    })
+    setLevelTops(tops)
+  }
+
+  // measure right away, then again after the browser finishes painting
+  // (catches late layout shifts from fonts/icons/wrapping)
+  measure()
+  requestAnimationFrame(() => requestAnimationFrame(measure))
+
+  const ro = new ResizeObserver(measure)
+  ro.observe(wrapper)
+
+  const scrollEl = scrollAreaRef.current
+  scrollEl?.addEventListener('scroll', measure)
+  window.addEventListener('resize', measure)
+
+  return () => {
+    ro.disconnect()
+    scrollEl?.removeEventListener('scroll', measure)
+    window.removeEventListener('resize', measure)
+  }
+}, [hierarchyData, filter, debouncedSearch])
+
   const text = '#f8fafc'
   const subtext = '#94a3b8'
   const inpBg = 'rgba(255,255,255,0.05)'
   const inpBorder = '#374151'
   const border = 'rgba(255,255,255,0.1)'
+  const superAdminEmail = localStorage.getItem('email') || ''
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 120)
@@ -573,9 +602,50 @@ export default function SuperadminHierarchy() {
     customers: hierarchyData.admins.reduce((a, ad) => a + ad.dealers.reduce((b, d) => b + d.sub_dealers.reduce((c, sd) => c + sd.promotors.reduce((e, pr) => e + pr.customers.length, 0), 0), 0), 0),
   } : null
 
+  const statPills = totalStats ? [
+    { label: 'Admins', roleKey: 'admin', count: totalStats.admins },
+    { label: 'Dealers', roleKey: 'dealer', count: totalStats.dealers },
+    { label: 'Sub Dealers', roleKey: 'sub_dealer', count: totalStats.subDealers },
+    { label: 'Promotors', roleKey: 'promotor', count: totalStats.promotors },
+    { label: 'Customers', roleKey: 'customer', count: totalStats.customers },
+  ] : []
+
   return (
     <div style={{ minHeight: '100vh', background: '#020617', color: text, fontFamily: '"Inter",system-ui,sans-serif', padding: '28px 32px' }}>
-      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+      <style>{`
+        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+        .otree-node-wrap{display:flex;flex-direction:column;align-items:center;}
+        .otree-card{
+          background:rgba(255,255,255,0.03); border:1px solid var(--nc); border-radius:12px; padding:12px 16px;
+          min-width:168px; max-width:210px; cursor:pointer; position:relative; transition:all .25s ease;
+        }
+        .otree-card:hover{ transform:translateY(-3px); box-shadow:0 8px 22px rgba(0,0,0,0.35); }
+        .otree-badge{ display:inline-flex; align-items:center; gap:5px; font-size:9px; font-weight:700; padding:2px 8px; border-radius:20px; margin-bottom:8px; color:var(--nc); border:1px solid var(--nc); }
+        .otree-id{ font-family:monospace; font-size:10px; margin-bottom:4px; word-break:break-all; }
+        .otree-name{ font-weight:700; font-size:13px; margin-bottom:6px; }
+        .otree-sub{ display:flex; align-items:center; gap:4px; font-size:11px; margin-bottom:2px; }
+        .otree-actions{ margin-top:8px; display:flex; gap:6px; }
+        .otree-btn{ flex:1; display:flex; align-items:center; justify-content:center; gap:4px; padding:3px 0; font-size:9px; font-weight:700; background:transparent; border:1px solid var(--nc); border-radius:6px; color:var(--nc); cursor:pointer; }
+        .otree-btn-sales{ border-color:#22c55e; color:#22c55e; }
+        .otree-toggle{ position:absolute; top:8px; right:10px; transition:transform .25s ease; }
+        .otree-count{ position:absolute; bottom:-10px; left:50%; transform:translateX(-50%); color:#000; font-size:9px; font-weight:800; padding:1px 7px; border-radius:20px; white-space:nowrap; }
+
+        .otree-children{ display:flex; justify-content:center; align-items:flex-start; position:relative; padding-top:28px; }
+        .otree-children::before{ content:''; position:absolute; top:0; left:50%; border-left:2px solid var(--lc); width:0; height:28px; }
+        .otree-item{ position:relative; padding:28px 10px 0 10px; }
+        .otree-item::before, .otree-item::after{ content:''; position:absolute; top:0; right:50%; border-top:2px solid var(--lc); width:50%; height:28px; }
+        .otree-item::after{ right:auto; left:50%; border-left:2px solid var(--lc); }
+        .otree-item:only-child::before, .otree-item:only-child::after{ display:none; }
+        .otree-item:only-child{ padding-top:0; }
+        .otree-item:first-child::before, .otree-item:last-child::after{ border:0 none; }
+        .otree-item:last-child::before{ border-right:2px solid var(--lc); border-radius:0 20px 0 0; }
+        .otree-item:first-child::after{ border-radius:20px 0 0 0; }
+         .otree-children-root::before{ display:none; }
+        .otree-children-root > .otree-item::before,
+        .otree-children-root > .otree-item::after{ display:none; }
+
+      `}</style>
 
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         <div>
@@ -587,19 +657,17 @@ export default function SuperadminHierarchy() {
           </div>
           {totalStats && (
             <div style={{ display: 'flex', gap: '10px', marginTop: '14px', flexWrap: 'wrap' }}>
-              {[
-                { label: 'Super Admin', roleKey: 'super_admin', count: 1, color: '#ffd700' },
-                { label: 'Admins', roleKey: 'admin', count: totalStats.admins, color: '#22d3ee' },
-                { label: 'Dealers', roleKey: 'dealer', count: totalStats.dealers, color: '#4ade80' },
-                { label: 'Sub Dealers', roleKey: 'sub_dealer', count: totalStats.subDealers, color: '#f59e0b' },
-                { label: 'Promotors', roleKey: 'promotor', count: totalStats.promotors, color: '#a78bfa' },
-                { label: 'Customers', roleKey: 'customer', count: totalStats.customers, color: '#f472b6' },
-              ].map(s => {
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: `${ROLE_CFG.super_admin.color}22`, border: `1px solid ${ROLE_CFG.super_admin.color}55`, borderRadius: '20px', padding: '4px 14px' }}>
+                <span style={{ color: ROLE_CFG.super_admin.color, fontWeight: 800, fontSize: '13px' }}>1</span>
+                <span style={{ color: subtext, fontSize: '11px' }}>Super Admin</span>
+              </div>
+              {statPills.map(s => {
+                const color = ROLE_CFG[s.roleKey].color
                 const isActive = filter === s.roleKey
                 return (
                   <div key={s.label} onClick={() => setFilter(isActive ? null : s.roleKey)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: isActive ? `rgba(${hexToRgb(s.color)},0.22)` : `rgba(${hexToRgb(s.color)},0.08)`, border: `1px solid rgba(${hexToRgb(s.color)},${isActive ? 0.8 : 0.25})`, borderRadius: '20px', padding: '4px 14px', cursor: 'pointer', transition: 'all 0.25s ease' }}>
-                    <span style={{ color: s.color, fontWeight: 800, fontSize: '13px' }}>{s.count}</span>
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: isActive ? `${color}33` : `${color}14`, border: `1px solid ${isActive ? color : color + '44'}`, borderRadius: '20px', padding: '4px 14px', cursor: 'pointer', transition: 'all 0.25s ease' }}>
+                    <span style={{ color, fontWeight: 800, fontSize: '13px' }}>{s.count}</span>
                     <span style={{ color: subtext, fontSize: '11px' }}>{s.label}</span>
                   </div>
                 )
@@ -626,102 +694,119 @@ export default function SuperadminHierarchy() {
         </div>
       </div>
 
-<div style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${border}`, borderRadius: '20px', padding: '28px 32px', overflowX: 'auto', minHeight: '100vh' }}>
+     <div ref={treeWrapperRef} style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${border}`, borderRadius: '20px', padding: '28px 0', overflow: 'hidden', minHeight: '100vh', position: 'relative' }}>
+
+        <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 200, zIndex: 40, background: '#020617', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 20 }}>
+                    <div className="otree-card" data-role="super_admin" style={{ '--nc': ROLE_CFG.super_admin.color, minWidth: 150, cursor: 'default' }}>
+
+            <div className="otree-badge" style={{ '--nc': ROLE_CFG.super_admin.color }}>
+              <IconShield color={ROLE_CFG.super_admin.color} size={11} /> SUPER ADMIN
+            </div>
+            <div className="otree-name" style={{ color: text, fontSize: '12px', wordBreak: 'break-all' }}>{superAdminEmail}</div>
+          </div>
+          <div style={{ width: 2, flex: 1, background: ROLE_CFG.super_admin.color, marginTop: 6 }} />
+        </div>
+
+        {!loading && hierarchyData && !filter && !debouncedSearch && (
+  <div style={{ position: 'absolute', left: 0, top: 0, width: 200, height: '100%', zIndex: 45, pointerEvents: 'none' }}>
+    {[
+      { role: 'admin', label: 'Level 1' },
+      { role: 'dealer', label: 'Level 2' },
+      { role: 'sub_dealer', label: 'Level 3' },
+      { role: 'promotor', label: 'Level 4' },
+      { role: 'customer', label: 'Level 5' },
+    ].map(({ role, label }) => (
+      levelTops[role] != null && (
+        <div key={role} style={{
+          position: 'absolute',
+          top: levelTops[role],
+          left: 118,
+          transform: 'translateY(-50%)',
+          fontSize: '11px',
+          fontWeight: 700,
+          color: subtext,
+          letterSpacing: '0.04em',
+          whiteSpace: 'nowrap',
+        }}>
+          {label}
+        </div>
+      )
+    ))}
+  </div>
+)}
+
+
+
         {loading && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 0', gap: '16px' }}>
-            <div style={{ width: 32, height: 32, border: '3px solid rgba(34,211,238,0.2)', borderTop: '3px solid #22d3ee', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+            <div style={{ width: 32, height: 32, border: '3px solid rgba(34,197,94,0.2)', borderTop: '3px solid #22c55e', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
             <span style={{ color: subtext, fontSize: '14px' }}>Loading hierarchy...</span>
           </div>
         )}
 
         {!loading && hierarchyData && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 'max-content', margin: '0 auto' }}>
-            {debouncedSearch ? (() => {
-              const filteredResults = filter && filter !== 'super_admin' ? searchResults.filter(item => item.role === filter) : searchResults
-              if (filteredResults.length === 0) {
-                return <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No results found for "{debouncedSearch}"</div>
-              }
-              return (
-                <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '1100px' }}>
-                  {filteredResults.map((item, idx) => (
-                    <TreeNode key={item.node.id || idx} node={item.node} role={item.role} depth={0} dark={dark} text={text} subtext={subtext} colorIdx={idx} ancestors={item.ancestors} superAdminEmail={localStorage.getItem('email') || ''} flatMode={true} />
-                  ))}
-                </div>
-              )
-            })() : (
-              <>
-                {filter && (
-                  <button onClick={() => { setFilter(null); setSearch('') }} style={{ marginBottom: '20px', padding: '8px 18px', background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.35)', borderRadius: '10px', color: '#22d3ee', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                    ← Back to Full Tree
-                  </button>
+          debouncedSearch ? (() => {
+            const filteredResults = filter ? searchResults.filter(item => item.role === filter) : searchResults
+            if (filteredResults.length === 0) {
+              return <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No results found for "{debouncedSearch}"</div>
+            }
+            return (
+              <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center', padding: '0 32px' }}>
+                {filteredResults.map((item, idx) => (
+                  <TreeNode key={item.node.id || idx} node={item.node} role={item.role} dark={dark} text={text} subtext={subtext} ancestors={item.ancestors} superAdminEmail={superAdminEmail} flatMode={true} />
+                ))}
+              </div>
+            )
+          })() : filter ? (() => {
+            const flatList = flattenByRole(filter)
+            return (
+              <div style={{ padding: '0 32px' }}>
+                <button onClick={() => setFilter(null)} style={{ marginBottom: '20px', padding: '8px 18px', background: `${ROLE_CFG[filter].color}22`, border: `1px solid ${ROLE_CFG[filter].color}55`, borderRadius: '10px', color: ROLE_CFG[filter].color, fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                  ← Back to full tree
+                </button>
+                {flatList.length === 0 ? (
+                  <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No {filter.replace('_', ' ')} found.</div>
+                ) : (
+                  <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                    {flatList.map((item, idx) => (
+                      <TreeNode key={item.node.id || idx} node={item.node} role={filter} dark={dark} text={text} subtext={subtext} ancestors={item.ancestors} superAdminEmail={superAdminEmail} flatMode={true} />
+                    ))}
+                  </div>
                 )}
+              </div>
+            )
+          })() : hierarchyData.admins.length === 0 ? (
+            <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No admins created yet.</div>
+          ) : (
+            // ── FULL TREE — super admin sticks to the left while you scroll right ──
+                        <div ref={scrollAreaRef} style={{ overflowX: 'auto', overflowY: 'hidden', padding: '20px 32px 20px 220px' }}>
+<div className="otree-children otree-children-root" style={{ '--lc': ROLE_CFG.admin.color, minWidth: 'max-content' }}>
 
-                {(!filter || filter === 'super_admin') && (
-                  <>
-                    <div style={{ background: 'linear-gradient(135deg,rgba(255,215,0,0.12),rgba(255,215,0,0.05))', border: '1px solid rgba(255,215,0,0.5)', borderRadius: '20px', padding: '24px 64px', fontWeight: 800, fontSize: '20px', color: '#ffd700', textAlign: 'center' }}>
-                      Super Admin
-                      <div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: 400, marginTop: '6px' }}>
-                        {localStorage.getItem('email')}
-                      </div>
-                    </div>
-                    {!filter && <div style={{ width: 2, height: 32, background: 'rgba(34,211,238,0.6)' }} />}
-                  </>
-                )}
 
-                {!filter && hierarchyData.admins.length > 0 && (
-                  <>
-                    <div style={{ height: 2, background: 'rgba(34,211,238,0.5)', width: '100%' }} />
-                    <div style={{ display: 'flex', gap: '32px', justifyContent: 'center', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                      {hierarchyData.admins.map((admin, ai) => (
-                        <div key={admin.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                          <div style={{ width: 2, height: 24, background: 'rgba(255,215,0,0.5)' }} />
-                          <TreeNode node={admin} role="admin" depth={0} dark={dark} text={text} subtext={subtext} colorIdx={ai} ancestors={[]} superAdminEmail={localStorage.getItem('email') || ''} />
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                {!filter && hierarchyData.admins.length === 0 && (
-                  <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No admins created yet.</div>
-                )}
-
-                {filter && filter !== 'super_admin' && (() => {
-                  const idKeyMap = ROLE_CFG[filter]?.idKey || 'id'
-                  const flatList = flattenByRole(filter)
-                  if (flatList.length === 0) {
-                    return <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No {filter.replace('_', ' ')} found.</div>
-                  }
-                  return (
-                    <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '1000px' }}>
-                      {flatList.map((item, idx) => (
-                        <TreeNode key={item.node.id || idx} node={item.node} role={filter} depth={0} dark={dark} text={text} subtext={subtext} colorIdx={idx} ancestors={item.ancestors} superAdminEmail={localStorage.getItem('email') || ''} flatMode={true} />
-                      ))}
-                    </div>
-                  )
-                })()}
-              </>
-            )}
-          </div>
+                {hierarchyData.admins.map(admin => (
+                  <div className="otree-item" key={admin.id} style={{ paddingTop: 0 }}>
+                    <TreeNode node={admin} role="admin" depth={0} dark={dark} text={text} subtext={subtext} ancestors={[]} superAdminEmail={superAdminEmail} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
         )}
 
         {!loading && !hierarchyData && (
           <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>Failed to load hierarchy.</div>
         )}
-      </div>
+
+      </div> 
+    
+
+      
 
       {!loading && (
         <div style={{ marginTop: '20px', padding: '14px 0', display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
-          {[
-            { role: 'Super Admin', color: '#ffd700' },
-            { role: 'Admin', color: '#22d3ee' },
-            { role: 'Dealer', color: '#4ade80' },
-            { role: 'Sub Dealer', color: '#f59e0b' },
-            { role: 'Promotor', color: '#a78bfa' },
-            { role: 'Customer', color: '#f472b6' },
-          ].map(l => (
+          {[{ role: 'Super Admin', key: 'super_admin' }, { role: 'Admin', key: 'admin' }, { role: 'Dealer', key: 'dealer' }, { role: 'Sub Dealer', key: 'sub_dealer' }, { role: 'Promotor', key: 'promotor' }, { role: 'Customer', key: 'customer' }].map(l => (
             <div key={l.role} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div style={{ width: 9, height: 9, borderRadius: '50%', background: l.color }} />
+              <div style={{ width: 9, height: 9, borderRadius: '50%', background: ROLE_CFG[l.key].color }} />
               <span style={{ color: subtext, fontSize: '11px' }}>{l.role}</span>
             </div>
           ))}
