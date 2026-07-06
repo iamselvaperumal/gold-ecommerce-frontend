@@ -14,6 +14,7 @@ const ROLE_CFG = {
 
 // ── Column labels shown in the breakdown table, based on root type ──
 const COLUMN_MAP = {
+  super_admin_view: ['Admin', 'Dealer', 'Sub Dealer', 'Promotor', 'Customer'],
   admin:      ['Dealer', 'Sub Dealer', 'Promotor', 'Customer'],
   dealer:     ['Sub Dealer', 'Promotor', 'Customer'],
   sub_dealer: ['Promotor', 'Customer'],
@@ -50,7 +51,7 @@ function getChildren(node) {
 }
 
 // ── Flatten a tree (rooted at admin/dealer/sub_dealer/promotor) into leaf rows ──
-function flattenToRows(root) {
+function flattenToRows(root, includeRootName = false) {
   const rows = []
   function walk(node, chain) {
     if (node.type === 'customer') {
@@ -274,17 +275,28 @@ export default function Report() {
     return node ? [node] : treeData
   }, [selectedLevel, selectedNodeId, nodesForSelectedLevel, treeData])
 
+  const isMultiAdminView = role === 'super_admin' && selectedLevel === 'own' && activeTree.length > 1
+
   const allRows = useMemo(() => {
     let rows = []
-    activeTree.forEach(root => { rows = rows.concat(flattenToRows(root)) })
+    activeTree.forEach(root => {
+      const rootRows = flattenToRows(root)
+      if (isMultiAdminView) {
+        const adminName = `${root.first_name || ''} ${root.last_name || ''}`.trim() || root.admin_id
+        rootRows.forEach(r => { r.chain = [adminName, ...r.chain] })
+      }
+      rows = rows.concat(rootRows)
+    })
     return rows
-  }, [activeTree])
+  }, [activeTree, isMultiAdminView])
 
   const totalSales = allRows.reduce((s, r) => s + r.amount, 0)
   const totalOrders = allRows.reduce((s, r) => s + r.orders, 0)
   const totalCustomers = allRows.length
 
-  const columns = activeTree[0] ? (COLUMN_MAP[activeTree[0].type] || []) : []
+  const columns = isMultiAdminView
+    ? COLUMN_MAP.super_admin_view
+    : (activeTree[0] ? (COLUMN_MAP[activeTree[0].type] || []) : [])
 
   const trendBuckets = useMemo(() => buildTrendBuckets(allRows, timeRange), [allRows, timeRange])
 

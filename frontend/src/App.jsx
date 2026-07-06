@@ -6,6 +6,7 @@ import SuperAdminDashboard from './pages/SuperAdminDashboard'
 import SuperadminHierarchy from './Hierarchy/Superadmin_Hierarchy'
 import SuperAdminHierarchySalesCount from './Hierarchy/superadmin_Hierarchy_SalesCount'
 import AdminDashboard from './pages/AdminDashboard'
+import AdminHierarchy from './Hierarchy/Admin_Hierarchy'
 import DealerDashboard from './pages/DealerDashboard'
 import SubDealerDashboard from './pages/SubDealerDashboard'
 import PromotorDashboard from './pages/PromotorDashboard'
@@ -106,6 +107,9 @@ export default function App() {
         <Route path="/admin" element={
           <ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>
         } />
+
+        <Route path="/admin-hierarchy" element={<AdminHierarchy />} />
+        
         <Route path="/dealer" element={
           <ProtectedRoute role="dealer"><DealerDashboard /></ProtectedRoute>
         } />

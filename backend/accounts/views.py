@@ -1222,71 +1222,111 @@ def verify_payment(request):
         return Response({"error": str(e)}, status=400)
 
 
-def _orders_for_user(user):
-    orders = JewelryOrder.objects.filter(user=user).order_by('-created_at')
-    result = []
-    for o in orders:
-        img_url = o.product_image_url
-        if not img_url and o.product:
-            first_img = o.product.images.first()
-            if first_img:
-                img_url = first_img.image.url
-        result.append({
-            'id': o.id,
-            'order_id': o.order_id,
-            'product_name': o.product_name,
-            'metal': o.product_metal,
-            'grade': o.product_grade,
-            'category': o.product_category,
-            'net_weight': str(o.product.net_weight) if o.product and o.product.net_weight else None,
-            'product_image_url': img_url,
-            'quantity': o.quantity,
-            'unit_price': float(o.unit_price),
-            'total_price': float(o.total_price),
-            'status': o.status,
-            'created_at': o.created_at,
-        })
-    return result
+def _serialize_order(o):
+    img_url = o.product_image_url
+    if not img_url and o.product:
+        first_img = o.product.images.first()
+        if first_img:
+            img_url = first_img.image.url
+    return {
+        'id': o.id,
+        'order_id': o.order_id,
+        'product_name': o.product_name,
+        'metal': o.product_metal,
+        'grade': o.product_grade,
+        'category': o.product_category,
+        'net_weight': str(o.product.net_weight) if o.product and o.product.net_weight else None,
+        'product_image_url': img_url,
+        'quantity': o.quantity,
+        'unit_price': float(o.unit_price),
+        'total_price': float(o.total_price),
+        'status': o.status,
+        'created_at': o.created_at,
+    }
+
+def _orders_by_user_map(user_ids):
+    orders_by_user = {}
+    qs = JewelryOrder.objects.filter(user_id__in=user_ids).select_related('product').order_by('-created_at')
+    for o in qs:
+        orders_by_user.setdefault(o.user_id, []).append(_serialize_order(o))
+    return orders_by_user
+
+def _collect_user_ids_admin(a):
+    ids = []
+    for d in a.assigned_dealers.all():
+        for sd in d.assigned_sub_dealers.all():
+            for p in sd.assigned_promotors.all():
+                for c in p.assigned_customers.all():
+                    ids.append(c.user_id)
+    return ids
+
+def _collect_user_ids_dealer(d):
+    ids = []
+    for sd in d.assigned_sub_dealers.all():
+        for p in sd.assigned_promotors.all():
+            for c in p.assigned_customers.all():
+                ids.append(c.user_id)
+    return ids
+
+def _collect_user_ids_sub_dealer(sd):
+    ids = []
+    for p in sd.assigned_promotors.all():
+        for c in p.assigned_customers.all():
+            ids.append(c.user_id)
+    return ids
+
+def _bulk_orders_for_admin(a):
+    return _orders_by_user_map(_collect_user_ids_admin(a))
+
+def _bulk_orders_for_dealer(d):
+    return _orders_by_user_map(_collect_user_ids_dealer(d))
+
+def _bulk_orders_for_sub_dealer(sd):
+    return _orders_by_user_map(_collect_user_ids_sub_dealer(sd))
+
+def _bulk_orders_for_promotor(p):
+    ids = [c.user_id for c in p.assigned_customers.all()]
+    return _orders_by_user_map(ids)
 
 
-def _build_customer(c):
+def _build_customer(c, orders_by_user):
     return {
         'type': 'customer', 'id': c.id, 'customer_id': c.customer_id,
         'first_name': c.first_name, 'last_name': c.last_name,
         'mobile_number': c.mobile_number, 'city_name': c.city_name,
-        'orders': _orders_for_user(c.user),
+        'orders': orders_by_user.get(c.user_id, []),
     }
 
-def _build_promotor(p):
+def _build_promotor(p, orders_by_user):
     return {
         'type': 'promotor', 'id': p.id, 'promotor_id': p.promotor_id,
         'first_name': p.first_name, 'last_name': p.last_name,
         'mobile_number': p.mobile_number, 'city_name': p.city_name,
-        'customers': [_build_customer(c) for c in p.assigned_customers.all()],
+        'customers': [_build_customer(c, orders_by_user) for c in p.assigned_customers.all()],
     }
 
-def _build_sub_dealer(sd):
+def _build_sub_dealer(sd, orders_by_user):
     return {
         'type': 'sub_dealer', 'id': sd.id, 'sub_dealer_id': sd.sub_dealer_id,
         'first_name': sd.first_name, 'last_name': sd.last_name,
         'mobile_number': sd.mobile_number, 'city_name': sd.city_name,
-        'promotors': [_build_promotor(p) for p in sd.assigned_promotors.all()],
+        'promotors': [_build_promotor(p, orders_by_user) for p in sd.assigned_promotors.all()],
     }
 
-def _build_dealer(d):
+def _build_dealer(d, orders_by_user):
     return {
         'type': 'dealer', 'id': d.id, 'dealer_id': d.dealer_id,
         'first_name': d.first_name, 'last_name': d.last_name,
         'mobile_number': d.mobile_number, 'city_name': d.city_name,
-        'sub_dealers': [_build_sub_dealer(sd) for sd in d.assigned_sub_dealers.all()],
+        'sub_dealers': [_build_sub_dealer(sd, orders_by_user) for sd in d.assigned_sub_dealers.all()],
     }
 
-def _build_admin(a):
+def _build_admin(a, orders_by_user):
     return {
         'type': 'admin', 'id': a.id, 'admin_id': a.admin_id,
         'first_name': a.first_name, 'last_name': a.last_name,
         'mobile_number': a.mobile_number, 'city_name': a.city_name,
-        'dealers': [_build_dealer(d) for d in a.assigned_dealers.all()],
+        'dealers': [_build_dealer(d, orders_by_user) for d in a.assigned_dealers.all()],
     }
 
 
@@ -1304,23 +1344,28 @@ class HierarchySubtreeOrdersView(APIView):
                 node = AdminProfile.objects.prefetch_related(
                     'assigned_dealers__assigned_sub_dealers__assigned_promotors__assigned_customers'
                 ).get(id=node_id)
-                root = _build_admin(node)
+                orders_by_user = _bulk_orders_for_admin(node)
+                root = _build_admin(node, orders_by_user)
             elif role == 'dealer':
                 node = DealerProfile.objects.prefetch_related(
                     'assigned_sub_dealers__assigned_promotors__assigned_customers'
                 ).get(id=node_id)
-                root = _build_dealer(node)
+                orders_by_user = _bulk_orders_for_dealer(node)
+                root = _build_dealer(node, orders_by_user)
             elif role == 'sub_dealer':
                 node = SubDealerProfile.objects.prefetch_related(
                     'assigned_promotors__assigned_customers'
                 ).get(id=node_id)
-                root = _build_sub_dealer(node)
+                orders_by_user = _bulk_orders_for_sub_dealer(node)
+                root = _build_sub_dealer(node, orders_by_user)
             elif role == 'promotor':
                 node = PromotorProfile.objects.prefetch_related('assigned_customers').get(id=node_id)
-                root = _build_promotor(node)
+                orders_by_user = _bulk_orders_for_promotor(node)
+                root = _build_promotor(node, orders_by_user)
             elif role == 'customer':
                 node = CustomerProfile.objects.get(id=node_id)
-                root = _build_customer(node)
+                orders_by_user = _orders_by_user_map([node.user_id])
+                root = _build_customer(node, orders_by_user)
             else:
                 return Response({'error': 'invalid role'}, status=400)
         except Exception as e:
@@ -1339,17 +1384,22 @@ class SalesReportView(APIView):
             return Response({'error': 'Report not available for customer'}, status=403)
 
         if role == 'super_admin':
-            admins = AdminProfile.objects.all().prefetch_related(
+            admins = list(AdminProfile.objects.all().prefetch_related(
                 'assigned_dealers__assigned_sub_dealers__assigned_promotors__assigned_customers'
-            )
-            return Response({'role': role, 'data': [_build_admin(a) for a in admins]})
+            ))
+            all_ids = []
+            for a in admins:
+                all_ids.extend(_collect_user_ids_admin(a))
+            orders_by_user = _orders_by_user_map(all_ids)
+            return Response({'role': role, 'data': [_build_admin(a, orders_by_user) for a in admins]})
 
         elif role == 'admin':
             try:
                 admin = AdminProfile.objects.prefetch_related(
                     'assigned_dealers__assigned_sub_dealers__assigned_promotors__assigned_customers'
                 ).get(user=user)
-                return Response({'role': role, 'data': [_build_admin(admin)]})
+                orders_by_user = _bulk_orders_for_admin(admin)
+                return Response({'role': role, 'data': [_build_admin(admin, orders_by_user)]})
             except AdminProfile.DoesNotExist:
                 return Response({'role': role, 'data': []})
 
@@ -1358,7 +1408,8 @@ class SalesReportView(APIView):
                 dealer = DealerProfile.objects.prefetch_related(
                     'assigned_sub_dealers__assigned_promotors__assigned_customers'
                 ).get(user=user)
-                return Response({'role': role, 'data': [_build_dealer(dealer)]})
+                orders_by_user = _bulk_orders_for_dealer(dealer)
+                return Response({'role': role, 'data': [_build_dealer(dealer, orders_by_user)]})
             except DealerProfile.DoesNotExist:
                 return Response({'role': role, 'data': []})
 
@@ -1367,18 +1418,20 @@ class SalesReportView(APIView):
                 sd = SubDealerProfile.objects.prefetch_related(
                     'assigned_promotors__assigned_customers'
                 ).get(user=user)
-                return Response({'role': role, 'data': [_build_sub_dealer(sd)]})
+                orders_by_user = _bulk_orders_for_sub_dealer(sd)
+                return Response({'role': role, 'data': [_build_sub_dealer(sd, orders_by_user)]})
             except SubDealerProfile.DoesNotExist:
                 return Response({'role': role, 'data': []})
 
         elif role == 'promotor':
             try:
                 p = PromotorProfile.objects.prefetch_related('assigned_customers').get(user=user)
-                return Response({'role': role, 'data': [_build_promotor(p)]})
+                orders_by_user = _bulk_orders_for_promotor(p)
+                return Response({'role': role, 'data': [_build_promotor(p, orders_by_user)]})
             except PromotorProfile.DoesNotExist:
                 return Response({'role': role, 'data': []})
 
-        return Response({'error': 'Invalid role'}, status=400)        
+        return Response({'error': 'Invalid role'}, status=400)
 
 
 @api_view(['GET'])
