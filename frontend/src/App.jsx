@@ -62,7 +62,7 @@ import PlatinumBangles from './Platinum/bangles'
 import OrderConfirm from './Orders/Orderconfirm'
 import OrderSummary from './Orders/Ordersummary'
 import AdminOrdersPage from './Orders/Adminorderspage'
-
+import Report from './Orders/Report'
 
 
 
@@ -202,6 +202,10 @@ export default function App() {
 } />
 <Route path="/admin-orders" element={
   <ProtectedRoute role="super_admin"><AdminOrdersPage /></ProtectedRoute>
+} />
+
+<Route path="/sales-report" element={
+  <ProtectedRoute><Report /></ProtectedRoute>
 } />
 
 <Route path="/hierarchy-sales-count" element={<SuperAdminHierarchySalesCount />} />

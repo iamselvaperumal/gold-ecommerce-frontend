@@ -2330,7 +2330,11 @@ setOrderPopupState({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0 }}>Admin Management</h2>
           <div style={{ display: 'flex', gap: '12px' }}>
-            <button onClick={() => navigate('/admin-hierarchy')}
+ <button onClick={() => navigate('/sales-report')}
+  style={{ padding: '11px 28px', background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '12px', fontWeight: 700, color: '#4ade80', fontSize: '14px', cursor: 'pointer' }}>
+  📊 Sales Report
+</button>
+<button onClick={() => navigate('/admin-hierarchy')}
   style={{ padding: '11px 28px', background: 'rgba(165,243,252,0.08)', border: '1px solid rgba(103,232,249,0.3)', borderRadius: '12px', fontWeight: 700, color: '#a5f3fc', fontSize: '14px', cursor: 'pointer' }}>
   🏢 Admin Hierarchy
 </button>

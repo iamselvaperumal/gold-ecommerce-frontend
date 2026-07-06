@@ -1012,10 +1012,14 @@ const handleSubmit = async e => {
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'24px' }}>
           <h2 style={{ fontSize:'22px', fontWeight:800, margin:0 }}>Customer Management</h2>
           <div style={{ display:'flex', gap:'12px' }}>
-            <button onClick={() => setShowHierarchy(true)}
-              style={{ padding:'11px 28px', background:'rgba(244,114,182,0.08)', border:'1px solid rgba(244,114,182,0.3)', borderRadius:'12px', fontWeight:700, color:'#fbcfe8', fontSize:'14px', cursor:'pointer' }}>
-              🏢 Customer Hierarchy
-            </button>
+            <button onClick={() => navigate('/sales-report')}
+  style={{ padding:'11px 28px', background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.3)', borderRadius:'12px', fontWeight:700, color:'#4ade80', fontSize:'14px', cursor:'pointer' }}>
+  📊 Sales Report
+</button>
+<button onClick={() => setShowHierarchy(true)}
+  style={{ padding:'11px 28px', background:'rgba(244,114,182,0.08)', border:'1px solid rgba(244,114,182,0.3)', borderRadius:'12px', fontWeight:700, color:'#fbcfe8', fontSize:'14px', cursor:'pointer' }}>
+  🏢 Customer Hierarchy
+</button>
             <button onClick={() => setShowForm(!showForm)} className="pr-grad-btn"
               style={{ padding:'11px 28px', background:'linear-gradient(90deg,#f472b6,#a78bfa)', border:'none', borderRadius:'12px', fontWeight:800, color:'#3b0024', fontSize:'14px', cursor:'pointer' }}>
               {showForm ? 'Cancel' : '+ Create Customer'}

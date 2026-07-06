@@ -1271,10 +1271,14 @@ const handleSubmit = async e => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0 }}>Sub Dealer Management</h2>
           <div style={{ display: 'flex', gap: '12px' }}>
-            <button onClick={() => setShowHierarchy(true)}
-              style={{ padding: '11px 28px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '12px', fontWeight: 700, color: '#fcd34d', fontSize: '14px', cursor: 'pointer' }}>
-              🏢 Sub Dealer Hierarchy
-            </button>
+<button onClick={() => navigate('/sales-report')}
+  style={{ padding: '11px 28px', background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '12px', fontWeight: 700, color: '#4ade80', fontSize: '14px', cursor: 'pointer' }}>
+  📊 Sales Report
+</button>
+<button onClick={() => setShowHierarchy(true)}
+  style={{ padding: '11px 28px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '12px', fontWeight: 700, color: '#fcd34d', fontSize: '14px', cursor: 'pointer' }}>
+  🏢 Sub Dealer Hierarchy
+</button>
             <button onClick={() => setShowForm(!showForm)} className="dl-grad-btn"
               style={{ padding: '11px 28px', background: 'linear-gradient(90deg,#f59e0b,#22d3ee)', border: 'none', borderRadius: '12px', fontWeight: 800, color: '#003b40', fontSize: '14px', cursor: 'pointer' }}>
               {showForm ? 'Cancel' : '+ Create Sub Dealer'}

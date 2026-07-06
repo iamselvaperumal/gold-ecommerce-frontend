@@ -429,11 +429,11 @@ function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], 
             <IconPrinter color={c} /> PRINT
           </button>
           <button
-            onClick={e => { e.stopPropagation(); navigate(`/hierarchy-sales-count?role=${role}&id=${node.id}`) }}
-            className="otree-btn otree-btn-sales"
-          >
-            <IconChart color="#22c55e" /> SALES
-          </button>
+  onClick={e => { e.stopPropagation(); navigate(`/hierarchy-sales-count?role=${role}&id=${node.id}`) }}
+  className="otree-btn otree-btn-sales"
+>
+  <IconChart color="#22c55e" /> SALES ({node.order_count ?? 0})
+</button>
         </div>
 
         {hasChildren && (

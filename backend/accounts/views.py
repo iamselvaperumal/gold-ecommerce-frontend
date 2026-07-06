@@ -1328,6 +1328,58 @@ class HierarchySubtreeOrdersView(APIView):
 
         return Response({'root': root})
 
+class SalesReportView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        role = user.role
+
+        if role == 'customer':
+            return Response({'error': 'Report not available for customer'}, status=403)
+
+        if role == 'super_admin':
+            admins = AdminProfile.objects.all().prefetch_related(
+                'assigned_dealers__assigned_sub_dealers__assigned_promotors__assigned_customers'
+            )
+            return Response({'role': role, 'data': [_build_admin(a) for a in admins]})
+
+        elif role == 'admin':
+            try:
+                admin = AdminProfile.objects.prefetch_related(
+                    'assigned_dealers__assigned_sub_dealers__assigned_promotors__assigned_customers'
+                ).get(user=user)
+                return Response({'role': role, 'data': [_build_admin(admin)]})
+            except AdminProfile.DoesNotExist:
+                return Response({'role': role, 'data': []})
+
+        elif role == 'dealer':
+            try:
+                dealer = DealerProfile.objects.prefetch_related(
+                    'assigned_sub_dealers__assigned_promotors__assigned_customers'
+                ).get(user=user)
+                return Response({'role': role, 'data': [_build_dealer(dealer)]})
+            except DealerProfile.DoesNotExist:
+                return Response({'role': role, 'data': []})
+
+        elif role == 'sub_dealer':
+            try:
+                sd = SubDealerProfile.objects.prefetch_related(
+                    'assigned_promotors__assigned_customers'
+                ).get(user=user)
+                return Response({'role': role, 'data': [_build_sub_dealer(sd)]})
+            except SubDealerProfile.DoesNotExist:
+                return Response({'role': role, 'data': []})
+
+        elif role == 'promotor':
+            try:
+                p = PromotorProfile.objects.prefetch_related('assigned_customers').get(user=user)
+                return Response({'role': role, 'data': [_build_promotor(p)]})
+            except PromotorProfile.DoesNotExist:
+                return Response({'role': role, 'data': []})
+
+        return Response({'error': 'Invalid role'}, status=400)        
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
