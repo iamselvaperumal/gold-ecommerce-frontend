@@ -2334,7 +2334,7 @@ setOrderPopupState({
   style={{ padding: '11px 28px', background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '12px', fontWeight: 700, color: '#4ade80', fontSize: '14px', cursor: 'pointer' }}>
   📊 Sales Report
 </button>
-<button onClick={() => navigate('/admin-hierarchy')}
+<button onClick={() => navigate('/superadmin-hierarchy')}
   style={{ padding: '11px 28px', background: 'rgba(165,243,252,0.08)', border: '1px solid rgba(103,232,249,0.3)', borderRadius: '12px', fontWeight: 700, color: '#a5f3fc', fontSize: '14px', cursor: 'pointer' }}>
   🏢 Admin Hierarchy
 </button>
