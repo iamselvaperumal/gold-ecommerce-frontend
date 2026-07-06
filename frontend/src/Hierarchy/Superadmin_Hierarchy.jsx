@@ -479,12 +479,14 @@ export default function SuperadminHierarchy() {
 const treeWrapperRef = useRef(null)
 const scrollAreaRef = useRef(null)
 const [levelTops, setLevelTops] = useState({})
+const [adminAnchors, setAdminAnchors] = useState([])
+const [superAdminAnchor, setSuperAdminAnchor] = useState(null)
 
 useLayoutEffect(() => {
   const wrapper = treeWrapperRef.current
   if (!wrapper) return
 
-  const measure = () => {
+ const measure = () => {
     const wrapperRect = wrapper.getBoundingClientRect()
     const roles = ['admin', 'dealer', 'sub_dealer', 'promotor', 'customer']
     const tops = {}
@@ -496,6 +498,25 @@ useLayoutEffect(() => {
       }
     })
     setLevelTops(tops)
+
+    const adminEls = wrapper.querySelectorAll('[data-role="admin"]')
+    const anchors = Array.from(adminEls).map(el => {
+      const r = el.getBoundingClientRect()
+      return {
+        x: (r.left - wrapperRect.left) + r.width / 2,
+        top: (r.top - wrapperRect.top),
+      }
+    })
+    setAdminAnchors(anchors)
+
+    const saEl = wrapper.querySelector('[data-role="super_admin"]')
+    if (saEl) {
+      const r = saEl.getBoundingClientRect()
+      setSuperAdminAnchor({
+        x: (r.right - wrapperRect.left),
+        y: (r.top - wrapperRect.top) + r.height / 2,
+      })
+    }
   }
 
   // measure right away, then again after the browser finishes painting
@@ -734,6 +755,20 @@ useLayoutEffect(() => {
     ))}
   </div>
 )}
+
+{!loading && hierarchyData && !filter && !debouncedSearch && adminAnchors.length > 0 && superAdminAnchor && (() => {
+  const bridgeY = superAdminAnchor.y
+  const bridgeStartX = superAdminAnchor.x
+  const farthestX = Math.max(...adminAnchors.map(a => a.x))
+  return (
+    <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 44, pointerEvents: 'none' }}>
+      <line x1={bridgeStartX} y1={bridgeY} x2={Math.max(farthestX, bridgeStartX)} y2={bridgeY} stroke={ROLE_CFG.admin.color} strokeWidth="2" />
+      {adminAnchors.map((a, i) => (
+        <line key={i} x1={a.x} y1={bridgeY} x2={a.x} y2={a.top} stroke={ROLE_CFG.admin.color} strokeWidth="2" />
+      ))}
+    </svg>
+  )
+})()}
 
 
 
