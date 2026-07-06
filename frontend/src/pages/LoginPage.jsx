@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [dark, setDark] = useState(true)
+  const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
   const canvasRef = useRef(null)
 
@@ -205,31 +206,26 @@ localStorage.removeItem('email')
         <div style={{ textAlign:'center', marginBottom:'28px' }}>
 <div
   style={{
-    width: 56,
-    height: 56,
-    borderRadius: '14px',
-    background: '#fff',
+    width: 100,
+    height: 100,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     margin: '0 auto 14px',
-    overflow: 'hidden',
-    boxShadow: '0 8px 24px rgba(0,0,0,0.2)'
   }}
 >
   <img
     src={logo}
-    alt="Bit Byte Technology Logo"
+    alt="Team 369"
     style={{
       width: '100%',
       height: '100%',
       objectFit: 'contain',
-      padding: '6px'
     }}
   />
 </div>
 
-          <h2 style={{ fontSize:'1.6rem', fontWeight:900, color: dark ? '#a5f3fc' : accent, margin:'0 0 6px' }}>Bit Byte Technology</h2>
+          <h2 style={{ fontSize:'1.6rem', fontWeight:900, color: dark ? '#a5f3fc' : accent, margin:'0 0 6px' }}>Team 369</h2>
           <p style={{ color: subtext, fontSize:'13px', margin:0 }}>Access Portal</p>
         </div>
 
@@ -248,9 +244,28 @@ localStorage.removeItem('email')
           </div>
           <div>
             <label style={{ display:'block', color: subtext, fontSize:'12px', marginBottom:'6px', textTransform:'uppercase', letterSpacing:'0.06em' }}>Password</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="Enter your password"
-              style={{ width:'100%', background: inpBg, border:`1px solid ${inpBorder}`, borderRadius:'12px', padding:'13px 16px', color: text, fontSize:'14px', outline:'none', transition:'border .2s', boxSizing:'border-box' }}
-              onFocus={e => e.target.style.borderColor = accent} onBlur={e => e.target.style.borderColor = inpBorder} />
+            <div style={{ position:'relative' }}>
+              <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required placeholder="Enter your password"
+                style={{ width:'100%', background: inpBg, border:`1px solid ${inpBorder}`, borderRadius:'12px', padding:'13px 44px 13px 16px', color: text, fontSize:'14px', outline:'none', transition:'border .2s', boxSizing:'border-box' }}
+                onFocus={e => e.target.style.borderColor = accent} onBlur={e => e.target.style.borderColor = inpBorder} />
+              <button type="button" onClick={() => setShowPassword(!showPassword)}
+                style={{ position:'absolute', right:'12px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color: subtext, padding:0, lineHeight:0, display:'flex', alignItems:'center' }}
+                tabIndex={-1}>
+                {showPassword ? (
+                  // Eye OFF icon
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                ) : (
+                  // Eye ON icon
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 <button type="submit" disabled={loading} className="btn-shimmer"
   style={{ padding:'14px', background:'linear-gradient(90deg,#22d3ee,#4ade80)', border:'none', borderRadius:'14px', fontWeight:800, color:'#006165', fontSize:'14px', textTransform:'uppercase', letterSpacing:'0.1em', cursor: loading ? 'not-allowed' : 'pointer', marginTop:'4px', opacity: loading ? 0.6 : 1 }}>

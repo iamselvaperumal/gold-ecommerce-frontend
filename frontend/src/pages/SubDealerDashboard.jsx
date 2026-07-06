@@ -1346,7 +1346,7 @@ const handleSubmit = async e => {
   style={{ padding: '11px 28px', background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '12px', fontWeight: 700, color: '#4ade80', fontSize: '14px', cursor: 'pointer' }}>
   📊 Sales Report
 </button>
-<button onClick={() => setShowHierarchy(true)}
+<button onClick={() => navigate('/subdealer-hierarchy')}
   style={{ padding: '11px 28px', background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.3)', borderRadius: '12px', fontWeight: 700, color: '#c4b5fd', fontSize: '14px', cursor: 'pointer' }}>
   🏢 Promotor Hierarchy
 </button>

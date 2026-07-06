@@ -8,8 +8,11 @@ import SuperAdminHierarchySalesCount from './Hierarchy/superadmin_Hierarchy_Sale
 import AdminDashboard from './pages/AdminDashboard'
 import AdminHierarchy from './Hierarchy/Admin_Hierarchy'
 import DealerDashboard from './pages/DealerDashboard'
+import DealerHierarchy from './Hierarchy/Dealer_Hierarchy'
 import SubDealerDashboard from './pages/SubDealerDashboard'
+import SubdealerHierarchy from './Hierarchy/Subdealer_Hierarchy'
 import PromotorDashboard from './pages/PromotorDashboard'
+import PromotorHierarchy from './Hierarchy/Promotor_Hierarchy'
 import CustomerDashboard from './pages/CustomerDashboard'
 import Profile from './collection/profile'
 import RingCollection from './collection/ring_collection'
@@ -92,7 +95,7 @@ export default function App() {
   return (
     <BrowserRouter>
 
-    {/* <PageLoader /> */}
+      {/* <PageLoader /> */}
 
       <Routes>
 
@@ -102,37 +105,47 @@ export default function App() {
           <ProtectedRoute role="super_admin"><SuperAdminDashboard /></ProtectedRoute>
         } />
 
-        <Route path="/admin-hierarchy" element={<SuperadminHierarchy />} />
-        
-        <Route path="/admin" element={
-          <ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>
-        } />
+       <Route path="/superadmin-hierarchy" element={<SuperadminHierarchy />} />
 
-        <Route path="/admin-hierarchy" element={<AdminHierarchy />} />
-        
+<Route path="/admin" element={
+  <ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>
+} />
+
+<Route path="/admin-hierarchy" element={<AdminHierarchy />} />
+
         <Route path="/dealer" element={
           <ProtectedRoute role="dealer"><DealerDashboard /></ProtectedRoute>
         } />
+
+        <Route path="/dealer-hierarchy" element={<DealerHierarchy />} />
+
         <Route path="/sub-dealer" element={
           <ProtectedRoute role="sub_dealer"><SubDealerDashboard /></ProtectedRoute>
         } />
+
+        <Route path="/subdealer-hierarchy" element={<SubdealerHierarchy />} />
+
         <Route path="/promotor" element={
-       <ProtectedRoute role="promotor"><PromotorDashboard /></ProtectedRoute>
-       } />
-      <Route path="/customer" element={
-      <ProtectedRoute role="customer"><CustomerDashboard /></ProtectedRoute>
-       } />
-       
-       <Route path="/profile" element={<Profile />} />
+          <ProtectedRoute role="promotor"><PromotorDashboard /></ProtectedRoute>
+        } />
+
+        <Route path="/promotor-hierarchy" element={<PromotorHierarchy />} />
+
+
+        <Route path="/customer" element={
+          <ProtectedRoute role="customer"><CustomerDashboard /></ProtectedRoute>
+        } />
+
+        <Route path="/profile" element={<Profile />} />
 
         {/* ring Routes */}
-       <Route path="/collection/rings" element={<RingCollection />} />
-       <Route path="/gold-rings" element={<GoldRings />} />
-       <Route path="/silver-rings" element={<SilverRings />} />
-       <Route path="/diamond-rings" element={<DiamondRings />} />       {/* ADD */}
-       <Route path="/platinum-rings" element={<PlatinumRings />} /> 
+        <Route path="/collection/rings" element={<RingCollection />} />
+        <Route path="/gold-rings" element={<GoldRings />} />
+        <Route path="/silver-rings" element={<SilverRings />} />
+        <Route path="/diamond-rings" element={<DiamondRings />} />       {/* ADD */}
+        <Route path="/platinum-rings" element={<PlatinumRings />} />
 
-               {/* Bangle Routes */}
+        {/* Bangle Routes */}
         <Route path="/collection/bangles" element={<BanglesCollection />} />
         <Route path="/gold-bangles" element={<GoldBangles />} />
         <Route path="/silver-bangles" element={<SilverBangles />} />
@@ -140,14 +153,14 @@ export default function App() {
         <Route path="/platinum-bangles" element={<PlatinumBangles />} /> {/* ADD */}
 
 
-              {/* Earring Routes */}
+        {/* Earring Routes */}
         <Route path="/collection/earrings" element={<EarringsCollection />} />
         <Route path="/gold-earrings" element={<GoldEarrings />} />
         <Route path="/silver-earrings" element={<SilverEarrings />} />
         <Route path="/diamond-earrings" element={<DiamondEarrings />} />   {/* ADD */}
         <Route path="/platinum-earrings" element={<PlatinumEarrings />} />
 
-               {/* Chain Routes */}
+        {/* Chain Routes */}
         <Route path="/collection/chains" element={<ChainsCollection />} />
         <Route path="/gold-chain" element={<GoldChain />} />
         <Route path="/silver-chain" element={<SilverChain />} />
@@ -155,14 +168,14 @@ export default function App() {
         <Route path="/platinum-chain" element={<PlatinumChains />} />   {/* ADD */}
 
 
-                {/* Necklace Routes */}
+        {/* Necklace Routes */}
         <Route path="/collection/necklaces" element={<NecklacesCollection />} />
         <Route path="/gold-necklaces" element={<GoldNecklaces />} />
         <Route path="/silver-necklaces" element={<SilverNecklaces />} />
         <Route path="/diamond-necklaces" element={<DiamondNecklaces />} />   {/* ADD */}
         <Route path="/platinum-necklaces" element={<PlatinumNecklaces />} /> {/* ADD */}
 
-           {/* ── BRACELET ROUTES ── */}
+        {/* ── BRACELET ROUTES ── */}
         <Route path="/collection/bracelets" element={<BraceletsCollection />} />
         <Route path="/gold-bracelets" element={<GoldBracelets />} />
         <Route path="/silver-bracelets" element={<SilverBracelets />} />
@@ -170,49 +183,49 @@ export default function App() {
         <Route path="/platinum-bracelets" element={<PlatinumBracelets />} /> {/* ADD */}
 
 
-               {/* card section */}
+        {/* card section */}
         <Route path="/cart" element={<CardSection />} />
 
-       <Route path="/product-display" element={<ProductDisplay />} />
-<Route path="/add-product" element={
-  <ProtectedRoute role="super_admin"><AddProduct /></ProtectedRoute>
-} />
+        <Route path="/product-display" element={<ProductDisplay />} />
+        <Route path="/add-product" element={
+          <ProtectedRoute role="super_admin"><AddProduct /></ProtectedRoute>
+        } />
 
-<Route path="/add-banners" element={
-  <ProtectedRoute role="super_admin"><AddBanners /></ProtectedRoute>
-} />
-<Route path="/home-banner" element={
-  <ProtectedRoute role="super_admin"><HomeBanner /></ProtectedRoute>
-} />
+        <Route path="/add-banners" element={
+          <ProtectedRoute role="super_admin"><AddBanners /></ProtectedRoute>
+        } />
+        <Route path="/home-banner" element={
+          <ProtectedRoute role="super_admin"><HomeBanner /></ProtectedRoute>
+        } />
 
-<Route path="/collection/all" element={<AllCollection />} />
-<Route path="/collection/coins" element={<CoinsCollection />} />
-<Route path="/gold-coins" element={<GoldCoins />} />
-<Route path="/silver-coins" element={<SilverCoins />} />
-
-
+        <Route path="/collection/all" element={<AllCollection />} />
+        <Route path="/collection/coins" element={<CoinsCollection />} />
+        <Route path="/gold-coins" element={<GoldCoins />} />
+        <Route path="/silver-coins" element={<SilverCoins />} />
 
 
-<Route path="/wishlist" element={
-  <ProtectedRoute role="customer"><WishlistPage /></ProtectedRoute>
-} />
 
 
-{/* confirm order */}
-<Route path="/order-confirm" element={<OrderConfirm />} />
-<Route path="/bj-live" element={<BBLive />} />
-<Route path="/order-summary" element={
-  <ProtectedRoute role="customer"><OrderSummary /></ProtectedRoute>
-} />
-<Route path="/admin-orders" element={
-  <ProtectedRoute role="super_admin"><AdminOrdersPage /></ProtectedRoute>
-} />
+        <Route path="/wishlist" element={
+          <ProtectedRoute role="customer"><WishlistPage /></ProtectedRoute>
+        } />
 
-<Route path="/sales-report" element={
-  <ProtectedRoute><Report /></ProtectedRoute>
-} />
 
-<Route path="/hierarchy-sales-count" element={<SuperAdminHierarchySalesCount />} />
+        {/* confirm order */}
+        <Route path="/order-confirm" element={<OrderConfirm />} />
+        <Route path="/bj-live" element={<BBLive />} />
+        <Route path="/order-summary" element={
+          <ProtectedRoute role="customer"><OrderSummary /></ProtectedRoute>
+        } />
+        <Route path="/admin-orders" element={
+          <ProtectedRoute role="super_admin"><AdminOrdersPage /></ProtectedRoute>
+        } />
+
+        <Route path="/sales-report" element={
+          <ProtectedRoute><Report /></ProtectedRoute>
+        } />
+
+        <Route path="/hierarchy-sales-count" element={<SuperAdminHierarchySalesCount />} />
 
 
       </Routes>

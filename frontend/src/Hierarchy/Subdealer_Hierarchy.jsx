@@ -3,17 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import api from '../api'
 
 // ── SVG ICONS ──
-const IconShield = ({ color, size = 14 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-  </svg>
-)
-const IconStore = ({ color, size = 14 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 9l1-5h16l1 5"/><path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/>
-    <path d="M4 9v10h16V9"/><path d="M9 21v-6h6v6"/>
-  </svg>
-)
 const IconLink = ({ color, size = 14 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
@@ -80,30 +69,26 @@ const IconChevronDown = ({ color, size = 10 }) => (
   </svg>
 )
 
-// ── ROLE CONFIG — Admin root ku keela Dealer -> SubDealer -> Promotor -> Customer ──
+// ── ROLE CONFIG — SubDealer root ku keela Promotor -> Customer ──
 const ROLE_CFG = {
-  admin: { color: '#22c55e', Icon: IconShield, label: 'ADMIN' },
-  dealer: { color: '#38bdf8', Icon: IconStore, label: 'DEALER', idKey: 'dealer_id' },
-  sub_dealer: { color: '#ef4444', Icon: IconLink, label: 'SUB DEALER', idKey: 'sub_dealer_id' },
+  sub_dealer: { color: '#ef4444', Icon: IconLink, label: 'SUB DEALER' },
   promotor: { color: '#d4a017', Icon: IconStar, label: 'PROMOTOR', idKey: 'promotor_id' },
   customer: { color: '#fb7185', Icon: IconUser, label: 'CUSTOMER', idKey: 'customer_id' },
 }
-const CHILD_ROLE = { dealer: 'sub_dealer', sub_dealer: 'promotor', promotor: 'customer' }
-const CHILD_KEY = { dealer: 'sub_dealers', sub_dealer: 'promotors', promotor: 'customers' }
+const CHILD_ROLE = { promotor: 'customer' }
+const CHILD_KEY = { promotor: 'customers' }
 
 function iconSvg(paths, color, size = 14) {
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`
 }
 const ICON_PATHS = {
-  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
-  store: '<path d="M3 9l1-5h16l1 5"/><path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M4 9v10h16V9"/><path d="M9 21v-6h6v6"/>',
   link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
   star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
   user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
   phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>',
   mappin: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
 }
-const ICON_BY_TYPE = { dealer: 'store', sub_dealer: 'link', promotor: 'star', customer: 'user' }
+const ICON_BY_TYPE = { promotor: 'star', customer: 'user' }
 
 function hexToRgb(hex) {
   const r = parseInt(hex.slice(1, 3), 16)
@@ -114,26 +99,26 @@ function hexToRgb(hex) {
 
 let _chainHideTimer = null
 function removeChainPopup() {
-  document.querySelectorAll('#chain-popup-a').forEach(el => el.remove())
+  document.querySelectorAll('#chain-popup-sd').forEach(el => el.remove())
 }
 function scheduleHideChainPopup() {
   clearTimeout(_chainHideTimer)
   _chainHideTimer = setTimeout(() => removeChainPopup(), 200)
 }
 
-function printPersonCard(node, role, cfg, color, ancestors, adminInfo) {
+function printPersonCard(node, role, cfg, color, ancestors, subDealerInfo) {
   const chain = [
-    { type: 'admin', data: adminInfo },
+    { type: 'sub_dealer', data: subDealerInfo },
     ...ancestors.map(a => ({ type: a.role, data: a.node })),
     { type: role, data: node },
   ]
   const chainHtml = chain.map((item, idx) => {
     const isLast = idx === chain.length - 1
-    if (item.type === 'admin') {
+    if (item.type === 'sub_dealer') {
       const d = item.data || {}
       return `<div class="chain-item ${isLast ? 'current' : ''}">
-        <div class="chain-role">ADMIN</div>
-        <div class="chain-id">${d.admin_id || '—'}</div>
+        <div class="chain-role">SUB DEALER</div>
+        <div class="chain-id">${d.sub_dealer_id || '—'}</div>
         <div class="chain-name">${[d.first_name, d.last_name].filter(Boolean).join(' ') || '—'}</div>
         <div class="chain-info">Tel: ${d.mobile_number || '—'}</div>
       </div>${idx < chain.length - 1 ? `<div class="chain-arrow">↓</div>` : ''}`
@@ -187,33 +172,33 @@ function printPersonCard(node, role, cfg, color, ancestors, adminInfo) {
   printWindow.document.close()
 }
 
-function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, adminInfo) {
+function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, subDealerInfo) {
   clearTimeout(_chainHideTimer)
   removeChainPopup()
 
   const chain = [
-    { type: 'admin', data: adminInfo },
+    { type: 'sub_dealer', data: subDealerInfo },
     ...ancestors.map(a => ({ type: a.role, data: a.node })),
     { type: current.role, data: current.node },
   ]
 
   const el = document.createElement('div')
-  el.id = 'chain-popup-a'
+  el.id = 'chain-popup-sd'
 
-  if (!document.getElementById('chain-popup-a-styles')) {
+  if (!document.getElementById('chain-popup-sd-styles')) {
     const s = document.createElement('style')
-    s.id = 'chain-popup-a-styles'
+    s.id = 'chain-popup-sd-styles'
     s.textContent = `
-      #chain-popup-a::-webkit-scrollbar{width:6px}
-      #chain-popup-a::-webkit-scrollbar-track{background:rgba(255,255,255,0.03);border-radius:10px;margin:4px 0}
-      #chain-popup-a::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#22c55e,#38bdf8);border-radius:10px;box-shadow:0 0 6px rgba(34,197,94,0.4)}
-      #chain-popup-a::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#4ade80,#7dd3fc)}
-      #chain-popup-a{scrollbar-color:rgba(34,197,94,0.5) rgba(255,255,255,0.03)}
-      @keyframes acpSlideInA{from{opacity:0;transform:translateX(18px) scale(0.95)}to{opacity:1;transform:translateX(0) scale(1)}}
-      @keyframes acpPulseA{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
-      @keyframes acpGlowA{0%,100%{box-shadow:0 0 0px rgba(34,197,94,0)}50%{box-shadow:0 0 20px rgba(34,197,94,0.22)}}
-      @keyframes acpShimmerA{0%{background-position:-200% center}100%{background-position:200% center}}
-      @keyframes acpBadgePopA{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}}
+      #chain-popup-sd::-webkit-scrollbar{width:6px}
+      #chain-popup-sd::-webkit-scrollbar-track{background:rgba(255,255,255,0.03);border-radius:10px;margin:4px 0}
+      #chain-popup-sd::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#ef4444,#d4a017);border-radius:10px;box-shadow:0 0 6px rgba(239,68,68,0.4)}
+      #chain-popup-sd::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#f87171,#eab308)}
+      #chain-popup-sd{scrollbar-color:rgba(239,68,68,0.5) rgba(255,255,255,0.03)}
+      @keyframes acpSlideInSD{from{opacity:0;transform:translateX(18px) scale(0.95)}to{opacity:1;transform:translateX(0) scale(1)}}
+      @keyframes acpPulseSD{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+      @keyframes acpGlowSD{0%,100%{box-shadow:0 0 0px rgba(239,68,68,0)}50%{box-shadow:0 0 20px rgba(239,68,68,0.22)}}
+      @keyframes acpShimmerSD{0%{background-position:-200% center}100%{background-position:200% center}}
+      @keyframes acpBadgePopSD{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}}
     `
     document.head.appendChild(s)
   }
@@ -222,12 +207,12 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, admin
   el.style.cssText = `
     position:fixed; z-index:9999;
     background:${isDark ? 'rgba(5,10,20,0.97)' : 'rgba(248,250,252,0.98)'};
-    border:1px solid ${isDark ? 'rgba(34,197,94,0.22)' : 'rgba(37,99,235,0.18)'};
+    border:1px solid ${isDark ? 'rgba(239,68,68,0.22)' : 'rgba(37,99,235,0.18)'};
     border-radius:20px; padding:20px;
     box-shadow:${isDark
-      ? '0 32px 80px rgba(0,0,0,0.85), 0 0 0 1px rgba(34,197,94,0.06), inset 0 1px 0 rgba(255,255,255,0.04)'
+      ? '0 32px 80px rgba(0,0,0,0.85), 0 0 0 1px rgba(239,68,68,0.06), inset 0 1px 0 rgba(255,255,255,0.04)'
       : '0 32px 80px rgba(0,0,0,0.15), 0 0 0 1px rgba(37,99,235,0.05)'};
-    animation:acpSlideInA 0.3s cubic-bezier(0.22,1,0.36,1) both;
+    animation:acpSlideInSD 0.3s cubic-bezier(0.22,1,0.36,1) both;
     min-width:200px; max-width:260px;
     max-height:85vh; overflow-y:auto; overflow-x:hidden;
     scroll-behavior:smooth; scrollbar-width:thin;
@@ -238,41 +223,41 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, admin
   `
 
   const totalNodes = chain.length
-  const saColor = ROLE_CFG.admin.color
-  const saRgb = hexToRgb(saColor)
+  const sdColor = ROLE_CFG.sub_dealer.color
+  const sdRgb = hexToRgb(sdColor)
 
   const itemsHtml = chain.map((item, idx) => {
     const isLast = idx === chain.length - 1
-    const isAdmin = item.type === 'admin'
+    const isSubDealer = item.type === 'sub_dealer'
 
     const arrowHtml = idx > 0 ? `
       <div style="display:flex;justify-content:center;padding:5px 0;">
         <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
-          <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:7px solid rgba(34,197,94,0.5);"></div>
-          <div style="width:1.5px;height:16px;background:linear-gradient(180deg,rgba(34,197,94,0.1),rgba(34,197,94,0.65));"></div>
+          <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:7px solid rgba(239,68,68,0.5);"></div>
+          <div style="width:1.5px;height:16px;background:linear-gradient(180deg,rgba(239,68,68,0.1),rgba(239,68,68,0.65));"></div>
         </div>
       </div>` : ''
 
-    if (isAdmin) {
+    if (isSubDealer) {
       const d = item.data || {}
       const name = [d.first_name, d.last_name].filter(Boolean).join(' ') || '—'
       return `
         ${arrowHtml}
         <div style="
           border-radius:14px;padding:14px 16px;
-          background:${isDark ? `linear-gradient(135deg,rgba(${saRgb},0.09),rgba(${saRgb},0.04))` : `linear-gradient(135deg,rgba(${saRgb},0.14),rgba(${saRgb},0.06))`};
-          border:1px solid rgba(${saRgb},0.3);
+          background:${isDark ? `linear-gradient(135deg,rgba(${sdRgb},0.09),rgba(${sdRgb},0.04))` : `linear-gradient(135deg,rgba(${sdRgb},0.14),rgba(${sdRgb},0.06))`};
+          border:1px solid rgba(${sdRgb},0.3);
           position:relative;overflow:hidden;
         ">
-          <div style="position:absolute;top:-10px;right:-10px;width:70px;height:70px;background:radial-gradient(circle,rgba(${saRgb},0.14),transparent 70%);pointer-events:none;"></div>
+          <div style="position:absolute;top:-10px;right:-10px;width:70px;height:70px;background:radial-gradient(circle,rgba(${sdRgb},0.14),transparent 70%);pointer-events:none;"></div>
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-            <div style="width:30px;height:30px;border-radius:9px;background:${saColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(${saRgb},0.35);">${iconSvg(ICON_PATHS.shield, '#04140a', 15)}</div>
+            <div style="width:30px;height:30px;border-radius:9px;background:${sdColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(${sdRgb},0.35);">${iconSvg(ICON_PATHS.link, '#2e0505', 15)}</div>
             <div>
-              <div style="font-size:9px;color:${saColor};font-weight:800;letter-spacing:1.8px;">ADMIN</div>
-              <div style="font-size:8px;color:rgba(${saRgb},0.6);margin-top:2px;letter-spacing:0.5px;">${d.admin_id || ''}</div>
+              <div style="font-size:9px;color:${sdColor};font-weight:800;letter-spacing:1.8px;">SUB DEALER</div>
+              <div style="font-size:8px;color:rgba(${sdRgb},0.6);margin-top:2px;letter-spacing:0.5px;">${d.sub_dealer_id || ''}</div>
             </div>
             <div style="margin-left:auto;display:flex;align-items:center;gap:5px;">
-              <div style="width:7px;height:7px;border-radius:50%;background:#22c55e;animation:acpPulseA 1.8s ease-in-out infinite;box-shadow:0 0 8px rgba(34,197,94,0.9);"></div>
+              <div style="width:7px;height:7px;border-radius:50%;background:#22c55e;animation:acpPulseSD 1.8s ease-in-out infinite;box-shadow:0 0 8px rgba(34,197,94,0.9);"></div>
               <span style="font-size:9px;color:#22c55e;font-weight:700;">LIVE</span>
             </div>
           </div>
@@ -303,7 +288,7 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, admin
         ? `1.5px solid rgba(${rc},0.55)`
         : `1px solid rgba(${rc},0.16)`};
         position:relative;overflow:hidden;
-        ${isLast ? `animation:acpGlowA 3s ease-in-out infinite;` : ''}
+        ${isLast ? `animation:acpGlowSD 3s ease-in-out infinite;` : ''}
       ">
         ${isLast ? `<div style="position:absolute;top:-15px;right:-15px;width:80px;height:80px;background:radial-gradient(circle,rgba(${rc},0.18),transparent 70%);pointer-events:none;"></div>` : ''}
 
@@ -317,7 +302,7 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, admin
           <div style="font-size:8px;font-weight:800;padding:3px 9px;border-radius:20px;
             background:rgba(${rc},0.18);color:${cfg.color};
             border:1px solid rgba(${rc},0.4);
-            animation:acpBadgePopA 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+            animation:acpBadgePopSD 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
             white-space:nowrap;letter-spacing:0.5px;">● CURRENT</div>` : ''}
         </div>
 
@@ -340,21 +325,21 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, admin
   }).join('')
 
   el.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid ${isDark ? 'rgba(34,197,94,0.1)' : 'rgba(37,99,235,0.08)'};">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid ${isDark ? 'rgba(239,68,68,0.1)' : 'rgba(37,99,235,0.08)'};">
       <div style="display:flex;align-items:center;gap:9px;">
-        <div style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#22c55e,#38bdf8);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(34,197,94,0.4);">${iconSvg(ICON_PATHS.link, '#020617', 13)}</div>
+        <div style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#ef4444,#d4a017);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(239,68,68,0.4);">${iconSvg(ICON_PATHS.link, '#020617', 13)}</div>
         <div>
-          <div style="font-size:11px;color:${isDark ? '#4ade80' : '#16a34a'};font-weight:800;letter-spacing:1.8px;">HIERARCHY CHAIN</div>
+          <div style="font-size:11px;color:${isDark ? '#f87171' : '#dc2626'};font-weight:800;letter-spacing:1.8px;">HIERARCHY CHAIN</div>
           <div style="font-size:9px;color:${isDark ? '#475569' : '#94a3b8'};margin-top:2px;">${totalNodes} level${totalNodes !== 1 ? 's' : ''} deep</div>
         </div>
       </div>
       <div style="
         font-size:9px;font-weight:800;padding:4px 11px;border-radius:20px;
-        background:linear-gradient(90deg,rgba(34,197,94,0.15),rgba(56,189,248,0.12),rgba(34,197,94,0.15));
+        background:linear-gradient(90deg,rgba(239,68,68,0.15),rgba(212,160,23,0.12),rgba(239,68,68,0.15));
         background-size:200% auto;
-        animation:acpShimmerA 2.5s linear infinite;
-        border:1px solid rgba(34,197,94,0.22);
-        color:${isDark ? '#4ade80' : '#16a34a'};
+        animation:acpShimmerSD 2.5s linear infinite;
+        border:1px solid rgba(239,68,68,0.22);
+        color:${isDark ? '#f87171' : '#dc2626'};
         letter-spacing:1px;">● LIVE</div>
     </div>
 
@@ -385,7 +370,7 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, admin
   el.addEventListener('mouseleave', () => scheduleHideChainPopup())
 }
 
-function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], adminInfo = {}, flatMode = false }) {
+function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], subDealerInfo = {}, flatMode = false }) {
   const navigate = useNavigate()
   const cfg = ROLE_CFG[role]
   const c = cfg.color
@@ -402,7 +387,7 @@ function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], 
         data-role={role}
         style={{ '--nc': c }}
         onClick={() => hasChildren && setExpanded(v => !v)}
-        onMouseEnter={e => showChainPopup(e.currentTarget, ancestors, { node, role }, dark, text, subtext, adminInfo)}
+        onMouseEnter={e => showChainPopup(e.currentTarget, ancestors, { node, role }, dark, text, subtext, subDealerInfo)}
         onMouseLeave={() => scheduleHideChainPopup()}
       >
         <div className="otree-badge" style={{ '--nc': c }}>
@@ -421,7 +406,7 @@ function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], 
 
         <div className="otree-actions">
           <button
-            onClick={e => { e.stopPropagation(); printPersonCard(node, role, cfg, c, ancestors, adminInfo) }}
+            onClick={e => { e.stopPropagation(); printPersonCard(node, role, cfg, c, ancestors, subDealerInfo) }}
             className="otree-btn" style={{ '--nc': c }}
           >
             <IconPrinter color={c} /> PRINT
@@ -454,7 +439,7 @@ function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], 
                 node={child} role={childRole} depth={depth + 1}
                 dark={dark} text={text} subtext={subtext}
                 ancestors={[...ancestors, { node, role }]}
-                adminInfo={adminInfo}
+                subDealerInfo={subDealerInfo}
               />
             </div>
           ))}
@@ -464,11 +449,11 @@ function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], 
   )
 }
 
-export default function AdminHierarchy() {
+export default function SubdealerHierarchy() {
   const navigate = useNavigate()
   const [dark] = useState(true)
-  const [dealers, setDealers] = useState([])
-  const [adminInfo, setAdminInfo] = useState({})
+  const [promotors, setPromotors] = useState([])
+  const [subDealerInfo, setSubDealerInfo] = useState({})
   const [loading, setLoading] = useState(false)
   const [filter, setFilter] = useState(null)
   const [search, setSearch] = useState('')
@@ -477,8 +462,8 @@ export default function AdminHierarchy() {
   const treeWrapperRef = useRef(null)
   const scrollAreaRef = useRef(null)
   const [levelTops, setLevelTops] = useState({})
-  const [dealerAnchors, setDealerAnchors] = useState([])
-  const [adminAnchor, setAdminAnchor] = useState(null)
+  const [promotorAnchors, setPromotorAnchors] = useState([])
+  const [subDealerAnchor, setSubDealerAnchor] = useState(null)
 
   useLayoutEffect(() => {
     const wrapper = treeWrapperRef.current
@@ -486,7 +471,7 @@ export default function AdminHierarchy() {
 
     const measure = () => {
       const wrapperRect = wrapper.getBoundingClientRect()
-      const roles = ['dealer', 'sub_dealer', 'promotor', 'customer']
+      const roles = ['promotor', 'customer']
       const tops = {}
       roles.forEach(role => {
         const el = wrapper.querySelector(`[data-role="${role}"]`)
@@ -497,20 +482,20 @@ export default function AdminHierarchy() {
       })
       setLevelTops(tops)
 
-      const dealerEls = wrapper.querySelectorAll('[data-role="dealer"]')
-      const anchors = Array.from(dealerEls).map(el => {
+      const prEls = wrapper.querySelectorAll('[data-role="promotor"]')
+      const anchors = Array.from(prEls).map(el => {
         const r = el.getBoundingClientRect()
         return {
           x: (r.left - wrapperRect.left) + r.width / 2,
           top: (r.top - wrapperRect.top),
         }
       })
-      setDealerAnchors(anchors)
+      setPromotorAnchors(anchors)
 
-      const aEl = wrapper.querySelector('[data-role="admin"]')
-      if (aEl) {
-        const r = aEl.getBoundingClientRect()
-        setAdminAnchor({
+      const sdEl = wrapper.querySelector('[data-role="sub_dealer"]')
+      if (sdEl) {
+        const r = sdEl.getBoundingClientRect()
+        setSubDealerAnchor({
           x: (r.right - wrapperRect.left),
           y: (r.top - wrapperRect.top) + r.height / 2,
         })
@@ -532,7 +517,7 @@ export default function AdminHierarchy() {
       scrollEl?.removeEventListener('scroll', measure)
       window.removeEventListener('resize', measure)
     }
-  }, [dealers, filter, debouncedSearch])
+  }, [promotors, filter, debouncedSearch])
 
   const text = '#f8fafc'
   const subtext = '#94a3b8'
@@ -545,23 +530,39 @@ export default function AdminHierarchy() {
     return () => clearTimeout(t)
   }, [search])
 
-const fetchHierarchy = async () => {
+  const fetchHierarchy = async () => {
     setLoading(true)
     try {
       const res = await api.get('/hierarchy/full/')
       const myEmail = localStorage.getItem('email')
 
-      // Logged-in admin ah match panni edukkurom (first admin illa)
-      const myAdmin = res.data.admins?.find(a => a.email === myEmail) || res.data.admins?.[0] || null
+      // Ella admins -> dealers -> sub_dealers ah walk panni, logged-in sub_dealer ah kandu pidikkurom
+      let mySubDealer = null
+      outer:
+      for (const admin of res.data.admins || []) {
+        for (const dealer of admin.dealers || []) {
+          const found = (dealer.sub_dealers || []).find(sd => sd.email === myEmail)
+          if (found) { mySubDealer = found; break outer }
+        }
+      }
+      // Fallback
+      if (!mySubDealer) {
+        outer2:
+        for (const admin of res.data.admins || []) {
+          for (const dealer of admin.dealers || []) {
+            if ((dealer.sub_dealers || []).length > 0) { mySubDealer = dealer.sub_dealers[0]; break outer2 }
+          }
+        }
+      }
 
-      if (myAdmin) {
-        setAdminInfo({
-          admin_id: myAdmin.admin_id,
-          first_name: myAdmin.first_name,
-          last_name: myAdmin.last_name,
-          mobile_number: myAdmin.mobile_number,
+      if (mySubDealer) {
+        setSubDealerInfo({
+          sub_dealer_id: mySubDealer.sub_dealer_id,
+          first_name: mySubDealer.first_name,
+          last_name: mySubDealer.last_name,
+          mobile_number: mySubDealer.mobile_number,
         })
-        setDealers(myAdmin.dealers || [])
+        setPromotors(mySubDealer.promotors || [])
       }
     } catch (err) { console.error(err) }
     setLoading(false)
@@ -570,25 +571,19 @@ const fetchHierarchy = async () => {
   useEffect(() => { fetchHierarchy() }, [])
 
   const flattenByRole = (role) => {
-    if (!dealers) return []
+    if (!promotors) return []
     const result = []
-    dealers.forEach(dealer => {
-      if (role === 'dealer') { result.push({ node: dealer, ancestors: [] }); return }
-      dealer.sub_dealers.forEach(sd => {
-        if (role === 'sub_dealer') { result.push({ node: sd, ancestors: [{ node: dealer, role: 'dealer' }] }); return }
-        sd.promotors.forEach(pr => {
-          if (role === 'promotor') { result.push({ node: pr, ancestors: [{ node: dealer, role: 'dealer' }, { node: sd, role: 'sub_dealer' }] }); return }
-          pr.customers.forEach(cus => {
-            if (role === 'customer') { result.push({ node: cus, ancestors: [{ node: dealer, role: 'dealer' }, { node: sd, role: 'sub_dealer' }, { node: pr, role: 'promotor' }] }) }
-          })
-        })
+    promotors.forEach(pr => {
+      if (role === 'promotor') { result.push({ node: pr, ancestors: [] }); return }
+      pr.customers.forEach(cus => {
+        if (role === 'customer') { result.push({ node: cus, ancestors: [{ node: pr, role: 'promotor' }] }) }
       })
     })
     return result
   }
 
   const searchAllHierarchy = (query) => {
-    if (!dealers || !query.trim()) return []
+    if (!promotors || !query.trim()) return []
     const q = query.trim().toLowerCase()
     const result = []
     const checkMatch = (node, idKey) => {
@@ -597,16 +592,10 @@ const fetchHierarchy = async () => {
       const phoneVal = (node.mobile_number || '').toString().toLowerCase()
       return idVal.includes(q) || nameVal.includes(q) || phoneVal.includes(q)
     }
-    dealers.forEach(dealer => {
-      if (checkMatch(dealer, 'dealer_id')) result.push({ node: dealer, role: 'dealer', ancestors: [] })
-      dealer.sub_dealers.forEach(sd => {
-        if (checkMatch(sd, 'sub_dealer_id')) result.push({ node: sd, role: 'sub_dealer', ancestors: [{ node: dealer, role: 'dealer' }] })
-        sd.promotors.forEach(pr => {
-          if (checkMatch(pr, 'promotor_id')) result.push({ node: pr, role: 'promotor', ancestors: [{ node: dealer, role: 'dealer' }, { node: sd, role: 'sub_dealer' }] })
-          pr.customers.forEach(cus => {
-            if (checkMatch(cus, 'customer_id')) result.push({ node: cus, role: 'customer', ancestors: [{ node: dealer, role: 'dealer' }, { node: sd, role: 'sub_dealer' }, { node: pr, role: 'promotor' }] })
-          })
-        })
+    promotors.forEach(pr => {
+      if (checkMatch(pr, 'promotor_id')) result.push({ node: pr, role: 'promotor', ancestors: [] })
+      pr.customers.forEach(cus => {
+        if (checkMatch(cus, 'customer_id')) result.push({ node: cus, role: 'customer', ancestors: [{ node: pr, role: 'promotor' }] })
       })
     })
     return result
@@ -615,18 +604,14 @@ const fetchHierarchy = async () => {
   const searchResults = useMemo(() => {
     if (!debouncedSearch) return []
     return searchAllHierarchy(debouncedSearch)
-  }, [debouncedSearch, dealers])
+  }, [debouncedSearch, promotors])
 
-  const totalStats = dealers ? {
-    dealers: dealers.length,
-    subDealers: dealers.reduce((a, d) => a + d.sub_dealers.length, 0),
-    promotors: dealers.reduce((a, d) => a + d.sub_dealers.reduce((b, sd) => b + sd.promotors.length, 0), 0),
-    customers: dealers.reduce((a, d) => a + d.sub_dealers.reduce((b, sd) => b + sd.promotors.reduce((c, pr) => c + pr.customers.length, 0), 0), 0),
+  const totalStats = promotors ? {
+    promotors: promotors.length,
+    customers: promotors.reduce((a, pr) => a + pr.customers.length, 0),
   } : null
 
   const statPills = totalStats ? [
-    { label: 'Dealers', roleKey: 'dealer', count: totalStats.dealers },
-    { label: 'Sub Dealers', roleKey: 'sub_dealer', count: totalStats.subDealers },
     { label: 'Promotors', roleKey: 'promotor', count: totalStats.promotors },
     { label: 'Customers', roleKey: 'customer', count: totalStats.customers },
   ] : []
@@ -672,14 +657,14 @@ const fetchHierarchy = async () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <IconBuilding color="#a5f3fc" />
             <span style={{ color: '#a5f3fc', fontSize: '16px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              Full Dealer Hierarchy
+              Full Promotor Hierarchy
             </span>
           </div>
           {totalStats && (
             <div style={{ display: 'flex', gap: '10px', marginTop: '14px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: `${ROLE_CFG.admin.color}22`, border: `1px solid ${ROLE_CFG.admin.color}55`, borderRadius: '20px', padding: '4px 14px' }}>
-                <span style={{ color: ROLE_CFG.admin.color, fontWeight: 800, fontSize: '13px' }}>1</span>
-                <span style={{ color: subtext, fontSize: '11px' }}>Admin</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: `${ROLE_CFG.sub_dealer.color}22`, border: `1px solid ${ROLE_CFG.sub_dealer.color}55`, borderRadius: '20px', padding: '4px 14px' }}>
+                <span style={{ color: ROLE_CFG.sub_dealer.color, fontWeight: 800, fontSize: '13px' }}>1</span>
+                <span style={{ color: subtext, fontSize: '11px' }}>Sub Dealer</span>
               </div>
               {statPills.map(s => {
                 const color = ROLE_CFG[s.roleKey].color
@@ -716,27 +701,25 @@ const fetchHierarchy = async () => {
 
       <div ref={treeWrapperRef} style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${border}`, borderRadius: '20px', padding: '28px 0', overflow: 'hidden', minHeight: '100vh', position: 'relative' }}>
 
-        <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 200, zIndex: 40, background: '#020617', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 20 }}>
-          <div className="otree-card" data-role="admin" style={{ '--nc': ROLE_CFG.admin.color, minWidth: 150, cursor: 'default' }}>
-            <div className="otree-badge" style={{ '--nc': ROLE_CFG.admin.color }}>
-              <IconShield color={ROLE_CFG.admin.color} size={11} /> ADMIN
+        <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 200, zIndex: 40, background: '#020617', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 80 }}>
+          <div className="otree-card" data-role="sub_dealer" style={{ '--nc': ROLE_CFG.sub_dealer.color, minWidth: 150, cursor: 'default' }}>
+            <div className="otree-badge" style={{ '--nc': ROLE_CFG.sub_dealer.color }}>
+              <IconLink color={ROLE_CFG.sub_dealer.color} size={11} /> SUB DEALER
             </div>
-            <div className="otree-id" style={{ color: ROLE_CFG.admin.color }}>{adminInfo.admin_id}</div>
-            <div className="otree-name" style={{ color: text, fontSize: '12px' }}>{adminInfo.first_name} {adminInfo.last_name || ''}</div>
+            <div className="otree-id" style={{ color: ROLE_CFG.sub_dealer.color }}>{subDealerInfo.sub_dealer_id}</div>
+            <div className="otree-name" style={{ color: text, fontSize: '12px' }}>{subDealerInfo.first_name} {subDealerInfo.last_name || ''}</div>
             <div className="otree-sub" style={{ color: subtext }}>
-              <IconPhone color={subtext} /> {adminInfo.mobile_number}
+              <IconPhone color={subtext} /> {subDealerInfo.mobile_number}
             </div>
           </div>
-          <div style={{ width: 2, flex: 1, background: ROLE_CFG.admin.color, marginTop: 6 }} />
+          <div style={{ width: 2, flex: 1, background: ROLE_CFG.sub_dealer.color, marginTop: 6 }} />
         </div>
 
-        {!loading && dealers.length > 0 && !filter && !debouncedSearch && (
+        {!loading && promotors.length > 0 && !filter && !debouncedSearch && (
           <div style={{ position: 'absolute', left: 0, top: 0, width: 200, height: '100%', zIndex: 45, pointerEvents: 'none' }}>
             {[
-              { role: 'dealer', label: 'Level 1' },
-              { role: 'sub_dealer', label: 'Level 2' },
-              { role: 'promotor', label: 'Level 3' },
-              { role: 'customer', label: 'Level 4' },
+              { role: 'promotor', label: 'Level 1' },
+              { role: 'customer', label: 'Level 2' },
             ].map(({ role, label }) => (
               levelTops[role] != null && (
                 <div key={role} style={{
@@ -757,15 +740,15 @@ const fetchHierarchy = async () => {
           </div>
         )}
 
-        {!loading && dealers.length > 0 && !filter && !debouncedSearch && dealerAnchors.length > 0 && adminAnchor && (() => {
-          const bridgeY = adminAnchor.y
-          const bridgeStartX = adminAnchor.x
-          const farthestX = Math.max(...dealerAnchors.map(a => a.x))
+        {!loading && promotors.length > 0 && !filter && !debouncedSearch && promotorAnchors.length > 0 && subDealerAnchor && (() => {
+          const bridgeY = subDealerAnchor.y
+          const bridgeStartX = subDealerAnchor.x
+          const farthestX = Math.max(...promotorAnchors.map(a => a.x))
           return (
             <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 44, pointerEvents: 'none' }}>
-              <line x1={bridgeStartX} y1={bridgeY} x2={Math.max(farthestX, bridgeStartX)} y2={bridgeY} stroke={ROLE_CFG.dealer.color} strokeWidth="2" />
-              {dealerAnchors.map((a, i) => (
-                <line key={i} x1={a.x} y1={bridgeY} x2={a.x} y2={a.top} stroke={ROLE_CFG.dealer.color} strokeWidth="2" />
+              <line x1={bridgeStartX} y1={bridgeY} x2={Math.max(farthestX, bridgeStartX)} y2={bridgeY} stroke={ROLE_CFG.promotor.color} strokeWidth="2" />
+              {promotorAnchors.map((a, i) => (
+                <line key={i} x1={a.x} y1={bridgeY} x2={a.x} y2={a.top} stroke={ROLE_CFG.promotor.color} strokeWidth="2" />
               ))}
             </svg>
           )
@@ -773,12 +756,12 @@ const fetchHierarchy = async () => {
 
         {loading && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 0', gap: '16px' }}>
-            <div style={{ width: 32, height: 32, border: '3px solid rgba(34,197,94,0.2)', borderTop: '3px solid #22c55e', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+            <div style={{ width: 32, height: 32, border: '3px solid rgba(239,68,68,0.2)', borderTop: '3px solid #ef4444', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
             <span style={{ color: subtext, fontSize: '14px' }}>Loading hierarchy...</span>
           </div>
         )}
 
-        {!loading && dealers && (
+        {!loading && promotors && (
           debouncedSearch ? (() => {
             const filteredResults = filter ? searchResults.filter(item => item.role === filter) : searchResults
             if (filteredResults.length === 0) {
@@ -787,7 +770,7 @@ const fetchHierarchy = async () => {
             return (
               <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center', padding: '0 32px' }}>
                 {filteredResults.map((item, idx) => (
-                  <TreeNode key={item.node.id || idx} node={item.node} role={item.role} dark={dark} text={text} subtext={subtext} ancestors={item.ancestors} adminInfo={adminInfo} flatMode={true} />
+                  <TreeNode key={item.node.id || idx} node={item.node} role={item.role} dark={dark} text={text} subtext={subtext} ancestors={item.ancestors} subDealerInfo={subDealerInfo} flatMode={true} />
                 ))}
               </div>
             )
@@ -803,20 +786,20 @@ const fetchHierarchy = async () => {
                 ) : (
                   <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
                     {flatList.map((item, idx) => (
-                      <TreeNode key={item.node.id || idx} node={item.node} role={filter} dark={dark} text={text} subtext={subtext} ancestors={item.ancestors} adminInfo={adminInfo} flatMode={true} />
+                      <TreeNode key={item.node.id || idx} node={item.node} role={filter} dark={dark} text={text} subtext={subtext} ancestors={item.ancestors} subDealerInfo={subDealerInfo} flatMode={true} />
                     ))}
                   </div>
                 )}
               </div>
             )
-          })() : dealers.length === 0 ? (
-            <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No dealers created yet.</div>
+          })() : promotors.length === 0 ? (
+            <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No promotors created yet.</div>
           ) : (
-            <div ref={scrollAreaRef} style={{ overflowX: 'auto', overflowY: 'hidden', padding: '50px 32px 20px 220px' }}>
-              <div className="otree-children otree-children-root" style={{ '--lc': ROLE_CFG.dealer.color, minWidth: 'max-content' }}>
-                {dealers.map(dealer => (
-                  <div className="otree-item" key={dealer.id} style={{ paddingTop: 0 }}>
-                    <TreeNode node={dealer} role="dealer" depth={0} dark={dark} text={text} subtext={subtext} ancestors={[]} adminInfo={adminInfo} />
+            <div ref={scrollAreaRef} style={{ overflowX: 'auto', overflowY: 'hidden', padding: '110px 32px 20px 220px' }}>
+              <div className="otree-children otree-children-root" style={{ '--lc': ROLE_CFG.promotor.color, minWidth: 'max-content' }}>
+                {promotors.map(pr => (
+                  <div className="otree-item" key={pr.id} style={{ paddingTop: 0 }}>
+                    <TreeNode node={pr} role="promotor" depth={0} dark={dark} text={text} subtext={subtext} ancestors={[]} subDealerInfo={subDealerInfo} />
                   </div>
                 ))}
               </div>
@@ -824,7 +807,7 @@ const fetchHierarchy = async () => {
           )
         )}
 
-        {!loading && !dealers && (
+        {!loading && !promotors && (
           <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>Failed to load hierarchy.</div>
         )}
 
@@ -832,7 +815,7 @@ const fetchHierarchy = async () => {
 
       {!loading && (
         <div style={{ marginTop: '20px', padding: '14px 0', display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
-          {[{ role: 'Admin', key: 'admin' }, { role: 'Dealer', key: 'dealer' }, { role: 'Sub Dealer', key: 'sub_dealer' }, { role: 'Promotor', key: 'promotor' }, { role: 'Customer', key: 'customer' }].map(l => (
+          {[{ role: 'Sub Dealer', key: 'sub_dealer' }, { role: 'Promotor', key: 'promotor' }, { role: 'Customer', key: 'customer' }].map(l => (
             <div key={l.role} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <div style={{ width: 9, height: 9, borderRadius: '50%', background: ROLE_CFG[l.key].color }} />
               <span style={{ color: subtext, fontSize: '11px' }}>{l.role}</span>

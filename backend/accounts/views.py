@@ -50,16 +50,25 @@ class LoginView(APIView):
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
+
+        # Step 1: Email exist ஆ இல்லையா check pannu
+        user_obj = User.objects.filter(email=email).first()
+        if not user_obj:
+            return Response({'error': 'No account found with this email'}, status=400)
+
+        # Step 2: Email correct — password check pannu
         user = authenticate(request, username=email, password=password)
-        if user:
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'access': str(refresh.access_token),
-                'refresh': str(refresh),
-                'role': user.role,
-                'email': user.email,
-            })
-        return Response({'error': 'Invalid credentials'}, status=400)
+        if not user:
+            return Response({'error': 'Incorrect password'}, status=400)
+
+        # Step 3: Success
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'role': user.role,
+            'email': user.email,
+        })
 
 
 class CreateAdminView(APIView):

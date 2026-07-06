@@ -3,23 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import api from '../api'
 
 // ── SVG ICONS ──
-const IconShield = ({ color, size = 14 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-  </svg>
-)
-const IconStore = ({ color, size = 14 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 9l1-5h16l1 5"/><path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/>
-    <path d="M4 9v10h16V9"/><path d="M9 21v-6h6v6"/>
-  </svg>
-)
-const IconLink = ({ color, size = 14 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-  </svg>
-)
 const IconStar = ({ color, size = 14 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
@@ -74,36 +57,22 @@ const IconBuilding = ({ color, size = 18 }) => (
     <line x1="15" y1="14" x2="15" y2="14"/><line x1="9" y1="18" x2="15" y2="18"/>
   </svg>
 )
-const IconChevronDown = ({ color, size = 10 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="6 9 12 15 18 9"/>
-  </svg>
-)
 
-// ── ROLE CONFIG — Admin root ku keela Dealer -> SubDealer -> Promotor -> Customer ──
+// ── ROLE CONFIG — Promotor root ku keela Customer mattum ──
 const ROLE_CFG = {
-  admin: { color: '#22c55e', Icon: IconShield, label: 'ADMIN' },
-  dealer: { color: '#38bdf8', Icon: IconStore, label: 'DEALER', idKey: 'dealer_id' },
-  sub_dealer: { color: '#ef4444', Icon: IconLink, label: 'SUB DEALER', idKey: 'sub_dealer_id' },
-  promotor: { color: '#d4a017', Icon: IconStar, label: 'PROMOTOR', idKey: 'promotor_id' },
+  promotor: { color: '#d4a017', Icon: IconStar, label: 'PROMOTOR' },
   customer: { color: '#fb7185', Icon: IconUser, label: 'CUSTOMER', idKey: 'customer_id' },
 }
-const CHILD_ROLE = { dealer: 'sub_dealer', sub_dealer: 'promotor', promotor: 'customer' }
-const CHILD_KEY = { dealer: 'sub_dealers', sub_dealer: 'promotors', promotor: 'customers' }
 
 function iconSvg(paths, color, size = 14) {
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`
 }
 const ICON_PATHS = {
-  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
-  store: '<path d="M3 9l1-5h16l1 5"/><path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M4 9v10h16V9"/><path d="M9 21v-6h6v6"/>',
-  link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
   star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
   user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
   phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>',
   mappin: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
 }
-const ICON_BY_TYPE = { dealer: 'store', sub_dealer: 'link', promotor: 'star', customer: 'user' }
 
 function hexToRgb(hex) {
   const r = parseInt(hex.slice(1, 3), 16)
@@ -114,26 +83,25 @@ function hexToRgb(hex) {
 
 let _chainHideTimer = null
 function removeChainPopup() {
-  document.querySelectorAll('#chain-popup-a').forEach(el => el.remove())
+  document.querySelectorAll('#chain-popup-pr').forEach(el => el.remove())
 }
 function scheduleHideChainPopup() {
   clearTimeout(_chainHideTimer)
   _chainHideTimer = setTimeout(() => removeChainPopup(), 200)
 }
 
-function printPersonCard(node, role, cfg, color, ancestors, adminInfo) {
+function printPersonCard(node, role, cfg, color, promotorInfo) {
   const chain = [
-    { type: 'admin', data: adminInfo },
-    ...ancestors.map(a => ({ type: a.role, data: a.node })),
+    { type: 'promotor', data: promotorInfo },
     { type: role, data: node },
   ]
   const chainHtml = chain.map((item, idx) => {
     const isLast = idx === chain.length - 1
-    if (item.type === 'admin') {
+    if (item.type === 'promotor') {
       const d = item.data || {}
       return `<div class="chain-item ${isLast ? 'current' : ''}">
-        <div class="chain-role">ADMIN</div>
-        <div class="chain-id">${d.admin_id || '—'}</div>
+        <div class="chain-role">PROMOTOR</div>
+        <div class="chain-id">${d.promotor_id || '—'}</div>
         <div class="chain-name">${[d.first_name, d.last_name].filter(Boolean).join(' ') || '—'}</div>
         <div class="chain-info">Tel: ${d.mobile_number || '—'}</div>
       </div>${idx < chain.length - 1 ? `<div class="chain-arrow">↓</div>` : ''}`
@@ -187,33 +155,32 @@ function printPersonCard(node, role, cfg, color, ancestors, adminInfo) {
   printWindow.document.close()
 }
 
-function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, adminInfo) {
+function showChainPopup(anchorEl, current, dark, text, subtext, promotorInfo) {
   clearTimeout(_chainHideTimer)
   removeChainPopup()
 
   const chain = [
-    { type: 'admin', data: adminInfo },
-    ...ancestors.map(a => ({ type: a.role, data: a.node })),
+    { type: 'promotor', data: promotorInfo },
     { type: current.role, data: current.node },
   ]
 
   const el = document.createElement('div')
-  el.id = 'chain-popup-a'
+  el.id = 'chain-popup-pr'
 
-  if (!document.getElementById('chain-popup-a-styles')) {
+  if (!document.getElementById('chain-popup-pr-styles')) {
     const s = document.createElement('style')
-    s.id = 'chain-popup-a-styles'
+    s.id = 'chain-popup-pr-styles'
     s.textContent = `
-      #chain-popup-a::-webkit-scrollbar{width:6px}
-      #chain-popup-a::-webkit-scrollbar-track{background:rgba(255,255,255,0.03);border-radius:10px;margin:4px 0}
-      #chain-popup-a::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#22c55e,#38bdf8);border-radius:10px;box-shadow:0 0 6px rgba(34,197,94,0.4)}
-      #chain-popup-a::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#4ade80,#7dd3fc)}
-      #chain-popup-a{scrollbar-color:rgba(34,197,94,0.5) rgba(255,255,255,0.03)}
-      @keyframes acpSlideInA{from{opacity:0;transform:translateX(18px) scale(0.95)}to{opacity:1;transform:translateX(0) scale(1)}}
-      @keyframes acpPulseA{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
-      @keyframes acpGlowA{0%,100%{box-shadow:0 0 0px rgba(34,197,94,0)}50%{box-shadow:0 0 20px rgba(34,197,94,0.22)}}
-      @keyframes acpShimmerA{0%{background-position:-200% center}100%{background-position:200% center}}
-      @keyframes acpBadgePopA{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}}
+      #chain-popup-pr::-webkit-scrollbar{width:6px}
+      #chain-popup-pr::-webkit-scrollbar-track{background:rgba(255,255,255,0.03);border-radius:10px;margin:4px 0}
+      #chain-popup-pr::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#d4a017,#fb7185);border-radius:10px;box-shadow:0 0 6px rgba(212,160,23,0.4)}
+      #chain-popup-pr::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#eab308,#fb7185)}
+      #chain-popup-pr{scrollbar-color:rgba(212,160,23,0.5) rgba(255,255,255,0.03)}
+      @keyframes acpSlideInPR{from{opacity:0;transform:translateX(18px) scale(0.95)}to{opacity:1;transform:translateX(0) scale(1)}}
+      @keyframes acpPulsePR{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+      @keyframes acpGlowPR{0%,100%{box-shadow:0 0 0px rgba(251,113,133,0)}50%{box-shadow:0 0 20px rgba(251,113,133,0.22)}}
+      @keyframes acpShimmerPR{0%{background-position:-200% center}100%{background-position:200% center}}
+      @keyframes acpBadgePopPR{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}}
     `
     document.head.appendChild(s)
   }
@@ -222,12 +189,12 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, admin
   el.style.cssText = `
     position:fixed; z-index:9999;
     background:${isDark ? 'rgba(5,10,20,0.97)' : 'rgba(248,250,252,0.98)'};
-    border:1px solid ${isDark ? 'rgba(34,197,94,0.22)' : 'rgba(37,99,235,0.18)'};
+    border:1px solid ${isDark ? 'rgba(212,160,23,0.22)' : 'rgba(37,99,235,0.18)'};
     border-radius:20px; padding:20px;
     box-shadow:${isDark
-      ? '0 32px 80px rgba(0,0,0,0.85), 0 0 0 1px rgba(34,197,94,0.06), inset 0 1px 0 rgba(255,255,255,0.04)'
+      ? '0 32px 80px rgba(0,0,0,0.85), 0 0 0 1px rgba(212,160,23,0.06), inset 0 1px 0 rgba(255,255,255,0.04)'
       : '0 32px 80px rgba(0,0,0,0.15), 0 0 0 1px rgba(37,99,235,0.05)'};
-    animation:acpSlideInA 0.3s cubic-bezier(0.22,1,0.36,1) both;
+    animation:acpSlideInPR 0.3s cubic-bezier(0.22,1,0.36,1) both;
     min-width:200px; max-width:260px;
     max-height:85vh; overflow-y:auto; overflow-x:hidden;
     scroll-behavior:smooth; scrollbar-width:thin;
@@ -238,41 +205,41 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, admin
   `
 
   const totalNodes = chain.length
-  const saColor = ROLE_CFG.admin.color
-  const saRgb = hexToRgb(saColor)
+  const prColor = ROLE_CFG.promotor.color
+  const prRgb = hexToRgb(prColor)
 
   const itemsHtml = chain.map((item, idx) => {
     const isLast = idx === chain.length - 1
-    const isAdmin = item.type === 'admin'
+    const isPromotor = item.type === 'promotor'
 
     const arrowHtml = idx > 0 ? `
       <div style="display:flex;justify-content:center;padding:5px 0;">
         <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
-          <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:7px solid rgba(34,197,94,0.5);"></div>
-          <div style="width:1.5px;height:16px;background:linear-gradient(180deg,rgba(34,197,94,0.1),rgba(34,197,94,0.65));"></div>
+          <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:7px solid rgba(212,160,23,0.5);"></div>
+          <div style="width:1.5px;height:16px;background:linear-gradient(180deg,rgba(212,160,23,0.1),rgba(212,160,23,0.65));"></div>
         </div>
       </div>` : ''
 
-    if (isAdmin) {
+    if (isPromotor) {
       const d = item.data || {}
       const name = [d.first_name, d.last_name].filter(Boolean).join(' ') || '—'
       return `
         ${arrowHtml}
         <div style="
           border-radius:14px;padding:14px 16px;
-          background:${isDark ? `linear-gradient(135deg,rgba(${saRgb},0.09),rgba(${saRgb},0.04))` : `linear-gradient(135deg,rgba(${saRgb},0.14),rgba(${saRgb},0.06))`};
-          border:1px solid rgba(${saRgb},0.3);
+          background:${isDark ? `linear-gradient(135deg,rgba(${prRgb},0.09),rgba(${prRgb},0.04))` : `linear-gradient(135deg,rgba(${prRgb},0.14),rgba(${prRgb},0.06))`};
+          border:1px solid rgba(${prRgb},0.3);
           position:relative;overflow:hidden;
         ">
-          <div style="position:absolute;top:-10px;right:-10px;width:70px;height:70px;background:radial-gradient(circle,rgba(${saRgb},0.14),transparent 70%);pointer-events:none;"></div>
+          <div style="position:absolute;top:-10px;right:-10px;width:70px;height:70px;background:radial-gradient(circle,rgba(${prRgb},0.14),transparent 70%);pointer-events:none;"></div>
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-            <div style="width:30px;height:30px;border-radius:9px;background:${saColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(${saRgb},0.35);">${iconSvg(ICON_PATHS.shield, '#04140a', 15)}</div>
+            <div style="width:30px;height:30px;border-radius:9px;background:${prColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(${prRgb},0.35);">${iconSvg(ICON_PATHS.star, '#2e1e02', 15)}</div>
             <div>
-              <div style="font-size:9px;color:${saColor};font-weight:800;letter-spacing:1.8px;">ADMIN</div>
-              <div style="font-size:8px;color:rgba(${saRgb},0.6);margin-top:2px;letter-spacing:0.5px;">${d.admin_id || ''}</div>
+              <div style="font-size:9px;color:${prColor};font-weight:800;letter-spacing:1.8px;">PROMOTOR</div>
+              <div style="font-size:8px;color:rgba(${prRgb},0.6);margin-top:2px;letter-spacing:0.5px;">${d.promotor_id || ''}</div>
             </div>
             <div style="margin-left:auto;display:flex;align-items:center;gap:5px;">
-              <div style="width:7px;height:7px;border-radius:50%;background:#22c55e;animation:acpPulseA 1.8s ease-in-out infinite;box-shadow:0 0 8px rgba(34,197,94,0.9);"></div>
+              <div style="width:7px;height:7px;border-radius:50%;background:#22c55e;animation:acpPulsePR 1.8s ease-in-out infinite;box-shadow:0 0 8px rgba(34,197,94,0.9);"></div>
               <span style="font-size:9px;color:#22c55e;font-weight:700;">LIVE</span>
             </div>
           </div>
@@ -290,7 +257,6 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, admin
     const phone = d.mobile_number || '—'
     const city = d.city_name || ''
     const rc = hexToRgb(cfg.color)
-    const iconKey = ICON_BY_TYPE[item.type]
 
     return `
       ${arrowHtml}
@@ -303,12 +269,12 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, admin
         ? `1.5px solid rgba(${rc},0.55)`
         : `1px solid rgba(${rc},0.16)`};
         position:relative;overflow:hidden;
-        ${isLast ? `animation:acpGlowA 3s ease-in-out infinite;` : ''}
+        ${isLast ? `animation:acpGlowPR 3s ease-in-out infinite;` : ''}
       ">
         ${isLast ? `<div style="position:absolute;top:-15px;right:-15px;width:80px;height:80px;background:radial-gradient(circle,rgba(${rc},0.18),transparent 70%);pointer-events:none;"></div>` : ''}
 
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px;">
-          <div style="width:30px;height:30px;border-radius:9px;background:${cfg.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(${rc},0.3);">${iconSvg(ICON_PATHS[iconKey], '#020617', 15)}</div>
+          <div style="width:30px;height:30px;border-radius:9px;background:${cfg.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(${rc},0.3);">${iconSvg(ICON_PATHS.user, '#020617', 15)}</div>
           <div style="flex:1;min-width:0;">
             <div style="font-size:9px;color:${cfg.color};font-weight:800;letter-spacing:1.8px;">${cfg.label}</div>
             <div style="font-size:9px;color:${cfg.color};font-family:monospace;opacity:0.6;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${idVal}</div>
@@ -317,7 +283,7 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, admin
           <div style="font-size:8px;font-weight:800;padding:3px 9px;border-radius:20px;
             background:rgba(${rc},0.18);color:${cfg.color};
             border:1px solid rgba(${rc},0.4);
-            animation:acpBadgePopA 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+            animation:acpBadgePopPR 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
             white-space:nowrap;letter-spacing:0.5px;">● CURRENT</div>` : ''}
         </div>
 
@@ -340,21 +306,21 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, admin
   }).join('')
 
   el.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid ${isDark ? 'rgba(34,197,94,0.1)' : 'rgba(37,99,235,0.08)'};">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid ${isDark ? 'rgba(212,160,23,0.1)' : 'rgba(37,99,235,0.08)'};">
       <div style="display:flex;align-items:center;gap:9px;">
-        <div style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#22c55e,#38bdf8);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(34,197,94,0.4);">${iconSvg(ICON_PATHS.link, '#020617', 13)}</div>
+        <div style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#d4a017,#fb7185);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(212,160,23,0.4);">${iconSvg(ICON_PATHS.star, '#020617', 13)}</div>
         <div>
-          <div style="font-size:11px;color:${isDark ? '#4ade80' : '#16a34a'};font-weight:800;letter-spacing:1.8px;">HIERARCHY CHAIN</div>
+          <div style="font-size:11px;color:${isDark ? '#eab308' : '#a16207'};font-weight:800;letter-spacing:1.8px;">HIERARCHY CHAIN</div>
           <div style="font-size:9px;color:${isDark ? '#475569' : '#94a3b8'};margin-top:2px;">${totalNodes} level${totalNodes !== 1 ? 's' : ''} deep</div>
         </div>
       </div>
       <div style="
         font-size:9px;font-weight:800;padding:4px 11px;border-radius:20px;
-        background:linear-gradient(90deg,rgba(34,197,94,0.15),rgba(56,189,248,0.12),rgba(34,197,94,0.15));
+        background:linear-gradient(90deg,rgba(212,160,23,0.15),rgba(251,113,133,0.12),rgba(212,160,23,0.15));
         background-size:200% auto;
-        animation:acpShimmerA 2.5s linear infinite;
-        border:1px solid rgba(34,197,94,0.22);
-        color:${isDark ? '#4ade80' : '#16a34a'};
+        animation:acpShimmerPR 2.5s linear infinite;
+        border:1px solid rgba(212,160,23,0.22);
+        color:${isDark ? '#eab308' : '#a16207'};
         letter-spacing:1px;">● LIVE</div>
     </div>
 
@@ -385,24 +351,19 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, admin
   el.addEventListener('mouseleave', () => scheduleHideChainPopup())
 }
 
-function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], adminInfo = {}, flatMode = false }) {
+function CustomerNode({ node, dark, text, subtext, promotorInfo = {} }) {
   const navigate = useNavigate()
-  const cfg = ROLE_CFG[role]
+  const cfg = ROLE_CFG.customer
   const c = cfg.color
   const Icon = cfg.Icon
-  const childRole = CHILD_ROLE[role]
-  const children = childRole ? (node[CHILD_KEY[role]] || []) : []
-  const hasChildren = !flatMode && !!childRole && children.length > 0
-  const [expanded, setExpanded] = useState(depth < 2)
 
   return (
     <div className="otree-node-wrap">
       <div
         className="otree-card"
-        data-role={role}
-        style={{ '--nc': c }}
-        onClick={() => hasChildren && setExpanded(v => !v)}
-        onMouseEnter={e => showChainPopup(e.currentTarget, ancestors, { node, role }, dark, text, subtext, adminInfo)}
+        data-role="customer"
+        style={{ '--nc': c, cursor: 'default' }}
+        onMouseEnter={e => showChainPopup(e.currentTarget, { node, role: 'customer' }, dark, text, subtext, promotorInfo)}
         onMouseLeave={() => scheduleHideChainPopup()}
       >
         <div className="otree-badge" style={{ '--nc': c }}>
@@ -421,64 +382,36 @@ function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], 
 
         <div className="otree-actions">
           <button
-            onClick={e => { e.stopPropagation(); printPersonCard(node, role, cfg, c, ancestors, adminInfo) }}
+            onClick={e => { e.stopPropagation(); printPersonCard(node, 'customer', cfg, c, promotorInfo) }}
             className="otree-btn" style={{ '--nc': c }}
           >
             <IconPrinter color={c} /> PRINT
           </button>
           <button
-            onClick={e => { e.stopPropagation(); navigate(`/hierarchy-sales-count?role=${role}&id=${node.id}`) }}
+            onClick={e => { e.stopPropagation(); navigate(`/hierarchy-sales-count?role=customer&id=${node.id}`) }}
             className="otree-btn otree-btn-sales"
           >
             <IconChart color="#22c55e" /> SALES ({node.order_count ?? 0})
           </button>
         </div>
-
-        {hasChildren && (
-          <div className="otree-toggle" style={{ color: c, transform: expanded ? 'rotate(0deg)' : 'rotate(180deg)' }}>
-            <IconChevronDown color={c} />
-          </div>
-        )}
-        {hasChildren && (
-          <div className="otree-count" style={{ background: c }}>
-            {children.length} {childRole.replace('_', ' ')}
-          </div>
-        )}
       </div>
-
-      {hasChildren && expanded && (
-        <div className="otree-children" style={{ '--lc': ROLE_CFG[childRole].color }}>
-          {children.map(child => (
-            <div className="otree-item" key={child.id}>
-              <TreeNode
-                node={child} role={childRole} depth={depth + 1}
-                dark={dark} text={text} subtext={subtext}
-                ancestors={[...ancestors, { node, role }]}
-                adminInfo={adminInfo}
-              />
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   )
 }
 
-export default function AdminHierarchy() {
+export default function PromotorHierarchy() {
   const navigate = useNavigate()
   const [dark] = useState(true)
-  const [dealers, setDealers] = useState([])
-  const [adminInfo, setAdminInfo] = useState({})
+  const [customers, setCustomers] = useState([])
+  const [promotorInfo, setPromotorInfo] = useState({})
   const [loading, setLoading] = useState(false)
-  const [filter, setFilter] = useState(null)
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
 
   const treeWrapperRef = useRef(null)
   const scrollAreaRef = useRef(null)
-  const [levelTops, setLevelTops] = useState({})
-  const [dealerAnchors, setDealerAnchors] = useState([])
-  const [adminAnchor, setAdminAnchor] = useState(null)
+  const [customerAnchors, setCustomerAnchors] = useState([])
+  const [promotorAnchor, setPromotorAnchor] = useState(null)
 
   useLayoutEffect(() => {
     const wrapper = treeWrapperRef.current
@@ -486,31 +419,21 @@ export default function AdminHierarchy() {
 
     const measure = () => {
       const wrapperRect = wrapper.getBoundingClientRect()
-      const roles = ['dealer', 'sub_dealer', 'promotor', 'customer']
-      const tops = {}
-      roles.forEach(role => {
-        const el = wrapper.querySelector(`[data-role="${role}"]`)
-        if (el) {
-          const rect = el.getBoundingClientRect()
-          tops[role] = (rect.top - wrapperRect.top) + rect.height / 2
-        }
-      })
-      setLevelTops(tops)
 
-      const dealerEls = wrapper.querySelectorAll('[data-role="dealer"]')
-      const anchors = Array.from(dealerEls).map(el => {
+      const custEls = wrapper.querySelectorAll('[data-role="customer"]')
+      const anchors = Array.from(custEls).map(el => {
         const r = el.getBoundingClientRect()
         return {
           x: (r.left - wrapperRect.left) + r.width / 2,
           top: (r.top - wrapperRect.top),
         }
       })
-      setDealerAnchors(anchors)
+      setCustomerAnchors(anchors)
 
-      const aEl = wrapper.querySelector('[data-role="admin"]')
-      if (aEl) {
-        const r = aEl.getBoundingClientRect()
-        setAdminAnchor({
+      const prEl = wrapper.querySelector('[data-role="promotor"]')
+      if (prEl) {
+        const r = prEl.getBoundingClientRect()
+        setPromotorAnchor({
           x: (r.right - wrapperRect.left),
           y: (r.top - wrapperRect.top) + r.height / 2,
         })
@@ -532,7 +455,7 @@ export default function AdminHierarchy() {
       scrollEl?.removeEventListener('scroll', measure)
       window.removeEventListener('resize', measure)
     }
-  }, [dealers, filter, debouncedSearch])
+  }, [customers, debouncedSearch])
 
   const text = '#f8fafc'
   const subtext = '#94a3b8'
@@ -545,23 +468,43 @@ export default function AdminHierarchy() {
     return () => clearTimeout(t)
   }, [search])
 
-const fetchHierarchy = async () => {
+  const fetchHierarchy = async () => {
     setLoading(true)
     try {
       const res = await api.get('/hierarchy/full/')
       const myEmail = localStorage.getItem('email')
 
-      // Logged-in admin ah match panni edukkurom (first admin illa)
-      const myAdmin = res.data.admins?.find(a => a.email === myEmail) || res.data.admins?.[0] || null
+      // Ella admins -> dealers -> sub_dealers -> promotors ah walk panni, logged-in promotor ah kandu pidikkurom
+      let myPromotor = null
+      outer:
+      for (const admin of res.data.admins || []) {
+        for (const dealer of admin.dealers || []) {
+          for (const sd of dealer.sub_dealers || []) {
+            const found = (sd.promotors || []).find(pr => pr.email === myEmail)
+            if (found) { myPromotor = found; break outer }
+          }
+        }
+      }
+      // Fallback
+      if (!myPromotor) {
+        outer2:
+        for (const admin of res.data.admins || []) {
+          for (const dealer of admin.dealers || []) {
+            for (const sd of dealer.sub_dealers || []) {
+              if ((sd.promotors || []).length > 0) { myPromotor = sd.promotors[0]; break outer2 }
+            }
+          }
+        }
+      }
 
-      if (myAdmin) {
-        setAdminInfo({
-          admin_id: myAdmin.admin_id,
-          first_name: myAdmin.first_name,
-          last_name: myAdmin.last_name,
-          mobile_number: myAdmin.mobile_number,
+      if (myPromotor) {
+        setPromotorInfo({
+          promotor_id: myPromotor.promotor_id,
+          first_name: myPromotor.first_name,
+          last_name: myPromotor.last_name,
+          mobile_number: myPromotor.mobile_number,
         })
-        setDealers(myAdmin.dealers || [])
+        setCustomers(myPromotor.customers || [])
       }
     } catch (err) { console.error(err) }
     setLoading(false)
@@ -569,67 +512,18 @@ const fetchHierarchy = async () => {
 
   useEffect(() => { fetchHierarchy() }, [])
 
-  const flattenByRole = (role) => {
-    if (!dealers) return []
-    const result = []
-    dealers.forEach(dealer => {
-      if (role === 'dealer') { result.push({ node: dealer, ancestors: [] }); return }
-      dealer.sub_dealers.forEach(sd => {
-        if (role === 'sub_dealer') { result.push({ node: sd, ancestors: [{ node: dealer, role: 'dealer' }] }); return }
-        sd.promotors.forEach(pr => {
-          if (role === 'promotor') { result.push({ node: pr, ancestors: [{ node: dealer, role: 'dealer' }, { node: sd, role: 'sub_dealer' }] }); return }
-          pr.customers.forEach(cus => {
-            if (role === 'customer') { result.push({ node: cus, ancestors: [{ node: dealer, role: 'dealer' }, { node: sd, role: 'sub_dealer' }, { node: pr, role: 'promotor' }] }) }
-          })
-        })
-      })
-    })
-    return result
-  }
-
-  const searchAllHierarchy = (query) => {
-    if (!dealers || !query.trim()) return []
-    const q = query.trim().toLowerCase()
-    const result = []
-    const checkMatch = (node, idKey) => {
-      const idVal = (node[idKey] || '').toString().toLowerCase()
-      const nameVal = `${node.first_name || ''} ${node.last_name || ''}`.toLowerCase()
-      const phoneVal = (node.mobile_number || '').toString().toLowerCase()
-      return idVal.includes(q) || nameVal.includes(q) || phoneVal.includes(q)
-    }
-    dealers.forEach(dealer => {
-      if (checkMatch(dealer, 'dealer_id')) result.push({ node: dealer, role: 'dealer', ancestors: [] })
-      dealer.sub_dealers.forEach(sd => {
-        if (checkMatch(sd, 'sub_dealer_id')) result.push({ node: sd, role: 'sub_dealer', ancestors: [{ node: dealer, role: 'dealer' }] })
-        sd.promotors.forEach(pr => {
-          if (checkMatch(pr, 'promotor_id')) result.push({ node: pr, role: 'promotor', ancestors: [{ node: dealer, role: 'dealer' }, { node: sd, role: 'sub_dealer' }] })
-          pr.customers.forEach(cus => {
-            if (checkMatch(cus, 'customer_id')) result.push({ node: cus, role: 'customer', ancestors: [{ node: dealer, role: 'dealer' }, { node: sd, role: 'sub_dealer' }, { node: pr, role: 'promotor' }] })
-          })
-        })
-      })
-    })
-    return result
-  }
-
   const searchResults = useMemo(() => {
-    if (!debouncedSearch) return []
-    return searchAllHierarchy(debouncedSearch)
-  }, [debouncedSearch, dealers])
+    if (!debouncedSearch || !customers) return []
+    const q = debouncedSearch.trim().toLowerCase()
+    return customers.filter(cus => {
+      const idVal = (cus.customer_id || '').toString().toLowerCase()
+      const nameVal = `${cus.first_name || ''} ${cus.last_name || ''}`.toLowerCase()
+      const phoneVal = (cus.mobile_number || '').toString().toLowerCase()
+      return idVal.includes(q) || nameVal.includes(q) || phoneVal.includes(q)
+    })
+  }, [debouncedSearch, customers])
 
-  const totalStats = dealers ? {
-    dealers: dealers.length,
-    subDealers: dealers.reduce((a, d) => a + d.sub_dealers.length, 0),
-    promotors: dealers.reduce((a, d) => a + d.sub_dealers.reduce((b, sd) => b + sd.promotors.length, 0), 0),
-    customers: dealers.reduce((a, d) => a + d.sub_dealers.reduce((b, sd) => b + sd.promotors.reduce((c, pr) => c + pr.customers.length, 0), 0), 0),
-  } : null
-
-  const statPills = totalStats ? [
-    { label: 'Dealers', roleKey: 'dealer', count: totalStats.dealers },
-    { label: 'Sub Dealers', roleKey: 'sub_dealer', count: totalStats.subDealers },
-    { label: 'Promotors', roleKey: 'promotor', count: totalStats.promotors },
-    { label: 'Customers', roleKey: 'customer', count: totalStats.customers },
-  ] : []
+  const totalStats = customers ? { customers: customers.length } : null
 
   return (
     <div style={{ minHeight: '100vh', background: '#020617', color: text, fontFamily: '"Inter",system-ui,sans-serif', padding: '28px 32px' }}>
@@ -639,7 +533,7 @@ const fetchHierarchy = async () => {
         .otree-node-wrap{display:flex;flex-direction:column;align-items:center;}
         .otree-card{
           background:rgba(255,255,255,0.03); border:1px solid var(--nc); border-radius:12px; padding:12px 16px;
-          min-width:168px; max-width:210px; cursor:pointer; position:relative; transition:all .25s ease;
+          min-width:168px; max-width:210px; position:relative; transition:all .25s ease;
         }
         .otree-card:hover{ transform:translateY(-3px); box-shadow:0 8px 22px rgba(0,0,0,0.35); }
         .otree-badge{ display:inline-flex; align-items:center; gap:5px; font-size:9px; font-weight:700; padding:2px 8px; border-radius:20px; margin-bottom:8px; color:var(--nc); border:1px solid var(--nc); }
@@ -649,22 +543,6 @@ const fetchHierarchy = async () => {
         .otree-actions{ margin-top:8px; display:flex; gap:6px; }
         .otree-btn{ flex:1; display:flex; align-items:center; justify-content:center; gap:4px; padding:3px 0; font-size:9px; font-weight:700; background:transparent; border:1px solid var(--nc); border-radius:6px; color:var(--nc); cursor:pointer; }
         .otree-btn-sales{ border-color:#22c55e; color:#22c55e; }
-        .otree-toggle{ position:absolute; top:8px; right:10px; transition:transform .25s ease; }
-        .otree-count{ position:absolute; bottom:-10px; left:50%; transform:translateX(-50%); color:#000; font-size:9px; font-weight:800; padding:1px 7px; border-radius:20px; white-space:nowrap; }
-
-        .otree-children{ display:flex; justify-content:center; align-items:flex-start; position:relative; padding-top:28px; }
-        .otree-children::before{ content:''; position:absolute; top:0; left:50%; border-left:2px solid var(--lc); width:0; height:28px; }
-        .otree-item{ position:relative; padding:28px 10px 0 10px; }
-        .otree-item::before, .otree-item::after{ content:''; position:absolute; top:0; right:50%; border-top:2px solid var(--lc); width:50%; height:28px; }
-        .otree-item::after{ right:auto; left:50%; border-left:2px solid var(--lc); }
-        .otree-item:only-child::before, .otree-item:only-child::after{ display:none; }
-        .otree-item:only-child{ padding-top:0; }
-        .otree-item:first-child::before, .otree-item:last-child::after{ border:0 none; }
-        .otree-item:last-child::before{ border-right:2px solid var(--lc); border-radius:0 20px 0 0; }
-        .otree-item:first-child::after{ border-radius:20px 0 0 0; }
-        .otree-children-root::before{ display:none; }
-        .otree-children-root > .otree-item::before,
-        .otree-children-root > .otree-item::after{ display:none; }
       `}</style>
 
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
@@ -672,26 +550,19 @@ const fetchHierarchy = async () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <IconBuilding color="#a5f3fc" />
             <span style={{ color: '#a5f3fc', fontSize: '16px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              Full Dealer Hierarchy
+              Full Customer Hierarchy
             </span>
           </div>
           {totalStats && (
             <div style={{ display: 'flex', gap: '10px', marginTop: '14px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: `${ROLE_CFG.admin.color}22`, border: `1px solid ${ROLE_CFG.admin.color}55`, borderRadius: '20px', padding: '4px 14px' }}>
-                <span style={{ color: ROLE_CFG.admin.color, fontWeight: 800, fontSize: '13px' }}>1</span>
-                <span style={{ color: subtext, fontSize: '11px' }}>Admin</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: `${ROLE_CFG.promotor.color}22`, border: `1px solid ${ROLE_CFG.promotor.color}55`, borderRadius: '20px', padding: '4px 14px' }}>
+                <span style={{ color: ROLE_CFG.promotor.color, fontWeight: 800, fontSize: '13px' }}>1</span>
+                <span style={{ color: subtext, fontSize: '11px' }}>Promotor</span>
               </div>
-              {statPills.map(s => {
-                const color = ROLE_CFG[s.roleKey].color
-                const isActive = filter === s.roleKey
-                return (
-                  <div key={s.label} onClick={() => setFilter(isActive ? null : s.roleKey)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: isActive ? `${color}33` : `${color}14`, border: `1px solid ${isActive ? color : color + '44'}`, borderRadius: '20px', padding: '4px 14px', cursor: 'pointer', transition: 'all 0.25s ease' }}>
-                    <span style={{ color, fontWeight: 800, fontSize: '13px' }}>{s.count}</span>
-                    <span style={{ color: subtext, fontSize: '11px' }}>{s.label}</span>
-                  </div>
-                )
-              })}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: `${ROLE_CFG.customer.color}14`, border: `1px solid ${ROLE_CFG.customer.color}44`, borderRadius: '20px', padding: '4px 14px' }}>
+                <span style={{ color: ROLE_CFG.customer.color, fontWeight: 800, fontSize: '13px' }}>{totalStats.customers}</span>
+                <span style={{ color: subtext, fontSize: '11px' }}>Customers</span>
+              </div>
             </div>
           )}
         </div>
@@ -716,56 +587,47 @@ const fetchHierarchy = async () => {
 
       <div ref={treeWrapperRef} style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${border}`, borderRadius: '20px', padding: '28px 0', overflow: 'hidden', minHeight: '100vh', position: 'relative' }}>
 
-        <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 200, zIndex: 40, background: '#020617', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 20 }}>
-          <div className="otree-card" data-role="admin" style={{ '--nc': ROLE_CFG.admin.color, minWidth: 150, cursor: 'default' }}>
-            <div className="otree-badge" style={{ '--nc': ROLE_CFG.admin.color }}>
-              <IconShield color={ROLE_CFG.admin.color} size={11} /> ADMIN
+        <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 200, zIndex: 40, background: '#020617', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 80 }}>
+          <div className="otree-card" data-role="promotor" style={{ '--nc': ROLE_CFG.promotor.color, minWidth: 150, cursor: 'default' }}>
+            <div className="otree-badge" style={{ '--nc': ROLE_CFG.promotor.color }}>
+              <IconStar color={ROLE_CFG.promotor.color} size={11} /> PROMOTOR
             </div>
-            <div className="otree-id" style={{ color: ROLE_CFG.admin.color }}>{adminInfo.admin_id}</div>
-            <div className="otree-name" style={{ color: text, fontSize: '12px' }}>{adminInfo.first_name} {adminInfo.last_name || ''}</div>
+            <div className="otree-id" style={{ color: ROLE_CFG.promotor.color }}>{promotorInfo.promotor_id}</div>
+            <div className="otree-name" style={{ color: text, fontSize: '12px' }}>{promotorInfo.first_name} {promotorInfo.last_name || ''}</div>
             <div className="otree-sub" style={{ color: subtext }}>
-              <IconPhone color={subtext} /> {adminInfo.mobile_number}
+              <IconPhone color={subtext} /> {promotorInfo.mobile_number}
             </div>
           </div>
-          <div style={{ width: 2, flex: 1, background: ROLE_CFG.admin.color, marginTop: 6 }} />
+          <div style={{ width: 2, flex: 1, background: ROLE_CFG.promotor.color, marginTop: 6 }} />
         </div>
 
-        {!loading && dealers.length > 0 && !filter && !debouncedSearch && (
+        {!loading && customers.length > 0 && !debouncedSearch && (
           <div style={{ position: 'absolute', left: 0, top: 0, width: 200, height: '100%', zIndex: 45, pointerEvents: 'none' }}>
-            {[
-              { role: 'dealer', label: 'Level 1' },
-              { role: 'sub_dealer', label: 'Level 2' },
-              { role: 'promotor', label: 'Level 3' },
-              { role: 'customer', label: 'Level 4' },
-            ].map(({ role, label }) => (
-              levelTops[role] != null && (
-                <div key={role} style={{
-                  position: 'absolute',
-                  top: levelTops[role],
-                  left: 118,
-                  transform: 'translateY(-50%)',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  color: subtext,
-                  letterSpacing: '0.04em',
-                  whiteSpace: 'nowrap',
-                }}>
-                  {label}
-                </div>
-              )
-            ))}
+            <div style={{
+              position: 'absolute',
+              top: customerAnchors[0]?.top != null ? customerAnchors[0].top + 60 : 120,
+              left: 118,
+              transform: 'translateY(-50%)',
+              fontSize: '11px',
+              fontWeight: 700,
+              color: subtext,
+              letterSpacing: '0.04em',
+              whiteSpace: 'nowrap',
+            }}>
+              Level 1
+            </div>
           </div>
         )}
 
-        {!loading && dealers.length > 0 && !filter && !debouncedSearch && dealerAnchors.length > 0 && adminAnchor && (() => {
-          const bridgeY = adminAnchor.y
-          const bridgeStartX = adminAnchor.x
-          const farthestX = Math.max(...dealerAnchors.map(a => a.x))
+        {!loading && customers.length > 0 && !debouncedSearch && customerAnchors.length > 0 && promotorAnchor && (() => {
+          const bridgeY = promotorAnchor.y
+          const bridgeStartX = promotorAnchor.x
+          const farthestX = Math.max(...customerAnchors.map(a => a.x))
           return (
             <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 44, pointerEvents: 'none' }}>
-              <line x1={bridgeStartX} y1={bridgeY} x2={Math.max(farthestX, bridgeStartX)} y2={bridgeY} stroke={ROLE_CFG.dealer.color} strokeWidth="2" />
-              {dealerAnchors.map((a, i) => (
-                <line key={i} x1={a.x} y1={bridgeY} x2={a.x} y2={a.top} stroke={ROLE_CFG.dealer.color} strokeWidth="2" />
+              <line x1={bridgeStartX} y1={bridgeY} x2={Math.max(farthestX, bridgeStartX)} y2={bridgeY} stroke={ROLE_CFG.customer.color} strokeWidth="2" />
+              {customerAnchors.map((a, i) => (
+                <line key={i} x1={a.x} y1={bridgeY} x2={a.x} y2={a.top} stroke={ROLE_CFG.customer.color} strokeWidth="2" />
               ))}
             </svg>
           )
@@ -773,58 +635,36 @@ const fetchHierarchy = async () => {
 
         {loading && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 0', gap: '16px' }}>
-            <div style={{ width: 32, height: 32, border: '3px solid rgba(34,197,94,0.2)', borderTop: '3px solid #22c55e', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+            <div style={{ width: 32, height: 32, border: '3px solid rgba(212,160,23,0.2)', borderTop: '3px solid #d4a017', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
             <span style={{ color: subtext, fontSize: '14px' }}>Loading hierarchy...</span>
           </div>
         )}
 
-        {!loading && dealers && (
-          debouncedSearch ? (() => {
-            const filteredResults = filter ? searchResults.filter(item => item.role === filter) : searchResults
-            if (filteredResults.length === 0) {
-              return <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No results found for "{debouncedSearch}"</div>
-            }
-            return (
+        {!loading && customers && (
+          debouncedSearch ? (
+            searchResults.length === 0 ? (
+              <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No results found for "{debouncedSearch}"</div>
+            ) : (
               <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center', padding: '0 32px' }}>
-                {filteredResults.map((item, idx) => (
-                  <TreeNode key={item.node.id || idx} node={item.node} role={item.role} dark={dark} text={text} subtext={subtext} ancestors={item.ancestors} adminInfo={adminInfo} flatMode={true} />
+                {searchResults.map((cus, idx) => (
+                  <CustomerNode key={cus.id || idx} node={cus} dark={dark} text={text} subtext={subtext} promotorInfo={promotorInfo} />
                 ))}
               </div>
             )
-          })() : filter ? (() => {
-            const flatList = flattenByRole(filter)
-            return (
-              <div style={{ padding: '0 32px' }}>
-                <button onClick={() => setFilter(null)} style={{ marginBottom: '20px', padding: '8px 18px', background: `${ROLE_CFG[filter].color}22`, border: `1px solid ${ROLE_CFG[filter].color}55`, borderRadius: '10px', color: ROLE_CFG[filter].color, fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                  ← Back to full tree
-                </button>
-                {flatList.length === 0 ? (
-                  <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No {filter.replace('_', ' ')} found.</div>
-                ) : (
-                  <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                    {flatList.map((item, idx) => (
-                      <TreeNode key={item.node.id || idx} node={item.node} role={filter} dark={dark} text={text} subtext={subtext} ancestors={item.ancestors} adminInfo={adminInfo} flatMode={true} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )
-          })() : dealers.length === 0 ? (
-            <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No dealers created yet.</div>
+          ) : customers.length === 0 ? (
+            <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No customers created yet.</div>
           ) : (
-            <div ref={scrollAreaRef} style={{ overflowX: 'auto', overflowY: 'hidden', padding: '50px 32px 20px 220px' }}>
-              <div className="otree-children otree-children-root" style={{ '--lc': ROLE_CFG.dealer.color, minWidth: 'max-content' }}>
-                {dealers.map(dealer => (
-                  <div className="otree-item" key={dealer.id} style={{ paddingTop: 0 }}>
-                    <TreeNode node={dealer} role="dealer" depth={0} dark={dark} text={text} subtext={subtext} ancestors={[]} adminInfo={adminInfo} />
-                  </div>
+            <div ref={scrollAreaRef} style={{ overflowX: 'auto', overflowY: 'hidden', padding: '110px 32px 20px 220px' }}>
+              <div style={{ display: 'flex', gap: '16px', flexWrap: 'nowrap', minWidth: 'max-content' }}>
+                {customers.map(cus => (
+                  <CustomerNode key={cus.id} node={cus} dark={dark} text={text} subtext={subtext} promotorInfo={promotorInfo} />
                 ))}
               </div>
             </div>
           )
         )}
 
-        {!loading && !dealers && (
+        {!loading && !customers && (
           <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>Failed to load hierarchy.</div>
         )}
 
@@ -832,7 +672,7 @@ const fetchHierarchy = async () => {
 
       {!loading && (
         <div style={{ marginTop: '20px', padding: '14px 0', display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
-          {[{ role: 'Admin', key: 'admin' }, { role: 'Dealer', key: 'dealer' }, { role: 'Sub Dealer', key: 'sub_dealer' }, { role: 'Promotor', key: 'promotor' }, { role: 'Customer', key: 'customer' }].map(l => (
+          {[{ role: 'Promotor', key: 'promotor' }, { role: 'Customer', key: 'customer' }].map(l => (
             <div key={l.role} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <div style={{ width: 9, height: 9, borderRadius: '50%', background: ROLE_CFG[l.key].color }} />
               <span style={{ color: subtext, fontSize: '11px' }}>{l.role}</span>
