@@ -1382,6 +1382,67 @@ class HierarchySubtreeOrdersView(APIView):
 
         return Response({'root': root})
 
+def get_report_ancestors(role, profile):
+    """Build the chain from Super Admin down to (but not including) the logged-in user's own node."""
+    ancestors = [{'type': 'super_admin'}]
+
+    if role == 'admin':
+        return ancestors
+
+    if role == 'dealer':
+        a = profile.assigned_admin
+        if a:
+            ancestors.append({
+                'type': 'admin', 'id': a.id, 'admin_id': a.admin_id,
+                'first_name': a.first_name, 'last_name': a.last_name,
+                'mobile_number': a.mobile_number, 'city_name': a.city_name,
+            })
+        return ancestors
+
+    if role == 'sub_dealer':
+        d = profile.assigned_dealer
+        if d:
+            a = d.assigned_admin
+            if a:
+                ancestors.append({
+                    'type': 'admin', 'id': a.id, 'admin_id': a.admin_id,
+                    'first_name': a.first_name, 'last_name': a.last_name,
+                    'mobile_number': a.mobile_number, 'city_name': a.city_name,
+                })
+            ancestors.append({
+                'type': 'dealer', 'id': d.id, 'dealer_id': d.dealer_id,
+                'first_name': d.first_name, 'last_name': d.last_name,
+                'mobile_number': d.mobile_number, 'city_name': d.city_name,
+            })
+        return ancestors
+
+    if role == 'promotor':
+        sd = profile.assigned_sub_dealer
+        if sd:
+            d = sd.assigned_dealer
+            if d:
+                a = d.assigned_admin
+                if a:
+                    ancestors.append({
+                        'type': 'admin', 'id': a.id, 'admin_id': a.admin_id,
+                        'first_name': a.first_name, 'last_name': a.last_name,
+                        'mobile_number': a.mobile_number, 'city_name': a.city_name,
+                    })
+                ancestors.append({
+                    'type': 'dealer', 'id': d.id, 'dealer_id': d.dealer_id,
+                    'first_name': d.first_name, 'last_name': d.last_name,
+                    'mobile_number': d.mobile_number, 'city_name': d.city_name,
+                })
+            ancestors.append({
+                'type': 'sub_dealer', 'id': sd.id, 'sub_dealer_id': sd.sub_dealer_id,
+                'first_name': sd.first_name, 'last_name': sd.last_name,
+                'mobile_number': sd.mobile_number, 'city_name': sd.city_name,
+            })
+        return ancestors
+
+    return ancestors
+
+
 class SalesReportView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -1400,7 +1461,11 @@ class SalesReportView(APIView):
             for a in admins:
                 all_ids.extend(_collect_user_ids_admin(a))
             orders_by_user = _orders_by_user_map(all_ids)
-            return Response({'role': role, 'data': [_build_admin(a, orders_by_user) for a in admins]})
+            return Response({
+                'role': role,
+                'data': [_build_admin(a, orders_by_user) for a in admins],
+                'ancestors': [],
+            })
 
         elif role == 'admin':
             try:
@@ -1408,37 +1473,55 @@ class SalesReportView(APIView):
                     'assigned_dealers__assigned_sub_dealers__assigned_promotors__assigned_customers'
                 ).get(user=user)
                 orders_by_user = _bulk_orders_for_admin(admin)
-                return Response({'role': role, 'data': [_build_admin(admin, orders_by_user)]})
+                return Response({
+                    'role': role,
+                    'data': [_build_admin(admin, orders_by_user)],
+                    'ancestors': get_report_ancestors(role, admin),
+                })
             except AdminProfile.DoesNotExist:
-                return Response({'role': role, 'data': []})
+                return Response({'role': role, 'data': [], 'ancestors': []})
 
         elif role == 'dealer':
             try:
-                dealer = DealerProfile.objects.prefetch_related(
+                dealer = DealerProfile.objects.select_related('assigned_admin').prefetch_related(
                     'assigned_sub_dealers__assigned_promotors__assigned_customers'
                 ).get(user=user)
                 orders_by_user = _bulk_orders_for_dealer(dealer)
-                return Response({'role': role, 'data': [_build_dealer(dealer, orders_by_user)]})
+                return Response({
+                    'role': role,
+                    'data': [_build_dealer(dealer, orders_by_user)],
+                    'ancestors': get_report_ancestors(role, dealer),
+                })
             except DealerProfile.DoesNotExist:
-                return Response({'role': role, 'data': []})
+                return Response({'role': role, 'data': [], 'ancestors': []})
 
         elif role == 'sub_dealer':
             try:
-                sd = SubDealerProfile.objects.prefetch_related(
+                sd = SubDealerProfile.objects.select_related('assigned_dealer__assigned_admin').prefetch_related(
                     'assigned_promotors__assigned_customers'
                 ).get(user=user)
                 orders_by_user = _bulk_orders_for_sub_dealer(sd)
-                return Response({'role': role, 'data': [_build_sub_dealer(sd, orders_by_user)]})
+                return Response({
+                    'role': role,
+                    'data': [_build_sub_dealer(sd, orders_by_user)],
+                    'ancestors': get_report_ancestors(role, sd),
+                })
             except SubDealerProfile.DoesNotExist:
-                return Response({'role': role, 'data': []})
+                return Response({'role': role, 'data': [], 'ancestors': []})
 
         elif role == 'promotor':
             try:
-                p = PromotorProfile.objects.prefetch_related('assigned_customers').get(user=user)
+                p = PromotorProfile.objects.select_related(
+                    'assigned_sub_dealer__assigned_dealer__assigned_admin'
+                ).prefetch_related('assigned_customers').get(user=user)
                 orders_by_user = _bulk_orders_for_promotor(p)
-                return Response({'role': role, 'data': [_build_promotor(p, orders_by_user)]})
+                return Response({
+                    'role': role,
+                    'data': [_build_promotor(p, orders_by_user)],
+                    'ancestors': get_report_ancestors(role, p),
+                })
             except PromotorProfile.DoesNotExist:
-                return Response({'role': role, 'data': []})
+                return Response({'role': role, 'data': [], 'ancestors': []})
 
         return Response({'error': 'Invalid role'}, status=400)
 

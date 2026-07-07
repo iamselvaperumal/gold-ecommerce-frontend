@@ -294,7 +294,7 @@ function TrendLineChart({ buckets, color }) {
   )
 }
 
-function HierarchyChainCard({ selectedLevel, selectedNodeId, treeData, cardBg, border, text, subtext }) {
+function HierarchyChainCard({ selectedLevel, selectedNodeId, treeData, ancestors, cardBg, border, text, subtext }) {
   const ROLE_STEPS = {
     super_admin: { label: 'Super Admin', color: '#ffd700' },
     admin: { label: 'Admin', color: '#22d3ee' },
@@ -317,7 +317,9 @@ function HierarchyChainCard({ selectedLevel, selectedNodeId, treeData, cardBg, b
   const chain = findAncestorChain(treeData, selectedLevel, selectedNodeId)
   if (!chain) return null
 
-  const fullChain = [{ type: 'super_admin' }, ...chain]
+  const fullChain = ancestors && ancestors.length > 0
+    ? [...ancestors, ...chain]
+    : [{ type: 'super_admin' }, ...chain]
 
  const currentNode = fullChain[fullChain.length - 1]
   const currentCfg = ROLE_STEPS[currentNode.type] || { color: '#94a3b8' }
@@ -411,6 +413,7 @@ export default function Report() {
   const [error, setError] = useState('')
   const [role, setRole] = useState('')
   const [treeData, setTreeData] = useState([])
+  const [ancestors, setAncestors] = useState([])
 
   const [selectedLevel, setSelectedLevel] = useState('own')
 const [selectedNodeId, setSelectedNodeId] = useState('')
@@ -436,6 +439,7 @@ useEffect(() => {
         const res = await api.get('/sales-report/')
         setRole(res.data.role)
         setTreeData(res.data.data || [])
+        setAncestors(res.data.ancestors || [])
       } catch (err) {
         setError(err.response?.data?.error || 'Failed to load report')
       }
@@ -716,10 +720,6 @@ const filteredNodes = useMemo(() => {
       {/* Navbar */}
       <div className="no-print" style={{ padding: '18px 40px', borderBottom: `1px solid ${border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button
-            onClick={() => navigate(-1)}
-            style={{ background: 'transparent', border: `1px solid ${border}`, color: subtext, borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '13px' }}
-          >← Back</button>
 <img src={logo} alt="Team 369" style={{ width: '54px', height: '54px', borderRadius: '50%', flexShrink: 0 }} />
 <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
   <div style={{
@@ -832,6 +832,10 @@ const filteredNodes = useMemo(() => {
   </svg>
   Export PDF
 </button>
+          <button
+            onClick={() => navigate(-1)}
+            style={{ background: 'transparent', border: `1px solid ${border}`, color: subtext, borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '13px' }}
+          >← Back</button>
         </div>
       </div>
 
@@ -934,6 +938,7 @@ const filteredNodes = useMemo(() => {
             selectedLevel={selectedLevel}
             selectedNodeId={selectedNodeId}
             treeData={treeData}
+            ancestors={ancestors}
             cardBg={cardBg}
             border={border}
             text={text}

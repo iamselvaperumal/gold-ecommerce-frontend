@@ -429,10 +429,15 @@ const isOpen = openMap[parentKey] === node.id
             <IconPrinter color={c} /> PRINT
           </button>
           <button
-  onClick={e => { e.stopPropagation(); navigate(`/hierarchy-sales-count?role=${role}&id=${node.id}`) }}
+  onClick={e => {
+    e.stopPropagation()
+    clearTimeout(_chainHideTimer)
+    removeChainPopup()
+    navigate(`/hierarchy-sales-count?role=${role}&id=${node.id}`)
+  }}
   className="otree-btn otree-btn-sales"
 >
-  <IconChart color="#22c55e" /> SALES ({node.order_count ?? 0})
+  <IconChart color="#22c56e" /> SALES ({node.order_count ?? 0})
 </button>
         </div>
 
@@ -572,6 +577,13 @@ useLayoutEffect(() => {
   }
 
   useEffect(() => { fetchHierarchy() }, [])
+
+  useEffect(() => {
+  return () => {
+    clearTimeout(_chainHideTimer)
+    removeChainPopup()
+  }
+}, [])
 
   const flattenByRole = (role) => {
     if (!hierarchyData) return []
