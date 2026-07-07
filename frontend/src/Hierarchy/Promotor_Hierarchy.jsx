@@ -388,11 +388,16 @@ function CustomerNode({ node, dark, text, subtext, promotorInfo = {} }) {
             <IconPrinter color={c} /> PRINT
           </button>
           <button
-            onClick={e => { e.stopPropagation(); navigate(`/hierarchy-sales-count?role=customer&id=${node.id}`) }}
-            className="otree-btn otree-btn-sales"
-          >
-            <IconChart color="#22c55e" /> SALES ({node.order_count ?? 0})
-          </button>
+  onClick={e => {
+    e.stopPropagation()
+    clearTimeout(_chainHideTimer)
+    removeChainPopup()
+    navigate(`/hierarchy-sales-count?role=customer&id=${node.id}`)
+  }}
+  className="otree-btn otree-btn-sales"
+>
+  <IconChart color="#22c55e" /> SALES ({node.order_count ?? 0})
+</button>
         </div>
       </div>
     </div>
@@ -511,6 +516,12 @@ export default function PromotorHierarchy() {
   }
 
   useEffect(() => { fetchHierarchy() }, [])
+  useEffect(() => {
+  return () => {
+    clearTimeout(_chainHideTimer)
+    removeChainPopup()
+  }
+}, [])
 
   const searchResults = useMemo(() => {
     if (!debouncedSearch || !customers) return []

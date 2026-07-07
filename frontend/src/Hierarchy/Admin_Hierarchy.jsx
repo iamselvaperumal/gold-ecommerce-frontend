@@ -385,7 +385,7 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, admin
   el.addEventListener('mouseleave', () => scheduleHideChainPopup())
 }
 
-function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], adminInfo = {}, flatMode = false }) {
+function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], adminInfo = {}, flatMode = false, parentKey = null, openMap = {}, onToggle = () => {} }) {
   const navigate = useNavigate()
   const cfg = ROLE_CFG[role]
   const c = cfg.color
@@ -393,7 +393,7 @@ function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], 
   const childRole = CHILD_ROLE[role]
   const children = childRole ? (node[CHILD_KEY[role]] || []) : []
   const hasChildren = !flatMode && !!childRole && children.length > 0
-  const [expanded, setExpanded] = useState(depth < 2)
+const isOpen = openMap[parentKey] === node.id
 
   return (
     <div className="otree-node-wrap">
@@ -401,7 +401,7 @@ function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], 
         className="otree-card"
         data-role={role}
         style={{ '--nc': c }}
-        onClick={() => hasChildren && setExpanded(v => !v)}
+        onClick={() => hasChildren && onToggle(parentKey, node.id)}
         onMouseEnter={e => showChainPopup(e.currentTarget, ancestors, { node, role }, dark, text, subtext, adminInfo)}
         onMouseLeave={() => scheduleHideChainPopup()}
       >
@@ -427,15 +427,20 @@ function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], 
             <IconPrinter color={c} /> PRINT
           </button>
           <button
-            onClick={e => { e.stopPropagation(); navigate(`/hierarchy-sales-count?role=${role}&id=${node.id}`) }}
-            className="otree-btn otree-btn-sales"
-          >
-            <IconChart color="#22c55e" /> SALES ({node.order_count ?? 0})
-          </button>
+  onClick={e => {
+    e.stopPropagation()
+    clearTimeout(_chainHideTimer)
+    removeChainPopup()
+    navigate(`/hierarchy-sales-count?role=${role}&id=${node.id}`)
+  }}
+  className="otree-btn otree-btn-sales"
+>
+  <IconChart color="#22c55e" /> SALES ({node.order_count ?? 0})
+</button>
         </div>
 
         {hasChildren && (
-          <div className="otree-toggle" style={{ color: c, transform: expanded ? 'rotate(0deg)' : 'rotate(180deg)' }}>
+          <div className="otree-toggle" style={{ color: c, transform: isOpen ? 'rotate(0deg)' : 'rotate(180deg)' }}>
             <IconChevronDown color={c} />
           </div>
         )}
@@ -446,20 +451,23 @@ function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], 
         )}
       </div>
 
-      {hasChildren && expanded && (
-        <div className="otree-children" style={{ '--lc': ROLE_CFG[childRole].color }}>
-          {children.map(child => (
-            <div className="otree-item" key={child.id}>
-              <TreeNode
-                node={child} role={childRole} depth={depth + 1}
-                dark={dark} text={text} subtext={subtext}
-                ancestors={[...ancestors, { node, role }]}
-                adminInfo={adminInfo}
-              />
-            </div>
-          ))}
-        </div>
-      )}
+      {hasChildren && isOpen && (
+  <div className="otree-children" style={{ '--lc': ROLE_CFG[childRole].color }}>
+    {children.map(child => (
+      <div className="otree-item" key={child.id}>
+        <TreeNode
+          node={child} role={childRole} depth={depth + 1}
+          dark={dark} text={text} subtext={subtext}
+          ancestors={[...ancestors, { node, role }]}
+          adminInfo={adminInfo}
+          parentKey={node.id}
+          openMap={openMap}
+          onToggle={onToggle}
+        />
+      </div>
+    ))}
+  </div>
+)}
     </div>
   )
 }
@@ -471,10 +479,19 @@ export default function AdminHierarchy() {
   const [adminInfo, setAdminInfo] = useState({})
   const [loading, setLoading] = useState(false)
   const [filter, setFilter] = useState(null)
-  const [search, setSearch] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
+const [search, setSearch] = useState('')
+const [debouncedSearch, setDebouncedSearch] = useState('')
 
-  const treeWrapperRef = useRef(null)
+// oru parent-ku keela ore oru child mattum open aagum
+const [openMap, setOpenMap] = useState({})
+const handleToggle = (parentKey, nodeId) => {
+  setOpenMap(prev => ({
+    ...prev,
+    [parentKey]: prev[parentKey] === nodeId ? null : nodeId,
+  }))
+}
+
+const treeWrapperRef = useRef(null)
   const scrollAreaRef = useRef(null)
   const [levelTops, setLevelTops] = useState({})
   const [dealerAnchors, setDealerAnchors] = useState([])
@@ -532,7 +549,7 @@ export default function AdminHierarchy() {
       scrollEl?.removeEventListener('scroll', measure)
       window.removeEventListener('resize', measure)
     }
-  }, [dealers, filter, debouncedSearch])
+}, [dealers, filter, debouncedSearch, openMap])
 
   const text = '#f8fafc'
   const subtext = '#94a3b8'
@@ -568,6 +585,13 @@ const fetchHierarchy = async () => {
   }
 
   useEffect(() => { fetchHierarchy() }, [])
+
+  useEffect(() => {
+  return () => {
+    clearTimeout(_chainHideTimer)
+    removeChainPopup()
+  }
+}, [])
 
   const flattenByRole = (role) => {
     if (!dealers) return []
@@ -815,10 +839,16 @@ const fetchHierarchy = async () => {
             <div ref={scrollAreaRef} style={{ overflowX: 'auto', overflowY: 'hidden', padding: '50px 32px 20px 220px' }}>
               <div className="otree-children otree-children-root" style={{ '--lc': ROLE_CFG.dealer.color, minWidth: 'max-content' }}>
                 {dealers.map(dealer => (
-                  <div className="otree-item" key={dealer.id} style={{ paddingTop: 0 }}>
-                    <TreeNode node={dealer} role="dealer" depth={0} dark={dark} text={text} subtext={subtext} ancestors={[]} adminInfo={adminInfo} />
-                  </div>
-                ))}
+  <div className="otree-item" key={dealer.id} style={{ paddingTop: 0 }}>
+    <TreeNode
+      node={dealer} role="dealer" depth={0} dark={dark} text={text} subtext={subtext}
+      ancestors={[]} adminInfo={adminInfo}
+      parentKey="root"
+      openMap={openMap}
+      onToggle={handleToggle}
+    />
+  </div>
+))}
               </div>
             </div>
           )

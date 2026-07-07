@@ -394,7 +394,7 @@ class FullHierarchyView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        if request.user.role not in ['super_admin', 'admin', 'dealer', 'sub_dealer']:
+        if request.user.role not in ['super_admin', 'admin', 'dealer', 'sub_dealer', 'promotor']:
             return Response({'error': 'Permission denied'}, status=403)
 
         # ✅ Nested prefetch - loop-ku ulla query podathu,
