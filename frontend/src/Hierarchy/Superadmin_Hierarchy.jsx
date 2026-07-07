@@ -387,7 +387,7 @@ function showChainPopup(anchorEl, ancestors, current, dark, text, subtext, super
 // The `.otree-children` wrapper draws the curvy connector down to ITS children,
 // colored with that child role's own color (not the parent's), and every sibling
 // branch is a real, separate DOM subtree so no branch can ever cross another. ──
-function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], superAdminEmail = '', flatMode = false }) {
+function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], superAdminEmail = '', flatMode = false, parentKey = null, openMap = {}, onToggle = () => {} }) {
   const navigate = useNavigate()
   const cfg = ROLE_CFG[role]
   const c = cfg.color
@@ -395,7 +395,7 @@ function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], 
   const childRole = CHILD_ROLE[role]
   const children = childRole ? (node[CHILD_KEY[role]] || []) : []
   const hasChildren = !flatMode && !!childRole && children.length > 0
-  const [expanded, setExpanded] = useState(depth < 2)
+const isOpen = openMap[parentKey] === node.id
 
   return (
     <div className="otree-node-wrap">
@@ -403,7 +403,7 @@ function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], 
         className="otree-card"
         data-role={role}
         style={{ '--nc': c }}
-        onClick={() => hasChildren && setExpanded(v => !v)}
+        onClick={() => hasChildren && onToggle(parentKey, node.id)}
         onMouseEnter={e => showChainPopup(e.currentTarget, ancestors, { node, role }, dark, text, subtext, superAdminEmail)}
         onMouseLeave={() => scheduleHideChainPopup()}
       >
@@ -437,7 +437,7 @@ function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], 
         </div>
 
         {hasChildren && (
-          <div className="otree-toggle" style={{ color: c, transform: expanded ? 'rotate(0deg)' : 'rotate(180deg)' }}>
+          <div className="otree-toggle" style={{ color: c, transform: isOpen ? 'rotate(0deg)' : 'rotate(180deg)' }}>
             <IconChevronDown color={c} />
           </div>
         )}
@@ -448,20 +448,23 @@ function TreeNode({ node, role, depth = 0, dark, text, subtext, ancestors = [], 
         )}
       </div>
 
-      {hasChildren && expanded && (
-        <div className="otree-children" style={{ '--lc': ROLE_CFG[childRole].color }}>
-          {children.map(child => (
-            <div className="otree-item" key={child.id}>
-              <TreeNode
-                node={child} role={childRole} depth={depth + 1}
-                dark={dark} text={text} subtext={subtext}
-                ancestors={[...ancestors, { node, role }]}
-                superAdminEmail={superAdminEmail}
-              />
-            </div>
-          ))}
-        </div>
-      )}
+      {hasChildren && isOpen && (
+  <div className="otree-children" style={{ '--lc': ROLE_CFG[childRole].color }}>
+    {children.map(child => (
+      <div className="otree-item" key={child.id}>
+        <TreeNode
+          node={child} role={childRole} depth={depth + 1}
+          dark={dark} text={text} subtext={subtext}
+          ancestors={[...ancestors, { node, role }]}
+          superAdminEmail={superAdminEmail}
+          parentKey={node.id}
+          openMap={openMap}
+          onToggle={onToggle}
+        />
+      </div>
+    ))}
+  </div>
+)}
     </div>
   )
 }
@@ -472,8 +475,17 @@ export default function SuperadminHierarchy() {
   const [hierarchyData, setHierarchyData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [filter, setFilter] = useState(null)
-  const [search, setSearch] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
+const [search, setSearch] = useState('')
+const [debouncedSearch, setDebouncedSearch] = useState('')
+
+// oru parent-ku keela ore oru child mattum open aagum
+const [openMap, setOpenMap] = useState({})
+const handleToggle = (parentKey, nodeId) => {
+  setOpenMap(prev => ({
+    ...prev,
+    [parentKey]: prev[parentKey] === nodeId ? null : nodeId, // same node click pannaa close aagum
+  }))
+}
 
   // ADD this after your existing useState lines (near `const [debouncedSearch, ...]`)
 const treeWrapperRef = useRef(null)
@@ -536,7 +548,7 @@ useLayoutEffect(() => {
     scrollEl?.removeEventListener('scroll', measure)
     window.removeEventListener('resize', measure)
   }
-}, [hierarchyData, filter, debouncedSearch])
+}, [hierarchyData, filter, debouncedSearch, openMap])
 
   const text = '#f8fafc'
   const subtext = '#94a3b8'
@@ -819,10 +831,16 @@ useLayoutEffect(() => {
 
 
                 {hierarchyData.admins.map(admin => (
-                  <div className="otree-item" key={admin.id} style={{ paddingTop: 0 }}>
-                    <TreeNode node={admin} role="admin" depth={0} dark={dark} text={text} subtext={subtext} ancestors={[]} superAdminEmail={superAdminEmail} />
-                  </div>
-                ))}
+  <div className="otree-item" key={admin.id} style={{ paddingTop: 0 }}>
+    <TreeNode
+      node={admin} role="admin" depth={0} dark={dark} text={text} subtext={subtext}
+      ancestors={[]} superAdminEmail={superAdminEmail}
+      parentKey="root"
+      openMap={openMap}
+      onToggle={handleToggle}
+    />
+  </div>
+))}
               </div>
             </div>
           )

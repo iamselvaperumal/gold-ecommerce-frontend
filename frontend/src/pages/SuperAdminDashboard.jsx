@@ -1514,7 +1514,13 @@ const buildHierarchyOrders = (period, metalKey) => {
       <div style={{ position: 'relative', zIndex: 10, background: glass, borderBottom: `1px solid ${border}`, padding: '18px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backdropFilter: 'blur(16px)', transition: 'background 0.8s ease' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: '10px' }}>
           <img src={logo} alt="BitByte Logo" style={{ width: 60, height: 50, borderRadius: '10px', objectFit: 'contain' }} />
-          <span style={{ color: '#a5f3fc', fontWeight: 700, fontSize: '14px' }}>🛡️ Super Admin</span>
+          <span style={{ color: '#a5f3fc', fontWeight: 700, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a5f3fc" strokeWidth="2">
+    <path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6l7-3z" strokeLinejoin="round"/>
+    <path d="M9.5 12l1.8 1.8L15 10" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+  Super Admin
+</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
 
@@ -1551,7 +1557,10 @@ const buildHierarchyOrders = (period, metalKey) => {
               e.currentTarget.style.transform = 'translateY(0)'
             }}
           >
-            <span style={{ fontSize: '16px', lineHeight: 1 }}>💰</span>
+           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffd700" strokeWidth="2">
+  <circle cx="12" cy="12" r="9"/>
+  <path d="M12 7v10M9.5 9.5c0-1.4 1.1-2.5 2.5-2.5s2.5 1 2.5 2c0 2-5 1.5-5 4 0 1 1.1 2 2.5 2s2.5-1.1 2.5-2.5" strokeLinecap="round"/>
+</svg>
             <span style={{ fontSize: '11px', fontWeight: 700, color: '#ffd700' }}>Rate</span>
           </div>
 
@@ -1570,7 +1579,10 @@ const buildHierarchyOrders = (period, metalKey) => {
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(167,139,250,0.25)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(167,139,250,0.1)'; e.currentTarget.style.transform = 'translateY(0)' }}
           >
-            <span style={{ fontSize: '16px', lineHeight: 1 }}>🛍️</span>
+           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2">
+  <path d="M6 8h12l-1 12H7L6 8z" strokeLinejoin="round"/>
+  <path d="M9 8V6a3 3 0 016 0v2" strokeLinecap="round"/>
+</svg>
             <span style={{ fontSize: '11px', fontWeight: 700, color: '#a78bfa' }}>Add Product</span>
           </div>
 
@@ -1587,7 +1599,11 @@ const buildHierarchyOrders = (period, metalKey) => {
   onMouseEnter={e => { e.currentTarget.style.background = 'rgba(74,222,128,0.25)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
   onMouseLeave={e => { e.currentTarget.style.background = 'rgba(74,222,128,0.1)'; e.currentTarget.style.transform = 'translateY(0)' }}
 >
-  <span style={{ fontSize: '16px', lineHeight: 1 }}>📋</span>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2">
+  <rect x="5" y="4" width="14" height="17" rx="2"/>
+  <path d="M9 3h6v3H9z"/>
+  <path d="M8 11h8M8 15h5" strokeLinecap="round"/>
+</svg>
   <span style={{ fontSize: '11px', fontWeight: 700, color: '#4ade80' }}>Orders</span>
 </div>
 
@@ -1617,7 +1633,10 @@ const buildHierarchyOrders = (period, metalKey) => {
               e.currentTarget.style.transform = 'translateY(0)'
             }}
           >
-            <span style={{ fontSize: '18px', lineHeight: 1 }}>📨</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2">
+  <rect x="3" y="5" width="18" height="14" rx="2"/>
+  <path d="M3 7l9 6 9-6" strokeLinecap="round" strokeLinejoin="round"/>
+</svg>
             <span style={{ fontSize: '11px', fontWeight: 700, color: '#a78bfa' }}>Requests</span>
             {profileRequests.length > 0 && (
               <div style={{
@@ -1641,7 +1660,11 @@ const buildHierarchyOrders = (period, metalKey) => {
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(244,114,182,0.25)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(244,114,182,0.1)'; e.currentTarget.style.transform = 'translateY(0)' }}
           >
-            <span style={{ fontSize: '18px', lineHeight: 1 }}>🎂</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f472b6" strokeWidth="2">
+  <path d="M4 21h16v-7a4 4 0 00-4-4H8a4 4 0 00-4 4v7z"/>
+  <path d="M4 17c1 0 1.5-1 2.5-1s1.5 1 2.5 1 1.5-1 2.5-1 1.5 1 2.5 1 1.5-1 2.5-1" strokeLinecap="round"/>
+  <path d="M12 10V6M9 6c0-1 1-1 1-2s-1-1-1-2M15 6c0-1-1-1-1-2s1-1 1-2" strokeLinecap="round"/>
+</svg>
             {birthdayList.length > 0 && (
               <div style={{ position: 'absolute', top: '-7px', right: '-7px', background: 'linear-gradient(135deg,#f472b6,#a78bfa)', color: '#fff', borderRadius: '50%', minWidth: '18px', height: '18px', fontSize: '9px', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px', boxShadow: '0 2px 8px rgba(244,114,182,0.5)', border: '1.5px solid #020617' }}>
                 {birthdayList.length}
@@ -1657,8 +1680,10 @@ const buildHierarchyOrders = (period, metalKey) => {
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(167,139,250,0.25)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(167,139,250,0.1)'; e.currentTarget.style.transform = 'translateY(0)' }}
           >
-            <span style={{ fontSize: '18px', lineHeight: 1 }}>💍</span>
-            {anniversaryList.length > 0 && (
+            <span style={{ fontSize: '18px', lineHeight: 1 }}>💍</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2">
+  <circle cx="12" cy="15" r="6"/>
+  <path d="M9 9l3-6 3 6" strokeLinejoin="round"/>
+</svg>{anniversaryList.length > 0 && (
               <div style={{ position: 'absolute', top: '-7px', right: '-7px', background: 'linear-gradient(135deg,#a78bfa,#22d3ee)', color: '#000', borderRadius: '50%', minWidth: '18px', height: '18px', fontSize: '9px', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px', boxShadow: '0 2px 8px rgba(167,139,250,0.5)', border: '1.5px solid #020617' }}>
                 {anniversaryList.length}
               </div>
@@ -1673,7 +1698,11 @@ const buildHierarchyOrders = (period, metalKey) => {
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(245,158,11,0.25)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(245,158,11,0.1)'; e.currentTarget.style.transform = 'translateY(0)' }}
           >
-            <span style={{ fontSize: '18px', lineHeight: 1 }}>🏆</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
+  <path d="M8 4h8v6a4 4 0 01-8 0V4z"/>
+  <path d="M8 5H5a2 2 0 002 4M16 5h3a2 2 0 01-2 4" strokeLinecap="round"/>
+  <path d="M12 14v3M9 21h6M9 21l1-4h4l1 4" strokeLinecap="round" strokeLinejoin="round"/>
+</svg>
             {joinDateList.length > 0 && (
               <div style={{ position: 'absolute', top: '-7px', right: '-7px', background: 'linear-gradient(135deg,#f59e0b,#fb923c)', color: '#000', borderRadius: '50%', minWidth: '18px', height: '18px', fontSize: '9px', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px', boxShadow: '0 2px 8px rgba(245,158,11,0.5)', border: '1.5px solid #020617' }}>
                 {joinDateList.length}
@@ -1695,7 +1724,10 @@ const buildHierarchyOrders = (period, metalKey) => {
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(251,146,60,0.25)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(251,146,60,0.1)'; e.currentTarget.style.transform = 'translateY(0)' }}
           >
-            <span style={{ fontSize: '18px', lineHeight: 1 }}>📢</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fb923c" strokeWidth="2">
+  <path d="M3 10v4a1 1 0 001 1h2l6 4V5L6 9H4a1 1 0 00-1 1z" strokeLinejoin="round"/>
+  <path d="M16 8a4 4 0 010 8M19 6a7 7 0 010 12" strokeLinecap="round"/>
+</svg>
             {announcementCount > 0 && (
               <div style={{ position: 'absolute', top: '-7px', right: '-7px', background: 'linear-gradient(135deg,#fb923c,#f97316)', color: '#fff', borderRadius: '50%', minWidth: '18px', height: '18px', fontSize: '9px', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px', boxShadow: '0 2px 8px rgba(251,146,60,0.5)', border: '1.5px solid #020617' }}>
                 {announcementCount > 99 ? '99+' : announcementCount}
@@ -1731,7 +1763,11 @@ const buildHierarchyOrders = (period, metalKey) => {
               e.currentTarget.style.transform = 'translateY(0)'
             }}
           >
-            <span style={{ fontSize: '18px', lineHeight: 1 }}>📬</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2">
+  <rect x="2" y="7" width="20" height="13" rx="2"/>
+  <path d="M2 9l10 6 10-6" strokeLinecap="round" strokeLinejoin="round"/>
+  <path d="M16 3l3 3-3 3" strokeLinecap="round" strokeLinejoin="round"/>
+</svg>
           </div>
 
           {/* 📊 Today Rates Icon */}
@@ -1747,7 +1783,9 @@ const buildHierarchyOrders = (period, metalKey) => {
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,215,0,0.25)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,215,0,0.1)'; e.currentTarget.style.transform = 'translateY(0)' }}
           >
-            <span style={{ fontSize: '16px', lineHeight: 1 }}>📊</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffd700" strokeWidth="2">
+  <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" strokeLinecap="round" strokeLinejoin="round"/>
+</svg>
             <span style={{ fontSize: '11px', fontWeight: 700, color: '#ffd700' }}>Today Rates</span>
           </div>
 
@@ -2330,13 +2368,21 @@ setOrderPopupState({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0 }}>Admin Management</h2>
           <div style={{ display: 'flex', gap: '12px' }}>
- <button onClick={() => navigate('/sales-report')}
-  style={{ padding: '11px 28px', background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '12px', fontWeight: 700, color: '#4ade80', fontSize: '14px', cursor: 'pointer' }}>
-  📊 Sales Report
+<button onClick={() => navigate('/sales-report')}
+  style={{ padding: '11px 28px', background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '12px', fontWeight: 700, color: '#4ade80', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2">
+    <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+  Sales Report
 </button>
 <button onClick={() => navigate('/superadmin-hierarchy')}
-  style={{ padding: '11px 28px', background: 'rgba(165,243,252,0.08)', border: '1px solid rgba(103,232,249,0.3)', borderRadius: '12px', fontWeight: 700, color: '#a5f3fc', fontSize: '14px', cursor: 'pointer' }}>
-  🏢 Admin Hierarchy
+  style={{ padding: '11px 28px', background: 'rgba(165,243,252,0.08)', border: '1px solid rgba(103,232,249,0.3)', borderRadius: '12px', fontWeight: 700, color: '#a5f3fc', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a5f3fc" strokeWidth="2">
+    <rect x="3" y="10" width="6" height="10" rx="1"/>
+    <rect x="9" y="4" width="6" height="16" rx="1"/>
+    <rect x="15" y="13" width="6" height="7" rx="1"/>
+  </svg>
+  Admin Hierarchy
 </button>
             <button onClick={() => setShowForm(!showForm)} className="sa-grad-btn"
               style={{ padding: '11px 28px', background: 'linear-gradient(90deg,#22d3ee,#4ade80)', border: 'none', borderRadius: '12px', fontWeight: 800, color: '#006165', fontSize: '14px', cursor: 'pointer' }}>

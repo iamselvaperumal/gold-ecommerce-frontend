@@ -182,6 +182,7 @@ localStorage.removeItem('email')
         @keyframes float-orb { 0%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-50px) scale(1.1)} 66%{transform:translate(-20px,20px) scale(0.9)} 100%{transform:translate(0,0) scale(1)} }
         @keyframes antigravity { 0%{transform:translateY(110vh) rotate(0deg);opacity:0} 10%{opacity:var(--op)} 90%{opacity:var(--op)} 100%{transform:translateY(-20vh) rotate(360deg);opacity:0} }
         @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .liquid-orb { position:absolute; border-radius:50%; filter:blur(80px); animation:float-orb 20s infinite ease-in-out; z-index:0; }
         .btn-shimmer { position:relative; overflow:hidden; }
         .btn-shimmer::after { content:""; position:absolute; top:0;left:0;width:100%;height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent); transform:translateX(-100%); }
@@ -268,8 +269,16 @@ localStorage.removeItem('email')
             </div>
           </div>
 <button type="submit" disabled={loading} className="btn-shimmer"
-  style={{ padding:'14px', background:'linear-gradient(90deg,#22d3ee,#4ade80)', border:'none', borderRadius:'14px', fontWeight:800, color:'#006165', fontSize:'14px', textTransform:'uppercase', letterSpacing:'0.1em', cursor: loading ? 'not-allowed' : 'pointer', marginTop:'4px', opacity: loading ? 0.6 : 1 }}>
-  {loading ? '⏳ Logging in...' : 'Login'}
+  style={{ padding:'14px', background:'linear-gradient(90deg,#22d3ee,#4ade80)', border:'none', borderRadius:'14px', fontWeight:800, color:'#006165', fontSize:'14px', textTransform:'uppercase', letterSpacing:'0.1em', cursor: loading ? 'not-allowed' : 'pointer', marginTop:'4px', opacity: loading ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+  {loading ? (
+    <>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#006165" strokeWidth="3" style={{ animation: 'spin 0.8s linear infinite' }}>
+        <circle cx="12" cy="12" r="9" strokeOpacity="0.25"/>
+        <path d="M21 12a9 9 0 00-9-9" strokeLinecap="round"/>
+      </svg>
+      Logging in...
+    </>
+  ) : 'Login'}
 </button>
         </form>
       </div>
