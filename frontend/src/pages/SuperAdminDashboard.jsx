@@ -1056,85 +1056,74 @@ const [showTodayRates, setShowTodayRates] = useState(false)
   }
 
 
-  // const fetchAllMembers = async () => {
-  //   try {
-  //     const [adminRes, dealerRes, sdRes, proRes, cusRes] = await Promise.allSettled([
-  //       api.get('/admins/'),
-  //       api.get('/dealers/list/'),
-  //       api.get('/sub-dealers/list/'),
-  //       api.get('/promotors/list/'),
-  //       api.get('/customers/'),
-  //     ])
-  //     const admins = adminRes.status === 'fulfilled' ? adminRes.value.data : []
-  //     const dealers = dealerRes.status === 'fulfilled' ? dealerRes.value.data : []
-  //     const sds = sdRes.status === 'fulfilled' ? sdRes.value.data : []
-  //     const pros = proRes.status === 'fulfilled' ? proRes.value.data : []
-  //     const cuss = cusRes.status === 'fulfilled' ? cusRes.value.data : []
+  const fetchAllMembers = async () => {
+    try {
+      const [adminRes, dealerRes, sdRes, proRes, cusRes] = await Promise.allSettled([
+        api.get('/admins/'),
+        api.get('/dealers/list/'),
+        api.get('/sub-dealers/list/'),
+        api.get('/promotors/list/'),
+        api.get('/customers/'),
+      ])
+      const admins = adminRes.status === 'fulfilled' ? adminRes.value.data : []
+      const dealers = dealerRes.status === 'fulfilled' ? dealerRes.value.data : []
+      const sds = sdRes.status === 'fulfilled' ? sdRes.value.data : []
+      const pros = proRes.status === 'fulfilled' ? proRes.value.data : []
+      const cuss = cusRes.status === 'fulfilled' ? cusRes.value.data : []
 
-  //     const allMembers = [
-  //       ...admins.map(m => ({ ...m, _role: 'Admin', _id: m.admin_id, _roleColor: '#22d3ee', _dob: m.dob, _ann: m.anniversary_date, _joined: m.user?.created_at || null })),
-  //       ...dealers.map(m => ({ ...m, _role: 'Dealer', _id: m.dealer_id, _roleColor: '#4ade80', _dob: m.dob, _ann: m.anniversary_date, _joined: m.created_at })),
-  //       ...sds.map(m => ({ ...m, _role: 'SubDealer', _id: m.sub_dealer_id, _roleColor: '#f59e0b', _dob: m.dob, _ann: m.anniversary_date, _joined: m.created_at })),
-  //       ...pros.map(m => ({ ...m, _role: 'Promotor', _id: m.promotor_id, _roleColor: '#a78bfa', _dob: m.dob, _ann: m.anniversary_date, _joined: m.created_at })),
-  //       ...cuss.map(m => ({ ...m, _role: 'Customer', _id: m.customer_id, _roleColor: '#f472b6', _dob: m.dob || null, _ann: m.anniversary_date || null, _joined: m.user?.created_at || m.created_at || null })),
-  //     ]
+      const allMembers = [
+        ...admins.map(m => ({ ...m, _role: 'Admin', _id: m.admin_id, _roleColor: '#22d3ee', _dob: m.dob, _ann: m.anniversary_date, _joined: m.user?.created_at || null })),
+        ...dealers.map(m => ({ ...m, _role: 'Dealer', _id: m.dealer_id, _roleColor: '#4ade80', _dob: m.dob, _ann: m.anniversary_date, _joined: m.created_at })),
+        ...sds.map(m => ({ ...m, _role: 'SubDealer', _id: m.sub_dealer_id, _roleColor: '#f59e0b', _dob: m.dob, _ann: m.anniversary_date, _joined: m.created_at })),
+        ...pros.map(m => ({ ...m, _role: 'Promotor', _id: m.promotor_id, _roleColor: '#a78bfa', _dob: m.dob, _ann: m.anniversary_date, _joined: m.created_at })),
+        ...cuss.map(m => ({ ...m, _role: 'Customer', _id: m.customer_id, _roleColor: '#f472b6', _dob: m.dob || null, _ann: m.anniversary_date || null, _joined: m.user?.created_at || m.created_at || null })),
+      ]
 
 
-  //     // REPLACE WITH:
-  //     const today = new Date()
-  //     const todayMD = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+      // REPLACE WITH:
+      const today = new Date()
+      const todayMD = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
-  //     // Helper: parse YYYY-MM-DD without timezone shift
-  //     function parseDateLocal(str) {
-  //       if (!str) return null
-  //       const [y, m, d] = str.split('-').map(Number)
-  //       return new Date(y, m - 1, d)
-  //     }
+      // Helper: parse YYYY-MM-DD without timezone shift
+      function parseDateLocal(str) {
+        if (!str) return null
+        const [y, m, d] = str.split('-').map(Number)
+        return new Date(y, m - 1, d)
+      }
 
-  //     // BIRTHDAY LIST
-  //     const bdays = allMembers.filter(m => {
-  //       if (!m._dob) return false
-  //       const d = parseDateLocal(m._dob)
-  //       const md = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-  //       return md === todayMD
-  //     })
-  //     setBirthdayList(bdays)
+      // BIRTHDAY LIST
+      const bdays = allMembers.filter(m => {
+        if (!m._dob) return false
+        const d = parseDateLocal(m._dob)
+        const md = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+        return md === todayMD
+      })
+      setBirthdayList(bdays)
 
-  //     // ANNIVERSARY LIST
-  //     const anns = allMembers.filter(m => {
-  //       if (!m._ann) return false
-  //       const d = parseDateLocal(m._ann)
-  //       const md = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-  //       return md === todayMD
-  //     })
-  //     setAnniversaryList(anns)
+      // ANNIVERSARY LIST
+      const anns = allMembers.filter(m => {
+        if (!m._ann) return false
+        const d = parseDateLocal(m._ann)
+        const md = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+        return md === todayMD
+      })
+      setAnniversaryList(anns)
 
-  //     // JOIN DATE LIST
-  //     const joins = allMembers.filter(m => {
-  //       if (!m._joined) return false
-  //       const d = new Date(m._joined)
-  //       const md = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-  //       return md === todayMD
-  //     }).map(m => {
-  //       const joinedDate = new Date(m._joined)
-  //       const years = today.getFullYear() - joinedDate.getFullYear()
-  //       return { ...m, _yearsCompleted: years }
-  //     })
-  //     setJoinDateList(joins)
+      // JOIN DATE LIST
+      const joins = allMembers.filter(m => {
+        if (!m._joined) return false
+        const d = new Date(m._joined)
+        const md = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+        return md === todayMD
+      }).map(m => {
+        const joinedDate = new Date(m._joined)
+        const years = today.getFullYear() - joinedDate.getFullYear()
+        return { ...m, _yearsCompleted: years }
+      })
+      setJoinDateList(joins)
 
-  //   } catch (e) { console.error('fetchAllMembers error:', e) }
-  // }
-
-  const fetchTodayEvents = async () => {
-  try {
-    const res = await api.get('/today-events/')
-    setBirthdayList(res.data.birthdays)
-    setAnniversaryList(res.data.anniversaries)
-    setJoinDateList(res.data.joins)
-  } catch (e) {
-    console.error('fetchTodayEvents error:', e)
+    } catch (e) { console.error('fetchAllMembers error:', e) }
   }
-}
 
   const fetchProfileRequests = async () => {
     try {
@@ -1298,8 +1287,7 @@ const fetchMetalPrices = async () => {
     fetchAnnouncementCount()
     fetchMyAnnouncements()
     fetchProfileRequests()
-    // fetchAllMembers()
-    fetchTodayEvents() 
+    fetchAllMembers()
     fetchMetalPrices()
     fetchOrderStats()
     fetchHierarchy()
