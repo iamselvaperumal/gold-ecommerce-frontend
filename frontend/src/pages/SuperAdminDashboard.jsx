@@ -1056,74 +1056,85 @@ const [showTodayRates, setShowTodayRates] = useState(false)
   }
 
 
-  const fetchAllMembers = async () => {
-    try {
-      const [adminRes, dealerRes, sdRes, proRes, cusRes] = await Promise.allSettled([
-        api.get('/admins/'),
-        api.get('/dealers/list/'),
-        api.get('/sub-dealers/list/'),
-        api.get('/promotors/list/'),
-        api.get('/customers/'),
-      ])
-      const admins = adminRes.status === 'fulfilled' ? adminRes.value.data : []
-      const dealers = dealerRes.status === 'fulfilled' ? dealerRes.value.data : []
-      const sds = sdRes.status === 'fulfilled' ? sdRes.value.data : []
-      const pros = proRes.status === 'fulfilled' ? proRes.value.data : []
-      const cuss = cusRes.status === 'fulfilled' ? cusRes.value.data : []
+  // const fetchAllMembers = async () => {
+  //   try {
+  //     const [adminRes, dealerRes, sdRes, proRes, cusRes] = await Promise.allSettled([
+  //       api.get('/admins/'),
+  //       api.get('/dealers/list/'),
+  //       api.get('/sub-dealers/list/'),
+  //       api.get('/promotors/list/'),
+  //       api.get('/customers/'),
+  //     ])
+  //     const admins = adminRes.status === 'fulfilled' ? adminRes.value.data : []
+  //     const dealers = dealerRes.status === 'fulfilled' ? dealerRes.value.data : []
+  //     const sds = sdRes.status === 'fulfilled' ? sdRes.value.data : []
+  //     const pros = proRes.status === 'fulfilled' ? proRes.value.data : []
+  //     const cuss = cusRes.status === 'fulfilled' ? cusRes.value.data : []
 
-      const allMembers = [
-        ...admins.map(m => ({ ...m, _role: 'Admin', _id: m.admin_id, _roleColor: '#22d3ee', _dob: m.dob, _ann: m.anniversary_date, _joined: m.user?.created_at || null })),
-        ...dealers.map(m => ({ ...m, _role: 'Dealer', _id: m.dealer_id, _roleColor: '#4ade80', _dob: m.dob, _ann: m.anniversary_date, _joined: m.created_at })),
-        ...sds.map(m => ({ ...m, _role: 'SubDealer', _id: m.sub_dealer_id, _roleColor: '#f59e0b', _dob: m.dob, _ann: m.anniversary_date, _joined: m.created_at })),
-        ...pros.map(m => ({ ...m, _role: 'Promotor', _id: m.promotor_id, _roleColor: '#a78bfa', _dob: m.dob, _ann: m.anniversary_date, _joined: m.created_at })),
-        ...cuss.map(m => ({ ...m, _role: 'Customer', _id: m.customer_id, _roleColor: '#f472b6', _dob: m.dob || null, _ann: m.anniversary_date || null, _joined: m.user?.created_at || m.created_at || null })),
-      ]
+  //     const allMembers = [
+  //       ...admins.map(m => ({ ...m, _role: 'Admin', _id: m.admin_id, _roleColor: '#22d3ee', _dob: m.dob, _ann: m.anniversary_date, _joined: m.user?.created_at || null })),
+  //       ...dealers.map(m => ({ ...m, _role: 'Dealer', _id: m.dealer_id, _roleColor: '#4ade80', _dob: m.dob, _ann: m.anniversary_date, _joined: m.created_at })),
+  //       ...sds.map(m => ({ ...m, _role: 'SubDealer', _id: m.sub_dealer_id, _roleColor: '#f59e0b', _dob: m.dob, _ann: m.anniversary_date, _joined: m.created_at })),
+  //       ...pros.map(m => ({ ...m, _role: 'Promotor', _id: m.promotor_id, _roleColor: '#a78bfa', _dob: m.dob, _ann: m.anniversary_date, _joined: m.created_at })),
+  //       ...cuss.map(m => ({ ...m, _role: 'Customer', _id: m.customer_id, _roleColor: '#f472b6', _dob: m.dob || null, _ann: m.anniversary_date || null, _joined: m.user?.created_at || m.created_at || null })),
+  //     ]
 
 
-      // REPLACE WITH:
-      const today = new Date()
-      const todayMD = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  //     // REPLACE WITH:
+  //     const today = new Date()
+  //     const todayMD = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
-      // Helper: parse YYYY-MM-DD without timezone shift
-      function parseDateLocal(str) {
-        if (!str) return null
-        const [y, m, d] = str.split('-').map(Number)
-        return new Date(y, m - 1, d)
-      }
+  //     // Helper: parse YYYY-MM-DD without timezone shift
+  //     function parseDateLocal(str) {
+  //       if (!str) return null
+  //       const [y, m, d] = str.split('-').map(Number)
+  //       return new Date(y, m - 1, d)
+  //     }
 
-      // BIRTHDAY LIST
-      const bdays = allMembers.filter(m => {
-        if (!m._dob) return false
-        const d = parseDateLocal(m._dob)
-        const md = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-        return md === todayMD
-      })
-      setBirthdayList(bdays)
+  //     // BIRTHDAY LIST
+  //     const bdays = allMembers.filter(m => {
+  //       if (!m._dob) return false
+  //       const d = parseDateLocal(m._dob)
+  //       const md = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  //       return md === todayMD
+  //     })
+  //     setBirthdayList(bdays)
 
-      // ANNIVERSARY LIST
-      const anns = allMembers.filter(m => {
-        if (!m._ann) return false
-        const d = parseDateLocal(m._ann)
-        const md = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-        return md === todayMD
-      })
-      setAnniversaryList(anns)
+  //     // ANNIVERSARY LIST
+  //     const anns = allMembers.filter(m => {
+  //       if (!m._ann) return false
+  //       const d = parseDateLocal(m._ann)
+  //       const md = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  //       return md === todayMD
+  //     })
+  //     setAnniversaryList(anns)
 
-      // JOIN DATE LIST
-      const joins = allMembers.filter(m => {
-        if (!m._joined) return false
-        const d = new Date(m._joined)
-        const md = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-        return md === todayMD
-      }).map(m => {
-        const joinedDate = new Date(m._joined)
-        const years = today.getFullYear() - joinedDate.getFullYear()
-        return { ...m, _yearsCompleted: years }
-      })
-      setJoinDateList(joins)
+  //     // JOIN DATE LIST
+  //     const joins = allMembers.filter(m => {
+  //       if (!m._joined) return false
+  //       const d = new Date(m._joined)
+  //       const md = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  //       return md === todayMD
+  //     }).map(m => {
+  //       const joinedDate = new Date(m._joined)
+  //       const years = today.getFullYear() - joinedDate.getFullYear()
+  //       return { ...m, _yearsCompleted: years }
+  //     })
+  //     setJoinDateList(joins)
 
-    } catch (e) { console.error('fetchAllMembers error:', e) }
+  //   } catch (e) { console.error('fetchAllMembers error:', e) }
+  // }
+
+  const fetchTodayEvents = async () => {
+  try {
+    const res = await api.get('/today-events/')
+    setBirthdayList(res.data.birthdays)
+    setAnniversaryList(res.data.anniversaries)
+    setJoinDateList(res.data.joins)
+  } catch (e) {
+    console.error('fetchTodayEvents error:', e)
   }
+}
 
   const fetchProfileRequests = async () => {
     try {
@@ -1287,7 +1298,8 @@ const fetchMetalPrices = async () => {
     fetchAnnouncementCount()
     fetchMyAnnouncements()
     fetchProfileRequests()
-    fetchAllMembers()
+    // fetchAllMembers()
+    fetchTodayEvents() 
     fetchMetalPrices()
     fetchOrderStats()
     fetchHierarchy()
@@ -2404,15 +2416,16 @@ setOrderPopupState({
         </div>
 
         {/* ── RATE ENTRY POPUP ── */}
-        {showRatePopup && (
+     {showRatePopup && (
           <div
             onClick={() => setShowRatePopup(false)}
             style={{
               position: 'fixed', inset: 0,
-              background: 'rgba(0,0,0,0.85)',
-              backdropFilter: 'blur(12px)',
+              background: 'rgba(2,6,23,0.45)',
+              backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
               zIndex: 1300,
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: '20px'
             }}
           >
             <div
@@ -2421,25 +2434,30 @@ setOrderPopupState({
                 background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc',
                 border: '1px solid rgba(255,215,0,0.35)',
                 borderRadius: '24px',
-                width: '95%', maxWidth: '460px',
-                maxHeight: '85vh',
+                width: '95%', maxWidth: '640px',
+                maxHeight: '95vh',
                 overflowY: 'auto',
-                padding: '20px 24px',
+                padding: '28px 32px',
                 boxShadow: '0 32px 80px rgba(0,0,0,0.7)',
                 animation: 'fadeIn 0.3s cubic-bezier(0.22,1,0.36,1)',
               }}
             >
               {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                   <div style={{
-                    width: '36px', height: '36px', borderRadius: '10px',
+                    width: '42px', height: '42px', borderRadius: '12px',
                     background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.4)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px'
-                  }}>💰</div>
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffd700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2v4M8 6h8l3 5-3 9H8l-3-9 3-5z"/>
+                      <path d="M9.5 12c0-1.1.9-2 2.5-2s2.5 1 2.5 2-1.5 1.5-2.5 2-2.5.9-2.5 2 1.1 2 2.5 2 2.5-.9 2.5-2"/>
+                    </svg>
+                  </div>
                   <div>
-                    <div style={{ color: '#ffd700', fontWeight: 800, fontSize: '15px' }}>ENTER METAL RATES</div>
-                    <div style={{ color: subtext, fontSize: '11px', marginTop: '2px' }}>
+                    <div style={{ color: '#ffd700', fontWeight: 800, fontSize: '16px' }}>ENTER METAL RATES</div>
+                    <div style={{ color: subtext, fontSize: '12px', marginTop: '2px' }}>
                       {dbRateDate ? `Current: ${dbRateDate}` : 'No rate entered yet'}
                     </div>
                   </div>
@@ -2447,10 +2465,18 @@ setOrderPopupState({
                 <button
                   onClick={() => setShowRatePopup(false)}
                   style={{
-                    background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
-                    color: '#f87171', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px'
+                    background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)',
+                    color: '#f87171', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    transition: 'all 0.2s ease'
                   }}
-                >✕ Close</button>
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.25)'; e.currentTarget.style.transform = 'scale(1.06)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; e.currentTarget.style.transform = 'scale(1)' }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
               </div>
 
               {rateMsg && (
@@ -2464,10 +2490,13 @@ setOrderPopupState({
                 </div>
               )}
 
-              {/* Date */}
-              <div style={{ marginBottom: '8px' }}>
-                <label style={{ display: 'block', color: subtext, fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
-                  📅 Date *
+              {/* Date — full width */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: subtext, fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={subtext} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                  Date *
                 </label>
                 <input
                   type="date"
@@ -2479,133 +2508,154 @@ setOrderPopupState({
                 />
               </div>
 
-              {/* 22K */}
-              <div style={{ marginBottom: '8px' }}>
-                <label style={{ display: 'block', color: '#fbbf24', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
-                  🏅 Gold 22K — Rate per gram (₹) *
-                </label>
-                <input
-                  type="number"
-                  placeholder="e.g. 12800"
-                  value={rateForm.gold_22k}
-                  onChange={e => setRateForm({ ...rateForm, gold_22k: e.target.value })}
-                  style={{ width: '100%', background: inpBg, border: `1px solid rgba(251,191,36,0.4)`, borderRadius: '10px', padding: '12px 16px', color: '#fbbf24', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
-                  onFocus={e => e.target.style.borderColor = '#fbbf24'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(251,191,36,0.4)'}
-                />
-                {rateForm.gold_22k && (
-                  <div style={{ color: '#fbbf24', fontSize: '11px', marginTop: '5px', opacity: 0.7 }}>
-                    Preview 1gm = ₹{parseFloat(rateForm.gold_22k).toFixed(2)}
-                  </div>
-                )}
-              </div>
+              {/* Grid: 2 columns for all rate fields */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
 
-              {/* 24K */}
-              <div style={{ marginBottom: '8px' }}>
-                <label style={{ display: 'block', color: '#ffd700', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
-                  🥇 Gold 24K — Rate per gram (₹) *
-                </label>
-                <input
-                  type="number"
-                  placeholder="e.g. 13900"
-                  value={rateForm.gold_24k}
-                  onChange={e => setRateForm({ ...rateForm, gold_24k: e.target.value })}
-                  style={{ width: '100%', background: inpBg, border: `1px solid rgba(255,215,0,0.4)`, borderRadius: '10px', padding: '12px 16px', color: '#ffd700', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
-                  onFocus={e => e.target.style.borderColor = '#ffd700'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(255,215,0,0.4)'}
-                />
-                {rateForm.gold_24k && (
-                  <div style={{ color: '#ffd700', fontSize: '11px', marginTop: '5px', opacity: 0.7 }}>
-                    Preview 1gm = ₹{parseFloat(rateForm.gold_24k).toFixed(2)}
-                  </div>
-                )}
-              </div>
+                {/* 22K */}
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#fbbf24', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '6px' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="9"/><path d="M9 9h3.5a2 2 0 010 4H10M9 15h4M12 7v2M12 15v2"/>
+                    </svg>
+                    Gold 22K (₹)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 12800"
+                    value={rateForm.gold_22k}
+                    onChange={e => setRateForm({ ...rateForm, gold_22k: e.target.value })}
+                    style={{ width: '100%', background: inpBg, border: `1px solid rgba(251,191,36,0.4)`, borderRadius: '10px', padding: '12px 16px', color: '#fbbf24', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
+                    onFocus={e => e.target.style.borderColor = '#fbbf24'}
+                    onBlur={e => e.target.style.borderColor = 'rgba(251,191,36,0.4)'}
+                  />
+                  {rateForm.gold_22k && (
+                    <div style={{ color: '#fbbf24', fontSize: '10px', marginTop: '4px', opacity: 0.7 }}>
+                      1gm = ₹{parseFloat(rateForm.gold_22k).toFixed(2)}
+                    </div>
+                  )}
+                </div>
 
-            {/* Silver */}
-              <div style={{ marginBottom: '8px' }}>
-                <label style={{ display: 'block', color: '#c0c0c0', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
-                  🥈 Silver 999 — Rate per gram (₹) *
-                </label>
-                <input
-                  type="number"
-                  placeholder="e.g. 225"
-                  value={rateForm.silver_999}
-                  onChange={e => setRateForm({ ...rateForm, silver_999: e.target.value })}
-                  style={{ width: '100%', background: inpBg, border: `1px solid rgba(192,192,192,0.4)`, borderRadius: '10px', padding: '12px 16px', color: '#c0c0c0', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
-                  onFocus={e => e.target.style.borderColor = '#c0c0c0'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(192,192,192,0.4)'}
-                />
-                {rateForm.silver_999 && (
-                  <div style={{ color: '#c0c0c0', fontSize: '11px', marginTop: '5px', opacity: 0.7 }}>
-                    Preview 1gm = ₹{parseFloat(rateForm.silver_999).toFixed(2)}
-                  </div>
-                )}
-              </div>
+                {/* 24K */}
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ffd700', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '6px' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ffd700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="9"/><path d="M9 9h3.5a2 2 0 010 4H10M9 15h4M12 7v2M12 15v2"/>
+                    </svg>
+                    Gold 24K (₹)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 13900"
+                    value={rateForm.gold_24k}
+                    onChange={e => setRateForm({ ...rateForm, gold_24k: e.target.value })}
+                    style={{ width: '100%', background: inpBg, border: `1px solid rgba(255,215,0,0.4)`, borderRadius: '10px', padding: '12px 16px', color: '#ffd700', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
+                    onFocus={e => e.target.style.borderColor = '#ffd700'}
+                    onBlur={e => e.target.style.borderColor = 'rgba(255,215,0,0.4)'}
+                  />
+                  {rateForm.gold_24k && (
+                    <div style={{ color: '#ffd700', fontSize: '10px', marginTop: '4px', opacity: 0.7 }}>
+                      1gm = ₹{parseFloat(rateForm.gold_24k).toFixed(2)}
+                    </div>
+                  )}
+                </div>
 
-              {/* Diamond 18K */}
-              <div style={{ marginBottom: '8px' }}>
-                <label style={{ display: 'block', color: '#67e8f9', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
-                  💎 Diamond 18K — Rate per gram (₹)
-                </label>
-                <input
-                  type="number"
-                  placeholder="e.g. 45000"
-                  value={rateForm.diamond_18k}
-                  onChange={e => setRateForm({ ...rateForm, diamond_18k: e.target.value })}
-                  style={{ width: '100%', background: inpBg, border: `1px solid rgba(103,232,249,0.4)`, borderRadius: '10px', padding: '12px 16px', color: '#67e8f9', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
-                  onFocus={e => e.target.style.borderColor = '#67e8f9'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(103,232,249,0.4)'}
-                />
-                {rateForm.diamond_18k && (
-                  <div style={{ color: '#67e8f9', fontSize: '11px', marginTop: '5px', opacity: 0.7 }}>
-                    Preview 1gm = ₹{parseFloat(rateForm.diamond_18k).toFixed(2)}
-                  </div>
-                )}
-              </div>
+                {/* Silver */}
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#c0c0c0', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '6px' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c0c0c0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="9"/><path d="M9 9h3.5a2 2 0 010 4H10M9 15h4M12 7v2M12 15v2"/>
+                    </svg>
+                    Silver 999 (₹)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 225"
+                    value={rateForm.silver_999}
+                    onChange={e => setRateForm({ ...rateForm, silver_999: e.target.value })}
+                    style={{ width: '100%', background: inpBg, border: `1px solid rgba(192,192,192,0.4)`, borderRadius: '10px', padding: '12px 16px', color: '#c0c0c0', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
+                    onFocus={e => e.target.style.borderColor = '#c0c0c0'}
+                    onBlur={e => e.target.style.borderColor = 'rgba(192,192,192,0.4)'}
+                  />
+                  {rateForm.silver_999 && (
+                    <div style={{ color: '#c0c0c0', fontSize: '10px', marginTop: '4px', opacity: 0.7 }}>
+                      1gm = ₹{parseFloat(rateForm.silver_999).toFixed(2)}
+                    </div>
+                  )}
+                </div>
 
-              {/* Diamond 22K */}
-              <div style={{ marginBottom: '8px' }}>
-                <label style={{ display: 'block', color: '#a5f3fc', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
-                  💎 Diamond 22K — Rate per gram (₹)
-                </label>
-                <input
-                  type="number"
-                  placeholder="e.g. 55000"
-                  value={rateForm.diamond_22k}
-                  onChange={e => setRateForm({ ...rateForm, diamond_22k: e.target.value })}
-                  style={{ width: '100%', background: inpBg, border: `1px solid rgba(165,243,252,0.4)`, borderRadius: '10px', padding: '12px 16px', color: '#a5f3fc', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
-                  onFocus={e => e.target.style.borderColor = '#a5f3fc'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(165,243,252,0.4)'}
-                />
-                {rateForm.diamond_22k && (
-                  <div style={{ color: '#a5f3fc', fontSize: '11px', marginTop: '5px', opacity: 0.7 }}>
-                    Preview 1gm = ₹{parseFloat(rateForm.diamond_22k).toFixed(2)}
-                  </div>
-                )}
-              </div>
+                {/* Diamond 18K */}
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#67e8f9', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '6px' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#67e8f9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6 3h12l4 6-10 12L2 9l4-6z"/><path d="M2 9h20M9 3l3 6-3 12M15 3l-3 6 3 12"/>
+                    </svg>
+                    Diamond 18K (₹)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 45000"
+                    value={rateForm.diamond_18k}
+                    onChange={e => setRateForm({ ...rateForm, diamond_18k: e.target.value })}
+                    style={{ width: '100%', background: inpBg, border: `1px solid rgba(103,232,249,0.4)`, borderRadius: '10px', padding: '12px 16px', color: '#67e8f9', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
+                    onFocus={e => e.target.style.borderColor = '#67e8f9'}
+                    onBlur={e => e.target.style.borderColor = 'rgba(103,232,249,0.4)'}
+                  />
+                  {rateForm.diamond_18k && (
+                    <div style={{ color: '#67e8f9', fontSize: '10px', marginTop: '4px', opacity: 0.7 }}>
+                      1gm = ₹{parseFloat(rateForm.diamond_18k).toFixed(2)}
+                    </div>
+                  )}
+                </div>
 
-              {/* Platinum 92 */}
-             <div style={{ marginBottom: '10px' }}>
-                <label style={{ display: 'block', color: '#e2e8f0', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
-                  🔘 Platinum 92 — Rate per gram (₹)
-                </label>
-                <input
-                  type="number"
-                  placeholder="e.g. 3200"
-                  value={rateForm.platinum_92}
-                  onChange={e => setRateForm({ ...rateForm, platinum_92: e.target.value })}
-                  style={{ width: '100%', background: inpBg, border: `1px solid rgba(226,232,240,0.4)`, borderRadius: '10px', padding: '8px 12px', color: '#e2e8f0', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
-                  onFocus={e => e.target.style.borderColor = '#e2e8f0'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(226,232,240,0.4)'}
-                />
-                {rateForm.platinum_92 && (
-                  <div style={{ color: '#e2e8f0', fontSize: '11px', marginTop: '5px', opacity: 0.7 }}>
-                    Preview 1gm = ₹{parseFloat(rateForm.platinum_92).toFixed(2)}
-                  </div>
-                )}
-              </div>
+                {/* Diamond 22K */}
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#a5f3fc', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '6px' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a5f3fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6 3h12l4 6-10 12L2 9l4-6z"/><path d="M2 9h20M9 3l3 6-3 12M15 3l-3 6 3 12"/>
+                    </svg>
+                    Diamond 22K (₹)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 55000"
+                    value={rateForm.diamond_22k}
+                    onChange={e => setRateForm({ ...rateForm, diamond_22k: e.target.value })}
+                    style={{ width: '100%', background: inpBg, border: `1px solid rgba(165,243,252,0.4)`, borderRadius: '10px', padding: '12px 16px', color: '#a5f3fc', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
+                    onFocus={e => e.target.style.borderColor = '#a5f3fc'}
+                    onBlur={e => e.target.style.borderColor = 'rgba(165,243,252,0.4)'}
+                  />
+                  {rateForm.diamond_22k && (
+                    <div style={{ color: '#a5f3fc', fontSize: '10px', marginTop: '4px', opacity: 0.7 }}>
+                      1gm = ₹{parseFloat(rateForm.diamond_22k).toFixed(2)}
+                    </div>
+                  )}
+                </div>
 
-              
+                {/* Platinum 92 */}
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#e2e8f0', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '6px' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e2e8f0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="#e2e8f0"/>
+                    </svg>
+                    Platinum 92 (₹)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 3200"
+                    value={rateForm.platinum_92}
+                    onChange={e => setRateForm({ ...rateForm, platinum_92: e.target.value })}
+                    style={{ width: '100%', background: inpBg, border: `1px solid rgba(226,232,240,0.4)`, borderRadius: '10px', padding: '12px 16px', color: '#e2e8f0', fontSize: '15px', fontWeight: 700, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
+                    onFocus={e => e.target.style.borderColor = '#e2e8f0'}
+                    onBlur={e => e.target.style.borderColor = 'rgba(226,232,240,0.4)'}
+                  />
+                  {rateForm.platinum_92 && (
+                    <div style={{ color: '#e2e8f0', fontSize: '10px', marginTop: '4px', opacity: 0.7 }}>
+                      1gm = ₹{parseFloat(rateForm.platinum_92).toFixed(2)}
+                    </div>
+                  )}
+                </div>
+
+              </div>
 
               {/* Save Button */}
               <button
@@ -2627,7 +2677,7 @@ setOrderPopupState({
                       platinum_92: rateForm.platinum_92 || 0,
                     })
                     setRateMsg('✅ Rate saved successfully!')
-                    fetchMetalPrices()   // refresh the table
+                    fetchMetalPrices()
                     setTimeout(() => setShowRatePopup(false), 1400)
                   } catch (err) {
                     setRateMsg('❌ Failed: ' + JSON.stringify(err.response?.data))
@@ -2635,15 +2685,29 @@ setOrderPopupState({
                   setRateSaving(false)
                 }}
                 style={{
+                  marginTop: '20px',
                   width: '100%', padding: '14px',
                   background: rateSaving ? 'rgba(255,215,0,0.3)' : 'linear-gradient(90deg,#fbbf24,#ffd700)',
                   border: 'none', borderRadius: '12px',
                   fontWeight: 800, color: rateSaving ? '#ffd700' : '#431407',
                   fontSize: '15px', cursor: rateSaving ? 'not-allowed' : 'pointer',
-                  letterSpacing: '0.5px', transition: 'all 0.3s ease'
+                  letterSpacing: '0.5px', transition: 'all 0.3s ease',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
                 }}
               >
-                {rateSaving ? '⏳ Saving...' : '💾 Save Rate'}
+                {rateSaving ? (
+                  <>
+                    <div style={{ width: 14, height: 14, border: '2px solid rgba(67,20,7,0.3)', borderTop: '2px solid #431407', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#431407" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+                    </svg>
+                    Save Rate
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -2942,21 +3006,42 @@ setOrderPopupState({
 
         {/* ── BIRTHDAY LIST MODAL ── */}
         {showBirthdayList && (
-          <div onClick={() => setShowBirthdayList(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(10px)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div onClick={() => setShowBirthdayList(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.45)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: '1px solid rgba(244,114,182,0.3)', borderRadius: '24px', width: '95%', maxWidth: '500px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }}>
               <div style={{ flexShrink: 0, padding: '22px 28px', borderBottom: '1px solid rgba(244,114,182,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(244,114,182,0.15)', border: '1px solid rgba(244,114,182,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>🎂</div>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(244,114,182,0.15)', border: '1px solid rgba(244,114,182,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f472b6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 21h16v-7a4 4 0 00-4-4H8a4 4 0 00-4 4v7z"/>
+                      <path d="M4 17c1 0 1.5-1 2.5-1s1.5 1 2.5 1 1.5-1 2.5-1 1.5 1 2.5 1 1.5-1 2.5-1"/>
+                      <path d="M12 10V6M9 6c0-1 1-1 1-2s-1-1-1-2M15 6c0-1-1-1-1-2s1-1 1-2"/>
+                    </svg>
+                  </div>
                   <div>
                     <div style={{ color: '#f472b6', fontWeight: 800, fontSize: '14px' }}>TODAY'S BIRTHDAYS</div>
                     <div style={{ color: subtext, fontSize: '11px', marginTop: '2px' }}>{new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
                   </div>
                 </div>
-                <button onClick={() => setShowBirthdayList(false)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px' }}>✕ Close</button>
+                <button
+                  onClick={() => setShowBirthdayList(false)}
+                  style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.25)'; e.currentTarget.style.transform = 'scale(1.06)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; e.currentTarget.style.transform = 'scale(1)' }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
               </div>
-              <div style={{ flex: 1, overflowY: 'auto', padding: '16px 28px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div className="modal-scroll" style={{ flex: 1, overflowY: 'auto', padding: '16px 28px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {birthdayList.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: subtext, padding: '50px 0', fontSize: '14px' }}>🎂 No birthdays today</div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textAlign: 'center', color: subtext, padding: '50px 0', fontSize: '14px' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={subtext} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 21h16v-7a4 4 0 00-4-4H8a4 4 0 00-4 4v7z"/>
+                      <path d="M12 10V6"/>
+                    </svg>
+                    No birthdays today
+                  </div>
                 ) : birthdayList.map((m, i) => (
                   <div
                     key={i}
@@ -2981,7 +3066,12 @@ setOrderPopupState({
                           <span style={{ color: '#f472b6', fontFamily: 'monospace', fontSize: '10px' }}>{m._id}</span>
                         </div>
                         <div style={{ color: text, fontWeight: 700, fontSize: '14px' }}>{m.first_name} {m.last_name || ''}</div>
-                        <div style={{ color: subtext, fontSize: '11px', marginTop: '3px' }}>🎂 {new Date(m._dob).toLocaleDateString('en-IN', { day: '2-digit', month: 'long' })}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: subtext, fontSize: '11px', marginTop: '3px' }}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={subtext} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M4 21h16v-7a4 4 0 00-4-4H8a4 4 0 00-4 4v7z"/><path d="M12 10V6"/>
+                          </svg>
+                          {new Date(m._dob).toLocaleDateString('en-IN', { day: '2-digit', month: 'long' })}
+                        </div>
                       </div>
                       <div style={{ color: '#f472b6', fontSize: '11px', fontWeight: 700 }}>Click to Wish →</div>
                     </div>
@@ -2992,23 +3082,41 @@ setOrderPopupState({
           </div>
         )}
 
-        {/* ── ANNIVERSARY LIST MODAL ── */}
+ {/* ── ANNIVERSARY LIST MODAL ── */}
         {showAnniversaryList && (
-          <div onClick={() => setShowAnniversaryList(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(10px)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div onClick={() => setShowAnniversaryList(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.45)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: '1px solid rgba(167,139,250,0.3)', borderRadius: '24px', width: '95%', maxWidth: '500px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }}>
               <div style={{ flexShrink: 0, padding: '22px 28px', borderBottom: '1px solid rgba(167,139,250,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(167,139,250,0.15)', border: '1px solid rgba(167,139,250,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>💍</div>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(167,139,250,0.15)', border: '1px solid rgba(167,139,250,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="15" r="6"/><path d="M9 9l3-6 3 6" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                   <div>
                     <div style={{ color: '#a78bfa', fontWeight: 800, fontSize: '14px' }}>TODAY'S ANNIVERSARIES</div>
                     <div style={{ color: subtext, fontSize: '11px', marginTop: '2px' }}>{new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
                   </div>
                 </div>
-                <button onClick={() => setShowAnniversaryList(false)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px' }}>✕ Close</button>
+                <button
+                  onClick={() => setShowAnniversaryList(false)}
+                  style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.25)'; e.currentTarget.style.transform = 'scale(1.06)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; e.currentTarget.style.transform = 'scale(1)' }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
               </div>
-              <div style={{ flex: 1, overflowY: 'auto', padding: '16px 28px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div className="modal-scroll" style={{ flex: 1, overflowY: 'auto', padding: '16px 28px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {anniversaryList.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: subtext, padding: '50px 0', fontSize: '14px' }}>💍 No anniversaries today</div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textAlign: 'center', color: subtext, padding: '50px 0', fontSize: '14px' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={subtext} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="15" r="6"/><path d="M9 9l3-6 3 6"/>
+                    </svg>
+                    No anniversaries today
+                  </div>
                 ) : anniversaryList.map((m, i) => (
                   <div
                     key={i}
@@ -3033,7 +3141,12 @@ setOrderPopupState({
                           <span style={{ color: '#a78bfa', fontFamily: 'monospace', fontSize: '10px' }}>{m._id}</span>
                         </div>
                         <div style={{ color: text, fontWeight: 700, fontSize: '14px' }}>{m.first_name} {m.last_name || ''}</div>
-                        <div style={{ color: subtext, fontSize: '11px', marginTop: '3px' }}>💍 {new Date(m._ann).toLocaleDateString('en-IN', { day: '2-digit', month: 'long' })}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: subtext, fontSize: '11px', marginTop: '3px' }}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={subtext} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="15" r="6"/><path d="M9 9l3-6 3 6"/>
+                          </svg>
+                          {new Date(m._ann).toLocaleDateString('en-IN', { day: '2-digit', month: 'long' })}
+                        </div>
                       </div>
                       <div style={{ color: '#a78bfa', fontSize: '11px', fontWeight: 700 }}>Click to Wish →</div>
                     </div>
@@ -3044,23 +3157,43 @@ setOrderPopupState({
           </div>
         )}
 
-        {/* ── JOIN DATE LIST MODAL ── */}
+{/* ── JOIN DATE LIST MODAL ── */}
         {showJoinDateList && (
-          <div onClick={() => setShowJoinDateList(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(10px)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div onClick={() => setShowJoinDateList(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.45)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '24px', width: '95%', maxWidth: '500px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }}>
               <div style={{ flexShrink: 0, padding: '22px 28px', borderBottom: '1px solid rgba(245,158,11,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>🏆</div>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M8 4h8v6a4 4 0 01-8 0V4z"/>
+                      <path d="M8 5H5a2 2 0 002 4M16 5h3a2 2 0 01-2 4"/>
+                      <path d="M12 14v3M9 21h6M9 21l1-4h4l1 4"/>
+                    </svg>
+                  </div>
                   <div>
                     <div style={{ color: '#f59e0b', fontWeight: 800, fontSize: '14px' }}>WORK ANNIVERSARIES</div>
                     <div style={{ color: subtext, fontSize: '11px', marginTop: '2px' }}>{new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
                   </div>
                 </div>
-                <button onClick={() => setShowJoinDateList(false)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px' }}>✕ Close</button>
+                <button
+                  onClick={() => setShowJoinDateList(false)}
+                  style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.25)'; e.currentTarget.style.transform = 'scale(1.06)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; e.currentTarget.style.transform = 'scale(1)' }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
               </div>
-              <div style={{ flex: 1, overflowY: 'auto', padding: '16px 28px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div className="modal-scroll" style={{ flex: 1, overflowY: 'auto', padding: '16px 28px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {joinDateList.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: subtext, padding: '50px 0', fontSize: '14px' }}>🏆 No work anniversaries today</div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textAlign: 'center', color: subtext, padding: '50px 0', fontSize: '14px' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={subtext} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M8 4h8v6a4 4 0 01-8 0V4z"/><path d="M12 14v3"/>
+                    </svg>
+                    No work anniversaries today
+                  </div>
                 ) : joinDateList.map((m, i) => (
                   <div
                     key={i}
@@ -3087,8 +3220,11 @@ setOrderPopupState({
                           <span style={{ color: '#f59e0b', fontFamily: 'monospace', fontSize: '10px' }}>{m._id}</span>
                         </div>
                         <div style={{ color: text, fontWeight: 700, fontSize: '14px' }}>{m.first_name} {m.last_name || ''}</div>
-                        <div style={{ color: '#f59e0b', fontSize: '12px', fontWeight: 700, marginTop: '3px' }}>
-                          🏆 {m._yearsCompleted === 1 ? '1st' : m._yearsCompleted === 2 ? '2nd' : m._yearsCompleted === 3 ? '3rd' : `${m._yearsCompleted}th`} Year Anniversary
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#f59e0b', fontSize: '12px', fontWeight: 700, marginTop: '3px' }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M8 4h8v6a4 4 0 01-8 0V4z"/><path d="M12 14v3"/>
+                          </svg>
+                          {m._yearsCompleted === 1 ? '1st' : m._yearsCompleted === 2 ? '2nd' : m._yearsCompleted === 3 ? '3rd' : `${m._yearsCompleted}th`} Year Anniversary
                         </div>
                         <div style={{ color: subtext, fontSize: '11px' }}>Joined: {new Date(m._joined).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
                       </div>
@@ -3478,38 +3614,59 @@ setOrderPopupState({
         {showTodayRates && (
           <div
             onClick={() => setShowTodayRates(false)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', zIndex: 1300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.45)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 1300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <div
               onClick={e => e.stopPropagation()}
+              className="modal-scroll"
               style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: '1px solid rgba(255,215,0,0.35)', borderRadius: '24px', width: '95%', maxWidth: '480px', maxHeight: '88vh', overflowY: 'auto', padding: '32px', boxShadow: '0 32px 80px rgba(0,0,0,0.7)', animation: 'fadeIn 0.3s ease' }}
             >
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>📊</div>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffd700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                   <div>
                     <div style={{ color: '#ffd700', fontWeight: 800, fontSize: '15px' }}>TODAY'S METAL RATES</div>
-                    <div style={{ color: subtext, fontSize: '11px', marginTop: '2px' }}>
-                      {dbRateDate ? `📅 ${new Date(dbRateDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}` : 'No rate entered yet'}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: subtext, fontSize: '11px', marginTop: '2px' }}>
+                      {dbRateDate ? (
+                        <>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={subtext} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                          </svg>
+                          {new Date(dbRateDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
+                        </>
+                      ) : 'No rate entered yet'}
                     </div>
                   </div>
                 </div>
-                <button onClick={() => setShowTodayRates(false)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px' }}>✕ Close</button>
+                <button
+                  onClick={() => setShowTodayRates(false)}
+                  style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.25)'; e.currentTarget.style.transform = 'scale(1.06)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; e.currentTarget.style.transform = 'scale(1)' }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
               </div>
 
               {/* Rate Cards */}
               {[
-                { label: 'Gold 22K', icon: '🏅', color: '#fbbf24', rgb: '251,191,36', value: metalPrices.gold22k },
-                { label: 'Gold 24K', icon: '🥇', color: '#ffd700', rgb: '255,215,0', value: metalPrices.gold24k },
-                { label: 'Silver 999', icon: '🥈', color: '#c0c0c0', rgb: '192,192,192', value: metalPrices.silver },
-                { label: 'Diamond 18K', icon: '💎', color: '#67e8f9', rgb: '103,232,249', value: metalPrices.diamond18k },
-                { label: 'Diamond 22K', icon: '💎', color: '#a5f3fc', rgb: '165,243,252', value: metalPrices.diamond22k },
-                { label: 'Platinum 92', icon: '🔘', color: '#e2e8f0', rgb: '226,232,240', value: metalPrices.platinum92 },
+                { label: 'Gold 22K', color: '#fbbf24', rgb: '251,191,36', value: metalPrices.gold22k, icon: <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9h3.5a2 2 0 010 4H10M9 15h4M12 7v2M12 15v2"/></svg> },
+                { label: 'Gold 24K', color: '#ffd700', rgb: '255,215,0', value: metalPrices.gold24k, icon: <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ffd700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9h3.5a2 2 0 010 4H10M9 15h4M12 7v2M12 15v2"/></svg> },
+                { label: 'Silver 999', color: '#c0c0c0', rgb: '192,192,192', value: metalPrices.silver, icon: <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#c0c0c0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9h3.5a2 2 0 010 4H10M9 15h4M12 7v2M12 15v2"/></svg> },
+                { label: 'Diamond 18K', color: '#67e8f9', rgb: '103,232,249', value: metalPrices.diamond18k, icon: <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#67e8f9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h12l4 6-10 12L2 9l4-6z"/><path d="M2 9h20M9 3l3 6-3 12M15 3l-3 6 3 12"/></svg> },
+                { label: 'Diamond 22K', color: '#a5f3fc', rgb: '165,243,252', value: metalPrices.diamond22k, icon: <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#a5f3fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h12l4 6-10 12L2 9l4-6z"/><path d="M2 9h20M9 3l3 6-3 12M15 3l-3 6 3 12"/></svg> },
+                { label: 'Platinum 92', color: '#e2e8f0', rgb: '226,232,240', value: metalPrices.platinum92, icon: <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#e2e8f0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="#e2e8f0"/></svg> },
               ].map(item => (
                 <div key={item.label} style={{ background: `rgba(${item.rgb},0.06)`, border: `1px solid rgba(${item.rgb},0.3)`, borderRadius: '14px', padding: '16px 20px', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `rgba(${item.rgb},0.15)`, border: `1px solid rgba(${item.rgb},0.35)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>{item.icon}</div>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `rgba(${item.rgb},0.15)`, border: `1px solid rgba(${item.rgb},0.35)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.icon}</div>
                     <div>
                       <div style={{ color: item.color, fontWeight: 800, fontSize: '13px' }}>{item.label}</div>
                       <div style={{ color: subtext, fontSize: '10px', marginTop: '2px' }}>per gram</div>
@@ -3525,9 +3682,12 @@ setOrderPopupState({
 
               <button
                 onClick={() => { setShowTodayRates(false); setShowRatePopup(true); setRateMsg('') }}
-                style={{ width: '100%', marginTop: '8px', padding: '13px', background: 'linear-gradient(90deg,#fbbf24,#ffd700)', border: 'none', borderRadius: '12px', fontWeight: 800, color: '#431407', fontSize: '14px', cursor: 'pointer' }}
+                style={{ width: '100%', marginTop: '8px', padding: '13px', background: 'linear-gradient(90deg,#fbbf24,#ffd700)', border: 'none', borderRadius: '12px', fontWeight: 800, color: '#431407', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
-                ✏️ Update Rates
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#431407" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                </svg>
+                Update Rates
               </button>
             </div>
           </div>
@@ -3841,8 +4001,8 @@ setOrderPopupState({
             style={{
               position: 'fixed',
               inset: 0,
-              background: 'rgba(0,0,0,0.82)',
-              backdropFilter: 'blur(10px)',
+              background: 'rgba(2,6,23,0.45)',
+              backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
               zIndex: 1200,
               display: 'flex',
               alignItems: 'center',
@@ -3872,8 +4032,11 @@ setOrderPopupState({
                 alignItems: 'center'
               }}>
                 <div>
-                  <div style={{ color: '#a78bfa', fontWeight: 800, fontSize: '14px' }}>
-                    📨 PROFILE UPDATE REQUESTS
+                  <div style={{ color: '#a78bfa', fontWeight: 800, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>
+                    </svg>
+                    PROFILE UPDATE REQUESTS
                   </div>
                   <div style={{ color: subtext, fontSize: '11px', marginTop: '3px' }}>
                     {profileRequests.length} pending requests
@@ -3886,16 +4049,25 @@ setOrderPopupState({
                     setSelectedRequest(null)
                   }}
                   style={{
-                    background: 'rgba(239,68,68,0.1)',
+                    background: 'rgba(239,68,68,0.12)',
                     border: '1px solid rgba(239,68,68,0.3)',
                     color: '#f87171',
-                    borderRadius: '8px',
-                    padding: '6px 14px',
+                    borderRadius: '50%',
+                    width: '32px',
+                    height: '32px',
                     cursor: 'pointer',
-                    fontSize: '12px'
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    transition: 'all 0.2s ease'
                   }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.25)'; e.currentTarget.style.transform = 'scale(1.06)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; e.currentTarget.style.transform = 'scale(1)' }}
                 >
-                  ✕ Close
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
                 </button>
               </div>
 
@@ -4118,22 +4290,37 @@ setOrderPopupState({
         {showAnnouncement && (
           <div
             onClick={() => setShowAnnouncement(false)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(10px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.45)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <div
               onClick={e => e.stopPropagation()}
+              className="modal-scroll"
               style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: '1px solid rgba(251,146,60,0.3)', borderRadius: '24px', width: '95%', maxWidth: '540px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', boxShadow: '0 32px 80px rgba(0,0,0,0.6)', animation: 'fadeIn 0.3s cubic-bezier(0.22,1,0.36,1)' }}
             >
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'linear-gradient(135deg,rgba(251,146,60,0.3),rgba(249,115,22,0.15))', border: '1px solid rgba(251,146,60,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', boxShadow: '0 4px 16px rgba(251,146,60,0.2)' }}>📢</div>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'linear-gradient(135deg,rgba(251,146,60,0.3),rgba(249,115,22,0.15))', border: '1px solid rgba(251,146,60,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(251,146,60,0.2)' }}>
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fb923c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 10v4a1 1 0 001 1h2l6 4V5L6 9H4a1 1 0 00-1 1z"/>
+                      <path d="M16 8a4 4 0 010 8M19 6a7 7 0 010 12"/>
+                    </svg>
+                  </div>
                   <div>
                     <div style={{ color: '#fb923c', fontWeight: 800, fontSize: '15px', letterSpacing: '0.05em' }}>SEND ANNOUNCEMENT</div>
                     <div style={{ color: subtext, fontSize: '11px', marginTop: '2px' }}>Notify selected roles instantly</div>
                   </div>
                 </div>
-                <button onClick={() => setShowAnnouncement(false)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px' }}>✕ Close</button>
+                <button
+                  onClick={() => setShowAnnouncement(false)}
+                  style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.25)'; e.currentTarget.style.transform = 'scale(1.06)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; e.currentTarget.style.transform = 'scale(1)' }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
               </div>
 
               {announcementMsg && (
@@ -4174,11 +4361,11 @@ setOrderPopupState({
                 <label style={{ display: 'block', color: subtext, fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '12px' }}>Send To (Select Roles) *</label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                   {[
-                    { key: 'admin', label: '🛡️ Admin', color: '#22d3ee' },
-                    { key: 'dealer', label: '🏪 Dealer', color: '#4ade80' },
-                    { key: 'sub_dealer', label: '🔗 Sub Dealer', color: '#f59e0b' },
-                    { key: 'promotor', label: '🌟 Promotor', color: '#a78bfa' },
-                    { key: 'customer', label: '👤 Customer', color: '#f472b6' },
+                    { key: 'admin', label: 'Admin', color: '#22d3ee', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6l7-3z"/></svg> },
+                    { key: 'dealer', label: 'Dealer', color: '#4ade80', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="10" width="6" height="10" rx="1"/><rect x="9" y="4" width="6" height="16" rx="1"/><rect x="15" y="13" width="6" height="7" rx="1"/></svg> },
+                    { key: 'sub_dealer', label: 'Sub Dealer', color: '#f59e0b', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 007.07 0l2.83-2.83a5 5 0 00-7.07-7.07L11.5 4.5"/><path d="M14 11a5 5 0 00-7.07 0l-2.83 2.83a5 5 0 007.07 7.07L12.5 19.5"/></svg> },
+                    { key: 'promotor', label: 'Promotor', color: '#a78bfa', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg> },
+                    { key: 'customer', label: 'Customer', color: '#f472b6', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg> },
                   ].map(role => {
                     const checked = announcementForm.roles.includes(role.key)
                     const r = parseInt(role.color.slice(1, 3), 16), g = parseInt(role.color.slice(3, 5), 16), b = parseInt(role.color.slice(5, 7), 16)
@@ -4192,9 +4379,16 @@ setOrderPopupState({
                         style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 14px', borderRadius: '10px', cursor: 'pointer', background: checked ? `rgba(${rgb},0.14)` : `rgba(${rgb},0.04)`, border: `1.5px solid ${checked ? `rgba(${rgb},0.6)` : `rgba(${rgb},0.18)`}`, transition: 'all 0.2s ease', userSelect: 'none' }}
                       >
                         <div style={{ width: '16px', height: '16px', borderRadius: '4px', border: `2px solid ${checked ? role.color : `rgba(${rgb},0.35)`}`, background: checked ? role.color : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease', flexShrink: 0 }}>
-                          {checked && <span style={{ color: '#000', fontSize: '10px', fontWeight: 900 }}>✓</span>}
+                          {checked && (
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                          )}
                         </div>
-                        <span style={{ color: checked ? role.color : subtext, fontSize: '13px', fontWeight: checked ? 700 : 500 }}>{role.label}</span>
+                        <span style={{ color: checked ? role.color : subtext, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {role.icon}
+                          <span style={{ fontSize: '13px', fontWeight: checked ? 700 : 500 }}>{role.label}</span>
+                        </span>
                       </div>
                     )
                   })}
@@ -4207,9 +4401,13 @@ setOrderPopupState({
                     const allSelected = all.every(r => announcementForm.roles.includes(r))
                     setAnnouncementForm({ ...announcementForm, roles: allSelected ? [] : all })
                   }}
-                  style={{ marginTop: '10px', padding: '6px 14px', fontSize: '11px', fontWeight: 700, background: 'rgba(251,146,60,0.1)', border: '1px solid rgba(251,146,60,0.3)', borderRadius: '8px', color: '#fb923c', cursor: 'pointer' }}
+                  style={{ marginTop: '10px', padding: '6px 14px', fontSize: '11px', fontWeight: 700, background: 'rgba(251,146,60,0.1)', border: '1px solid rgba(251,146,60,0.3)', borderRadius: '8px', color: '#fb923c', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
-                  {['admin', 'dealer', 'sub_dealer', 'promotor', 'customer'].every(r => announcementForm.roles.includes(r)) ? '☐ Deselect All' : '☑ Select All'}
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fb923c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    {['admin', 'dealer', 'sub_dealer', 'promotor', 'customer'].every(r => announcementForm.roles.includes(r)) && <polyline points="8 12 11 15 16 9"/>}
+                  </svg>
+                  {['admin', 'dealer', 'sub_dealer', 'promotor', 'customer'].every(r => announcementForm.roles.includes(r)) ? 'Deselect All' : 'Select All'}
                 </button>
               </div>
 
@@ -4230,14 +4428,28 @@ setOrderPopupState({
                   }
                   setAnnouncingSending(false)
                 }}
-                style={{ width: '100%', padding: '14px', background: announcingSending ? 'rgba(251,146,60,0.3)' : 'linear-gradient(90deg,#fb923c,#f97316)', border: 'none', borderRadius: '12px', fontWeight: 800, color: announcingSending ? '#fb923c' : '#431407', fontSize: '15px', cursor: announcingSending ? 'not-allowed' : 'pointer', letterSpacing: '0.5px', transition: 'all 0.3s ease' }}
+                style={{ width: '100%', padding: '14px', background: announcingSending ? 'rgba(251,146,60,0.3)' : 'linear-gradient(90deg,#fb923c,#f97316)', border: 'none', borderRadius: '12px', fontWeight: 800, color: announcingSending ? '#fb923c' : '#431407', fontSize: '15px', cursor: announcingSending ? 'not-allowed' : 'pointer', letterSpacing: '0.5px', transition: 'all 0.3s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
-                {announcingSending ? '⏳ Sending...' : '📢 Send Announcement'}
+                {announcingSending ? (
+                  <>
+                    <div style={{ width: 14, height: 14, border: '2px solid rgba(67,20,7,0.3)', borderTop: '2px solid #431407', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#431407" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 10v4a1 1 0 001 1h2l6 4V5L6 9H4a1 1 0 00-1 1z"/>
+                      <path d="M16 8a4 4 0 010 8M19 6a7 7 0 010 12"/>
+                    </svg>
+                    Send Announcement
+                  </>
+                )}
               </button>
             </div>
           </div>
         )}
 
+        {/* ── SUPER ADMIN ANNOUNCEMENT VIEW MODAL ── */}
         {/* ── SUPER ADMIN ANNOUNCEMENT VIEW MODAL ── */}
         {showMyAnnouncements && (
           <div
@@ -4245,8 +4457,8 @@ setOrderPopupState({
             style={{
               position: 'fixed',
               inset: 0,
-              background: 'rgba(0,0,0,0.82)',
-              backdropFilter: 'blur(10px)',
+              background: 'rgba(2,6,23,0.45)',
+              backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
               zIndex: 1100,
               display: 'flex',
               alignItems: 'center',
@@ -4285,9 +4497,14 @@ setOrderPopupState({
                     border: '1px solid rgba(34,211,238,0.4)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '18px'
-                  }}>📬</div>
+                    justifyContent: 'center'
+                  }}>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="7" width="20" height="13" rx="2"/>
+                      <path d="M2 9l10 6 10-6"/>
+                      <path d="M16 3l3 3-3 3"/>
+                    </svg>
+                  </div>
                   <div>
                     <div style={{ color: '#22d3ee', fontWeight: 800, fontSize: '14px' }}>
                       MY ANNOUNCEMENTS
@@ -4301,20 +4518,29 @@ setOrderPopupState({
                 <button
                   onClick={() => setShowMyAnnouncements(false)}
                   style={{
-                    background: 'rgba(239,68,68,0.1)',
+                    background: 'rgba(239,68,68,0.12)',
                     border: '1px solid rgba(239,68,68,0.3)',
                     color: '#f87171',
-                    borderRadius: '8px',
-                    padding: '6px 14px',
+                    borderRadius: '50%',
+                    width: '32px',
+                    height: '32px',
                     cursor: 'pointer',
-                    fontSize: '12px'
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    transition: 'all 0.2s ease'
                   }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.25)'; e.currentTarget.style.transform = 'scale(1.06)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; e.currentTarget.style.transform = 'scale(1)' }}
                 >
-                  ✕ Close
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
                 </button>
               </div>
 
-              <div style={{
+              <div className="modal-scroll" style={{
                 flex: 1,
                 overflowY: 'auto',
                 padding: '20px 28px',

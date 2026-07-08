@@ -904,7 +904,7 @@ setMessageSending(false)
         <div
           onClick={() => setMessageTarget(null)}
           style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)',
+            position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.45)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
             zIndex: 1400, display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}
         >
@@ -919,9 +919,9 @@ setMessageSending(false)
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '18px' }}>
-              <div>
-                <div style={{ color: '#22c55e', fontWeight: 800, fontSize: '14px', letterSpacing: '0.05em' }}>
-                  ✉️ SEND DIRECT MESSAGE
+             <div>
+                <div style={{ color: '#22c55e', fontWeight: 800, fontSize: '14px', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <IconMessage color="#22c55e" size={14} /> SEND DIRECT MESSAGE
                 </div>
                 <div style={{ color: subtext, fontSize: '12px', marginTop: '4px' }}>
                   To: <span style={{ color: text, fontWeight: 700 }}>
@@ -934,9 +934,10 @@ setMessageSending(false)
                 onClick={() => setMessageTarget(null)}
                 style={{
                   background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
-                  color: '#f87171', borderRadius: '8px', padding: '5px 12px', cursor: 'pointer', fontSize: '12px'
+                  color: '#f87171', borderRadius: '8px', padding: '5px 12px', cursor: 'pointer', fontSize: '12px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}
-              >✕</button>
+              ><IconX color="#f87171" size={12} /></button>
             </div>
 
             {messageMsg && (
@@ -992,10 +993,18 @@ setMessageSending(false)
                 border: 'none', borderRadius: '12px', fontWeight: 800, fontSize: '14px',
                 color: messageSending ? '#22c55e' : '#02240f',
                 cursor: (messageSending || !messageTitle.trim() || !messageBody.trim()) ? 'not-allowed' : 'pointer',
-                transition: 'all 0.3s ease'
+                transition: 'all 0.3s ease',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
               }}
             >
-              {messageSending ? '⏳ Sending...' : '✉️ Send to this person only'}
+              {messageSending ? (
+                <>
+                  <div style={{ width: 14, height: 14, border: '2px solid rgba(34,197,94,0.3)', borderTop: '2px solid #22c55e', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                  Sending...
+                </>
+              ) : (
+                <><IconMessage color={(messageSending || !messageTitle.trim() || !messageBody.trim()) ? '#22c55e' : '#02240f'} size={14} /> Send to this person only</>
+              )}
             </button>
           </div>
         </div>

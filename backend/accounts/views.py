@@ -655,6 +655,91 @@ class ProfileUpdateApproveView(APIView):
 
         return Response({'message': 'Request approved and profile updated'})
 
+class TodayEventsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        today = timezone.now().date()
+        m, d = today.month, today.day
+
+        ROLE_CFG = {
+            'admin':      ('#22d3ee', 'admin_id'),
+            'dealer':     ('#4ade80', 'dealer_id'),
+            'sub_dealer': ('#f59e0b', 'sub_dealer_id'),
+            'promotor':   ('#a78bfa', 'promotor_id'),
+            'customer':   ('#f472b6', 'customer_id'),
+        }
+
+        models_map = {
+            'admin': AdminProfile,
+            'dealer': DealerProfile,
+            'sub_dealer': SubDealerProfile,
+            'promotor': PromotorProfile,
+            'customer': CustomerProfile,
+        }
+
+        birthdays, anniversaries, joins = [], [], []
+
+        for role, Model in models_map.items():
+            color, id_field = ROLE_CFG[role]
+
+            # ── Birthdays ──
+            bday_qs = Model.objects.filter(dob__month=m, dob__day=d).only(
+                'id', 'first_name', 'last_name', id_field, 'dob'
+            )
+            for p in bday_qs:
+                birthdays.append({
+                    '_role': role, '_id': getattr(p, id_field),
+                    '_roleColor': color,
+                    'first_name': p.first_name, 'last_name': p.last_name,
+                    '_dob': str(p.dob),
+                })
+
+            # ── Anniversaries ──
+            ann_qs = Model.objects.filter(anniversary_date__month=m, anniversary_date__day=d).only(
+                'id', 'first_name', 'last_name', id_field, 'anniversary_date'
+            )
+            for p in ann_qs:
+                anniversaries.append({
+                    '_role': role, '_id': getattr(p, id_field),
+                    '_roleColor': color,
+                    'first_name': p.first_name, 'last_name': p.last_name,
+                    '_ann': str(p.anniversary_date),
+                })
+
+            # ── Join / Work Anniversary ──
+            if role == 'admin' or role == 'customer':
+                join_qs = Model.objects.filter(
+                    user__date_joined__month=m, user__date_joined__day=d
+                ).select_related('user').only(
+                    'id', 'first_name', 'last_name', id_field, 'user__date_joined'
+                )
+                get_joined = lambda p: p.user.date_joined
+            else:
+                join_qs = Model.objects.filter(
+                    created_at__month=m, created_at__day=d
+                ).only('id', 'first_name', 'last_name', id_field, 'created_at')
+                get_joined = lambda p: p.created_at
+
+            for p in join_qs:
+                joined_dt = get_joined(p)
+                years = today.year - joined_dt.year
+                if years <= 0:
+                    continue
+                joins.append({
+                    '_role': role, '_id': getattr(p, id_field),
+                    '_roleColor': color,
+                    'first_name': p.first_name, 'last_name': p.last_name,
+                    '_joined': str(joined_dt),
+                    '_yearsCompleted': years,
+                })
+
+        return Response({
+            'birthdays': birthdays,
+            'anniversaries': anniversaries,
+            'joins': joins,
+        })        
+
 
 class MetalRateView(APIView):
     permission_classes = [IsAuthenticated]
