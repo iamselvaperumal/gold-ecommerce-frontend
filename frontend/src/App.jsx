@@ -4,6 +4,7 @@ import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import SuperAdminDashboard from './pages/SuperAdminDashboard'
 import SuperadminHierarchy from './Hierarchy/Superadmin_Hierarchy'
+import SuperadminHierarchyGrid from './Hierarchy/Superadmin_Hierarchy_grid'
 import SuperAdminHierarchySalesCount from './Hierarchy/superadmin_Hierarchy_SalesCount'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminHierarchy from './Hierarchy/Admin_Hierarchy'
@@ -106,6 +107,9 @@ export default function App() {
         } />
 
        <Route path="/superadmin-hierarchy" element={<SuperadminHierarchy />} />
+       <Route path="/superadmin-hierarchy-grid" element={<SuperadminHierarchyGrid />} />
+
+
 
 <Route path="/admin" element={
   <ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>

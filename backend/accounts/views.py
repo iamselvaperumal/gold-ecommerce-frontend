@@ -5,7 +5,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
 from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder, JewelryProduct, JewelryProductImage, HomeBanner, CartItem, Wishlist, JewelryOrder
-from django.db.models import Prefetch, Count
+from django.db.models import Prefetch, Count, Q
 from .serializers import *
 from django.utils import timezone
 from datetime import timedelta
@@ -16,6 +16,7 @@ from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.db.models import Q 
 
 def get_user_profile_id(user):
     """Returns the user's role-specific ID string."""
@@ -437,6 +438,7 @@ class FullHierarchyView(APIView):
                         customer_list = [
                             {
                                 'id': c.id,
+                                'user_id': c.user_id,     # ← NEW
                                 'customer_id': c.customer_id,
                                 'first_name': c.first_name,
                                 'last_name': c.last_name,
@@ -449,6 +451,7 @@ class FullHierarchyView(APIView):
                         promotor_order_count = sum(c['order_count'] for c in customer_list)
                         promotor_list.append({
                             'id': pr.id,
+                            'user_id': pr.user_id,     # ← NEW
                             'promotor_id': pr.promotor_id,
                             'first_name': pr.first_name,
                             'last_name': pr.last_name,
@@ -461,6 +464,7 @@ class FullHierarchyView(APIView):
                     sub_dealer_order_count = sum(pr['order_count'] for pr in promotor_list)
                     sub_dealer_list.append({
                         'id': sd.id,
+                        'user_id': sd.user_id,     # ← NEW
                         'sub_dealer_id': sd.sub_dealer_id,
                         'first_name': sd.first_name,
                         'last_name': sd.last_name,
@@ -473,6 +477,7 @@ class FullHierarchyView(APIView):
                 dealer_order_count = sum(sd['order_count'] for sd in sub_dealer_list)
                 dealer_list.append({
                     'id': dealer.id,
+                    'user_id': dealer.user_id,     # ← NEW
                     'dealer_id': dealer.dealer_id,
                     'first_name': dealer.first_name,
                     'last_name': dealer.last_name,
@@ -485,6 +490,7 @@ class FullHierarchyView(APIView):
             admin_order_count = sum(d['order_count'] for d in dealer_list)
             tree.append({
                 'id': admin.id,
+                'user_id': admin.user_id,          # ← NEW
                 'admin_id': admin.admin_id,
                 'first_name': admin.first_name,
                 'last_name': admin.last_name,
@@ -496,10 +502,36 @@ class FullHierarchyView(APIView):
 
         return Response({'super_admin_email': request.user.email, 'admins': tree})
 
+
+
 class AnnouncementView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        target_user_id = request.data.get('target_user')
+
+        # ── CASE 1: Personal message — oru specific person ku mattum ──
+        if target_user_id:
+            try:
+                target_user = User.objects.get(id=target_user_id)
+            except User.DoesNotExist:
+                return Response({'error': 'Target user not found'}, status=404)
+
+            title = request.data.get('title', '').strip()
+            message = request.data.get('message', '').strip()
+            if not title or not message:
+                return Response({'error': 'Title and message required'}, status=400)
+
+            Announcement.objects.create(
+                title=title,
+                message=message,
+                target_roles=[target_user.role],
+                target_user=target_user,
+                created_by=request.user,
+            )
+            return Response({'message': 'Message sent to this person only'}, status=201)
+
+        # ── CASE 2: Broadcast — Super Admin மட்டும் ──
         if request.user.role != 'super_admin':
             return Response({'error': 'Permission denied'}, status=403)
         serializer = AnnouncementSerializer(data=request.data)
@@ -511,11 +543,13 @@ class AnnouncementView(APIView):
     def get(self, request):
         role = request.user.role
         if role == 'super_admin':
-            announcements = Announcement.objects.filter(is_active=True).order_by('-created_at')
+            announcements = Announcement.objects.filter(is_active=True).filter(
+                Q(target_user__isnull=True) | Q(target_user=request.user) | Q(created_by=request.user)
+            ).order_by('-created_at')
         else:
-            announcements = Announcement.objects.filter(
-                is_active=True,
-                target_roles__contains=role
+            announcements = Announcement.objects.filter(is_active=True).filter(
+                Q(target_user=request.user) |
+                Q(target_user__isnull=True, target_roles__contains=role)
             ).order_by('-created_at')
         serializer = AnnouncementSerializer(announcements, many=True)
         return Response(serializer.data)

@@ -42,11 +42,12 @@ class AdminProfileSerializer(serializers.ModelSerializer):
 
 class AdminListSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='user.email')
+    user_id = serializers.IntegerField(source='user.id', read_only=True)   # ← NEW
 
     class Meta:
         model = AdminProfile
         fields = [
-            'id', 'first_name', 'last_name', 'admin_name',
+            'id', 'user_id', 'first_name', 'last_name', 'admin_name',
             'email', 'mobile_number', 'admin_id', 'admin_contact_no', 'city_name',
             'dob', 'anniversary_date'
         ]
@@ -105,6 +106,7 @@ class DealerProfileSerializer(serializers.ModelSerializer):
 
 class DealerListSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='user.email')
+    user_id = serializers.IntegerField(source='user.id', read_only=True)   # ← NEW
     assigned_admin_id = serializers.IntegerField(source='assigned_admin.id', read_only=True)
     admin_name = serializers.CharField(source='assigned_admin.first_name', read_only=True)
     admin_uid = serializers.CharField(source='assigned_admin.admin_id', read_only=True)
@@ -114,7 +116,7 @@ class DealerListSerializer(serializers.ModelSerializer):
     class Meta:
         model = DealerProfile
         fields = [
-            'id', 'dealer_id', 'first_name', 'last_name', 'email', 'mobile_number',
+            'id', 'user_id', 'dealer_id', 'first_name', 'last_name', 'email', 'mobile_number',
             'city_name', 'created_at',
             'dob', 'anniversary_date',
             'assigned_admin_id', 'admin_name', 'admin_uid',
@@ -175,6 +177,7 @@ class SubDealerProfileSerializer(serializers.ModelSerializer):
 # In serializers.py, replace SubDealerListSerializer with:
 class SubDealerListSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='user.email')
+    user_id = serializers.IntegerField(source='user.id', read_only=True)   # ← NEW
     assigned_dealer_id = serializers.IntegerField(source='assigned_dealer.id', read_only=True)
     dealer_name = serializers.CharField(source='assigned_dealer.dealer_name', read_only=True)
     dealer_contact = serializers.CharField(source='assigned_dealer.mobile_number', read_only=True)
@@ -183,7 +186,7 @@ class SubDealerListSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubDealerProfile
         fields = [
-            'id', 'sub_dealer_id', 'first_name', 'last_name', 
+            'id', 'user_id', 'sub_dealer_id', 'first_name', 'last_name', 
             'email', 'mobile_number', 'city_name', 'created_at',
             'dob', 'anniversary_date',
             'assigned_dealer_id', 'dealer_name', 'dealer_contact', 'dealer_city'
@@ -250,6 +253,7 @@ class PromotorProfileSerializer(serializers.ModelSerializer):
 
 class PromotorListSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='user.email')
+    user_id = serializers.IntegerField(source='user.id', read_only=True)   # ← NEW
 
     assigned_sub_dealer_id = serializers.IntegerField(
         source='assigned_sub_dealer.id', read_only=True
@@ -266,7 +270,7 @@ class PromotorListSerializer(serializers.ModelSerializer):
     class Meta:
         model = PromotorProfile
         fields = [
-            'id', 'promotor_id', 'first_name', 'last_name',
+            'id', 'user_id', 'promotor_id', 'first_name', 'last_name',
             'email', 'mobile_number', 'city_name', 'created_at',
             'dob', 'anniversary_date',
             'assigned_sub_dealer_id',
@@ -331,21 +335,27 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
 
 class CustomerListSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='user.email')
+    user_id = serializers.IntegerField(source='user.id', read_only=True)   # ← NEW
     assigned_promotor_id = serializers.IntegerField(
         source='assigned_promotor.id', read_only=True
     )
 
     class Meta:
         model = CustomerProfile
-        fields = ['id', 'customer_id', 'first_name', 'last_name', 'email', 
+        fields = ['id', 'user_id', 'customer_id', 'first_name', 'last_name', 'email', 
                   'mobile_number', 'city_name', 'created_at',
                   'dob', 'anniversary_date',
                   'assigned_promotor_id']
         
 class AnnouncementSerializer(serializers.ModelSerializer):
+    target_user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), required=False, allow_null=True
+    )
+    target_user_email = serializers.EmailField(source='target_user.email', read_only=True)
+
     class Meta:
         model = Announcement
-        fields = ['id', 'title', 'message', 'target_roles', 'created_at', 'is_active']
+        fields = ['id', 'title', 'message', 'target_roles', 'target_user', 'target_user_email', 'created_at', 'is_active']
 
 class AnnouncementReplySerializer(serializers.ModelSerializer):
     replied_by_email = serializers.EmailField(source='replied_by.email', read_only=True)

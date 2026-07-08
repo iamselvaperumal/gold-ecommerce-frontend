@@ -372,6 +372,10 @@ class Announcement(models.Model):
     title = models.CharField(max_length=200)
     message = models.TextField()
     target_roles = models.JSONField(default=list)   # ["admin","dealer"] etc.
+    target_user = models.ForeignKey(                # ← NEW: personal message-ku
+        User, on_delete=models.CASCADE, null=True, blank=True,
+        related_name='personal_announcements'
+    )
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
