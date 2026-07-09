@@ -403,10 +403,14 @@ function showChainPopup(anchorEl, ancestors, current, dark, superAdminEmail) {
 // `active` = this is the currently selected one in its row (full bright).
 // not active = dimmed, but still clickable.
 // ══════════════════════════════════════════════════════════════════
+const STATUS_COLOR = { red: '#ef4444', yellow: '#eab308', green: '#22c55e' }
+
 function LaneCard({ node, role, active, onClick, ancestors, superAdminEmail, dark, text, subtext, showChildCount, onMessage }) {
   const navigate = useNavigate()
   const cfg = ROLE_CFG[role]
-  const c = cfg.color
+  // ── CHANGED: card color-ah role fixed color-ku badhila, target status color use pannuvom.
+  // super_admin-ku status field kidiyathu, so ana role color-ah fallback pannuvom. ──
+  const c = (role !== 'super_admin' && node.status) ? STATUS_COLOR[node.status] : cfg.color
   const Icon = cfg.Icon
   const childRole = CHILD_ROLE[role]
   const childCount = childRole && showChildCount ? (node[CHILD_KEY[role]] || []).length : null
@@ -417,6 +421,7 @@ function LaneCard({ node, role, active, onClick, ancestors, superAdminEmail, dar
       style={{ '--nc': c }}
       onClick={onClick}
       onMouseEnter={e => showChainPopup(e.currentTarget, ancestors, { node, role }, dark, superAdminEmail)}
+      title={role !== 'super_admin' && node.status ? `Target status: ${node.status?.toUpperCase()} (${node.order_count ?? 0}/10)` : undefined}
       onMouseLeave={() => scheduleHideChainPopup()}
     >
       {/* ── NEW: Direct message button, top-right corner ── */}

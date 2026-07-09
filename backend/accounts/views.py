@@ -18,6 +18,26 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Q 
 
+# ── NEW: Monthly target status logic ──
+MONTHLY_TARGET = 10
+
+def get_target_status(order_count):
+    if order_count >= MONTHLY_TARGET:
+        return 'green'
+    elif order_count >= 7:
+        return 'yellow'
+    else:
+        return 'red'
+
+STATUS_SEVERITY = {'red': 0, 'yellow': 1, 'green': 2}
+
+def worst_status(statuses):
+    """Worst (lowest) status among children. No children => red."""
+    if not statuses:
+        return 'red'
+    return min(statuses, key=lambda s: STATUS_SEVERITY[s])
+
+
 def get_user_profile_id(user):
     """Returns the user's role-specific ID string."""
     try:
@@ -418,8 +438,11 @@ class FullHierarchyView(APIView):
         )
 
         # ✅ Order count per customer — oru query-la ella customer order count-um edukurom
+        now = timezone.now()
         order_counts = dict(
-            JewelryOrder.objects.values('user_id').annotate(c=Count('id')).values_list('user_id', 'c')
+               JewelryOrder.objects.filter(
+               created_at__year=now.year, created_at__month=now.month
+        ).values('user_id').annotate(c=Count('id')).values_list('user_id', 'c')
         )
 
         if request.user.role == 'admin':
@@ -436,35 +459,39 @@ class FullHierarchyView(APIView):
                     promotor_list = []
                     for pr in sd.assigned_promotors.all():
                         customer_list = [
-                            {
-                                'id': c.id,
-                                'user_id': c.user_id,     # ← NEW
-                                'customer_id': c.customer_id,
-                                'first_name': c.first_name,
-                                'last_name': c.last_name,
-                                'mobile_number': c.mobile_number,
-                                'city_name': c.city_name,
-                                'order_count': order_counts.get(c.user_id, 0),
-                            }
-                            for c in pr.assigned_customers.all()
-                        ]
+    {
+        'id': c.id,
+        'user_id': c.user_id,
+        'customer_id': c.customer_id,
+        'first_name': c.first_name,
+        'last_name': c.last_name,
+        'mobile_number': c.mobile_number,
+        'city_name': c.city_name,
+        'order_count': order_counts.get(c.user_id, 0),
+        'status': get_target_status(order_counts.get(c.user_id, 0)),   # ← NEW
+    }
+    for c in pr.assigned_customers.all()
+]
                         promotor_order_count = sum(c['order_count'] for c in customer_list)
+                        promotor_status = worst_status([c['status'] for c in customer_list])   # ← NEW
                         promotor_list.append({
-                            'id': pr.id,
-                            'user_id': pr.user_id,     # ← NEW
-                            'promotor_id': pr.promotor_id,
-                            'first_name': pr.first_name,
-                            'last_name': pr.last_name,
-                            'mobile_number': pr.mobile_number,
-                            'city_name': pr.city_name,
-                            'customers': customer_list,
-                            'order_count': promotor_order_count,
-                        })
+    'id': pr.id,
+    'user_id': pr.user_id,
+    'promotor_id': pr.promotor_id,
+    'first_name': pr.first_name,
+    'last_name': pr.last_name,
+    'mobile_number': pr.mobile_number,
+    'city_name': pr.city_name,
+    'customers': customer_list,
+    'order_count': promotor_order_count,
+    'status': promotor_status,   # ← NEW
+})
 
                     sub_dealer_order_count = sum(pr['order_count'] for pr in promotor_list)
+                    sub_dealer_status = worst_status([pr['status'] for pr in promotor_list])   # ← NEW
                     sub_dealer_list.append({
                         'id': sd.id,
-                        'user_id': sd.user_id,     # ← NEW
+                        'user_id': sd.user_id,
                         'sub_dealer_id': sd.sub_dealer_id,
                         'first_name': sd.first_name,
                         'last_name': sd.last_name,
@@ -472,12 +499,14 @@ class FullHierarchyView(APIView):
                         'city_name': sd.city_name,
                         'promotors': promotor_list,
                         'order_count': sub_dealer_order_count,
+                        'status': sub_dealer_status,   # ← NEW
                     })
 
                 dealer_order_count = sum(sd['order_count'] for sd in sub_dealer_list)
+                dealer_status = worst_status([sd['status'] for sd in sub_dealer_list])   # ← NEW
                 dealer_list.append({
                     'id': dealer.id,
-                    'user_id': dealer.user_id,     # ← NEW
+                    'user_id': dealer.user_id,
                     'dealer_id': dealer.dealer_id,
                     'first_name': dealer.first_name,
                     'last_name': dealer.last_name,
@@ -485,12 +514,14 @@ class FullHierarchyView(APIView):
                     'city_name': dealer.city_name,
                     'sub_dealers': sub_dealer_list,
                     'order_count': dealer_order_count,
+                    'status': dealer_status,   # ← NEW
                 })
 
             admin_order_count = sum(d['order_count'] for d in dealer_list)
+            admin_status = worst_status([d['status'] for d in dealer_list])   # ← NEW
             tree.append({
                 'id': admin.id,
-                'user_id': admin.user_id,          # ← NEW
+                'user_id': admin.user_id,
                 'admin_id': admin.admin_id,
                 'first_name': admin.first_name,
                 'last_name': admin.last_name,
@@ -498,6 +529,7 @@ class FullHierarchyView(APIView):
                 'city_name': admin.city_name,
                 'dealers': dealer_list,
                 'order_count': admin_order_count,
+                'status': admin_status,   # ← NEW
             })
 
         return Response({'super_admin_email': request.user.email, 'admins': tree})
