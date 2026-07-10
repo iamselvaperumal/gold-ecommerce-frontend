@@ -338,20 +338,16 @@ const handleDelete = async (id) => {
           ))}
         </div>
 
+       
         {/* Right actions */}
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
 
-  {/* NEW: Add Banner button */}
+  {/* Add Banner button */}
   <button onClick={() => navigate('/add-banners')}
     style={{ padding: '8px 16px', borderRadius: '10px', border: 'none', fontWeight: 800, fontSize: '12px', cursor: 'pointer', background: 'linear-gradient(90deg,#f59e0b,#fbbf24)', color: '#1a0040' }}>
     🖼️ Add Banner
   </button>
 
-  {/* NEW: Home Banner button */}
-  <button onClick={() => navigate('/home-banner')}
-    style={{ padding: '8px 16px', borderRadius: '10px', border: 'none', fontWeight: 800, fontSize: '12px', cursor: 'pointer', background: 'linear-gradient(90deg,#34d399,#22d3ee)', color: '#003b40' }}>
-    🏠 Home Banner
-  </button>
           <button onClick={() => { setShowAddForm(s => !s); setProductMsg('') }}
             style={{ padding: '8px 16px', borderRadius: '10px', border: 'none', fontWeight: 800, fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s',
               background: showAddForm ? 'rgba(239,68,68,0.15)' : 'linear-gradient(90deg,#a78bfa,#22d3ee)',

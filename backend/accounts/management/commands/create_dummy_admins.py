@@ -67,11 +67,7 @@ class Command(BaseCommand):
             initial = random.choice(INITIALS)
             city, district, state = random.choice(CITIES)
 
-            email = f"dummyadmin{i}@bitbyte.test"
-
-            if User.objects.filter(email=email).exists():
-                self.stdout.write(self.style.WARNING(f"Skip: {email} already exists"))
-                continue
+            temp_email = f"temp_{i}_{random.randint(1000,9999)}@bitbyte.test"
 
             mobile = f"9{random.randint(100000000, 999999999)}"
             aadhaar = str(random.randint(100000000000, 999999999999))
@@ -84,11 +80,26 @@ class Command(BaseCommand):
             married_status = random.choice(['single', 'married'])
             anniversary_date = random_anniversary(dob) if married_status == 'married' else None
 
+            # Step 1: temp email vachi user create pannu (user_id auto-generate aagum ippo)
             user = User.objects.create_user(
-                email=email,
+                email=temp_email,
                 password=DUMMY_PASSWORD,
                 role='admin',
             )
+
+           # Step 2: Django auto id vachi 3-digit serial build pannu (e.g. 7 -> "007")
+            serial = str(user.id).zfill(3)
+            email = f"{first_name.lower()}{serial}@gmail.com"
+
+            # Step 3: duplicate check pannu, already irundha temp user delete pannitu skip pannu
+            if User.objects.filter(email=email).exclude(pk=user.pk).exists():
+                self.stdout.write(self.style.WARNING(f"Skip: {email} already exists, removing temp user"))
+                user.delete()
+                continue
+
+            # Step 4: real email set pannu
+            user.email = email
+            user.save(update_fields=['email'])
 
             AdminProfile.objects.create(
                 user=user,

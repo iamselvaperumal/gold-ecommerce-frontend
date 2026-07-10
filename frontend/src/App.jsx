@@ -198,9 +198,9 @@ export default function App() {
         <Route path="/add-banners" element={
           <ProtectedRoute role="super_admin"><AddBanners /></ProtectedRoute>
         } />
-        <Route path="/home-banner" element={
+        {/* <Route path="/home-banner" element={
           <ProtectedRoute role="super_admin"><HomeBanner /></ProtectedRoute>
-        } />
+        } /> */}
 
         <Route path="/collection/all" element={<AllCollection />} />
         <Route path="/collection/coins" element={<CoinsCollection />} />

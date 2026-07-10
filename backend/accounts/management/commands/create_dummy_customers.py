@@ -54,43 +54,52 @@ def random_anniversary(dob):
 
 
 class Command(BaseCommand):
-    help = 'Create dummy Customer users, evenly distributed across all Promotors'
+    help = 'Create dummy Customers — every promotor gets AT LEAST 1, remaining spread randomly (mixed counts)'
 
     def add_arguments(self, parser):
-        parser.add_argument('--count', type=int, default=3200, help='Total number of dummy customers to create')
+        parser.add_argument('--count', type=int, default=600, help='Total number of dummy customers to create')
 
     def handle(self, *args, **options):
         count = options['count']
         created = 0
 
-        # ── Step 1: Fetch all promotors ──
         promotors = list(PromotorProfile.objects.all())
         if not promotors:
             self.stdout.write(self.style.ERROR("No promotors found! Create promotors first."))
             return
 
         total_promotors = len(promotors)
-        self.stdout.write(self.style.SUCCESS(f"Found {total_promotors} promotors. Distributing {count} customers among them..."))
 
-        for i in range(1, count + 1):
-            # ── Round-robin: customer i goes to promotor (i % total_promotors) ──
-            promotor = promotors[(i - 1) % total_promotors]
+        if count < total_promotors:
+            self.stdout.write(self.style.ERROR(
+                f"count={count} is less than total promotors={total_promotors}. "
+                f"Need count >= number of promotors so every promotor can get at least 1."
+            ))
+            return
 
+        # ── Guarantee every promotor gets >= 1, remaining slots random (mixed counts) ──
+        assignment_plan = list(promotors)
+        remaining = count - total_promotors
+        for _ in range(remaining):
+            assignment_plan.append(random.choice(promotors))
+        random.shuffle(assignment_plan)
+
+        self.stdout.write(self.style.SUCCESS(
+            f"Found {total_promotors} promotors. Every promotor gets >= 1. "
+            f"Creating {count} customers total (mixed distribution)..."
+        ))
+
+        promotor_tally = {p.id: 0 for p in promotors}
+
+        for promotor in assignment_plan:
             first_name = random.choice(FIRST_NAMES)
             father_name = random.choice(FATHER_NAMES)
             initial = random.choice(INITIALS)
             city, district, state = random.choice(CITIES)
 
-            email = f"dummycustomer{i}@bitbyte.test"
-
-            if User.objects.filter(email=email).exists():
-                self.stdout.write(self.style.WARNING(f"Skip: {email} already exists"))
-                continue
-
             mobile = f"9{random.randint(100000000, 999999999)}"
             aadhaar = str(random.randint(100000000000, 999999999999))
-            # ✅ Safe 10-char PAN, works for any i (1 to 9999)
-            pan = f"CU{i:04d}{random.randint(1000, 9999)}"
+            pan = f"CU{random.randint(100000, 999999)}"
 
             occupation = random.choice(['employee', 'business', 'others'])
             occupation_detail = random.choice(OCCUPATION_DETAILS[occupation])
@@ -99,16 +108,31 @@ class Command(BaseCommand):
             married_status = random.choice(['single', 'married'])
             anniversary_date = random_anniversary(dob) if married_status == 'married' else None
 
+            # ── Email serial = SAME counter that builds customer_id (BBCUS{year}{count:07d}).
+            # Continues automatically from existing 1 customer -> starts at 002.
+            serial_num = CustomerProfile.objects.count() + 1
+            serial = str(serial_num).zfill(2)
+
+            temp_email = f"temp_customer_{serial_num}_{random.randint(1000,9999)}@bitbyte.test"
             user = User.objects.create_user(
-                email=email,
+                email=temp_email,
                 password=DUMMY_PASSWORD,
                 role='customer',
             )
+            email = f"{first_name.lower()}{serial}@gmail.com"
+
+            if User.objects.filter(email=email).exclude(pk=user.pk).exists():
+                self.stdout.write(self.style.WARNING(f"Skip: {email} already exists, removing temp user"))
+                user.delete()
+                continue
+
+            user.email = email
+            user.save(update_fields=['email'])
 
             CustomerProfile.objects.create(
                 user=user,
-                created_by=promotor.user,          # Promotor created this customer
-                assigned_promotor=promotor,        # ✅ Links customer to promotor for hierarchy
+                created_by=promotor.user,
+                assigned_promotor=promotor,
                 initial=initial,
                 first_name=first_name,
                 last_name=father_name,
@@ -130,9 +154,19 @@ class Command(BaseCommand):
                 annual_salary=str(random.randint(80000, 350000)),
             )
 
+            promotor_tally[promotor.id] += 1
             created += 1
             self.stdout.write(self.style.SUCCESS(
-                f"Created: {email} -> assigned to Promotor {promotor.promotor_id} ({promotor.first_name})"
+                f"Created: {email} / {DUMMY_PASSWORD} -> assigned to Promotor {promotor.promotor_id} ({promotor.first_name})"
             ))
 
         self.stdout.write(self.style.SUCCESS(f"\nDone! {created} dummy customers created and linked to {total_promotors} promotors."))
+
+        zero_promotors = [p for p in promotors if promotor_tally[p.id] == 0]
+        self.stdout.write(self.style.SUCCESS("\n── Distribution summary (first 20) ──"))
+        for p in promotors[:20]:
+            self.stdout.write(f"  {p.promotor_id} ({p.first_name}) -> {promotor_tally[p.id]} customer(s)")
+        if zero_promotors:
+            self.stdout.write(self.style.ERROR(f"⚠️ {len(zero_promotors)} promotors got 0 (should not happen)"))
+        else:
+            self.stdout.write(self.style.SUCCESS("✅ Every promotor has at least 1 customer."))

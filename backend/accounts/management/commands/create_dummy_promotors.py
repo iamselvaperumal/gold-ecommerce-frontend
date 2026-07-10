@@ -57,7 +57,7 @@ class Command(BaseCommand):
     help = 'Create dummy Promotor users, evenly distributed across all Sub Dealers'
 
     def add_arguments(self, parser):
-        parser.add_argument('--count', type=int, default=1500, help='Total number of dummy promotors to create')
+        parser.add_argument('--count', type=int, default=250, help='Total number of dummy promotors to create')
 
     def handle(self, *args, **options):
         count = options['count']
@@ -70,27 +70,37 @@ class Command(BaseCommand):
             return
 
         total_sd = len(sub_dealers)
-        self.stdout.write(self.style.SUCCESS(f"Found {total_sd} sub dealers. Distributing {count} promotors among them..."))
 
-        for i in range(1, count + 1):
-            # ── Round-robin: promotor i goes to sub_dealer (i % total_sd) ──
-            sub_dealer = sub_dealers[(i - 1) % total_sd]
+        if count < total_sd:
+            self.stdout.write(self.style.ERROR(
+                f"count={count} is less than total sub dealers={total_sd}. "
+                f"Need count >= number of sub dealers so every sub dealer can get at least 1."
+            ))
+            return
+
+        # Guarantee every sub dealer gets >= 1, remaining slots random (mixed counts)
+        assignment_plan = list(sub_dealers)
+        remaining = count - total_sd
+        for _ in range(remaining):
+            assignment_plan.append(random.choice(sub_dealers))
+        random.shuffle(assignment_plan)
+
+        self.stdout.write(self.style.SUCCESS(
+            f"Found {total_sd} sub dealers. Every sub dealer gets >= 1. Creating {count} promotors (mixed)..."
+        ))
+
+        sd_tally = {sd.id: 0 for sd in sub_dealers}
+
+        for sub_dealer in assignment_plan:
 
             first_name = random.choice(FIRST_NAMES)
             father_name = random.choice(FATHER_NAMES)
             initial = random.choice(INITIALS)
             city, district, state = random.choice(CITIES)
 
-            email = f"dummypromotor{i}@bitbyte.test"
-
-            if User.objects.filter(email=email).exists():
-                self.stdout.write(self.style.WARNING(f"Skip: {email} already exists"))
-                continue
-
             mobile = f"9{random.randint(100000000, 999999999)}"
             aadhaar = str(random.randint(100000000000, 999999999999))
-            # ✅ Safe 10-char PAN, works for any i (1 to 9999)
-            pan = f"PR{i:04d}{random.randint(1000, 9999)}"
+            pan = f"PR{random.randint(100000, 999999)}"
 
             occupation = random.choice(['employee', 'business', 'others'])
             occupation_detail = random.choice(OCCUPATION_DETAILS[occupation])
@@ -99,11 +109,26 @@ class Command(BaseCommand):
             married_status = random.choice(['single', 'married'])
             anniversary_date = random_anniversary(dob) if married_status == 'married' else None
 
+            # Email serial = SAME counter that builds promotor_id (BBPRO{year}{count:07d}).
+            # Continues automatically from existing 2 -> starts at 003.
+            serial_num = PromotorProfile.objects.count() + 1
+            serial = str(serial_num).zfill(2)
+
+            temp_email = f"temp_promotor_{serial_num}_{random.randint(1000,9999)}@bitbyte.test"
             user = User.objects.create_user(
-                email=email,
+                email=temp_email,
                 password=DUMMY_PASSWORD,
                 role='promotor',
             )
+            email = f"{first_name.lower()}{serial}@gmail.com"
+
+            if User.objects.filter(email=email).exclude(pk=user.pk).exists():
+                self.stdout.write(self.style.WARNING(f"Skip: {email} already exists, removing temp user"))
+                user.delete()
+                continue
+
+            user.email = email
+            user.save(update_fields=['email'])
 
             PromotorProfile.objects.create(
                 user=user,
@@ -130,9 +155,14 @@ class Command(BaseCommand):
                 annual_salary=str(random.randint(100000, 400000)),
             )
 
+            sd_tally[sub_dealer.id] += 1
             created += 1
             self.stdout.write(self.style.SUCCESS(
-                f"Created: {email} -> assigned to Sub Dealer {sub_dealer.sub_dealer_id} ({sub_dealer.first_name})"
+                f"Created: {email} / {DUMMY_PASSWORD} -> assigned to Sub Dealer {sub_dealer.sub_dealer_id} ({sub_dealer.first_name})"
             ))
 
         self.stdout.write(self.style.SUCCESS(f"\nDone! {created} dummy promotors created and linked to {total_sd} sub dealers."))
+
+        self.stdout.write(self.style.SUCCESS("\n── Distribution summary ──"))
+        for sd in sub_dealers:
+            self.stdout.write(f"  {sd.sub_dealer_id} ({sd.first_name}) -> {sd_tally[sd.id]} promotor(s)")

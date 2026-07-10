@@ -1032,44 +1032,49 @@ const [showTodayRates, setShowTodayRates] = useState(false)
 
 
 
-  const fetchAdmins = async () => {
-    try { const res = await api.get('/admins/'); setAdmins(res.data) } catch { }
-  }
+  // AFTER
+const fetchAdmins = async () => {
+  try {
+    const res = await api.get('/admins/')
+    setAdmins(res.data)
+    return res.data
+  } catch { return [] }
+}
 
-  const fetchAnnouncementCount = async () => {
-    try {
-      const res = await api.get('/announcements/')
-      const lastSeen = parseInt(localStorage.getItem('superAdminAnnouncementSeen') || '0')
-      const unread = res.data.filter(a => new Date(a.created_at).getTime() > lastSeen).length
-      setAnnouncementCount(unread)
-    } catch { }
-  }
+  // AFTER
+const fetchAnnouncementCount = (data) => {
+  const lastSeen = parseInt(localStorage.getItem('superAdminAnnouncementSeen') || '0')
+  const unread = data.filter(a => new Date(a.created_at).getTime() > lastSeen).length
+  setAnnouncementCount(unread)
+}
 
-  const [myAnnouncements, setMyAnnouncements] = useState([])
+  // AFTER
+const [myAnnouncements, setMyAnnouncements] = useState([])
 
-  const fetchMyAnnouncements = async () => {
-    try {
-      const res = await api.get('/announcements/')
-      const sorted = res.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-      setMyAnnouncements(sorted)
-    } catch { }
-  }
+const fetchMyAnnouncements = async (data = null) => {
+  try {
+    const res = data ? { data } : await api.get('/announcements/')
+    const sorted = [...res.data].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    setMyAnnouncements(sorted)
+    return res.data
+  } catch { return [] }
+}
 
 
-  const fetchAllMembers = async () => {
-    try {
-      const [adminRes, dealerRes, sdRes, proRes, cusRes] = await Promise.allSettled([
-        api.get('/admins/'),
-        api.get('/dealers/list/'),
-        api.get('/sub-dealers/list/'),
-        api.get('/promotors/list/'),
-        api.get('/customers/'),
-      ])
-      const admins = adminRes.status === 'fulfilled' ? adminRes.value.data : []
-      const dealers = dealerRes.status === 'fulfilled' ? dealerRes.value.data : []
-      const sds = sdRes.status === 'fulfilled' ? sdRes.value.data : []
-      const pros = proRes.status === 'fulfilled' ? proRes.value.data : []
-      const cuss = cusRes.status === 'fulfilled' ? cusRes.value.data : []
+  // AFTER
+const fetchAllMembers = async (adminsData = []) => {
+  try {
+    const [dealerRes, sdRes, proRes, cusRes] = await Promise.allSettled([
+      api.get('/dealers/list/'),
+      api.get('/sub-dealers/list/'),
+      api.get('/promotors/list/'),
+      api.get('/customers/'),
+    ])
+    const admins = adminsData
+    const dealers = dealerRes.status === 'fulfilled' ? dealerRes.value.data : []
+    const sds = sdRes.status === 'fulfilled' ? sdRes.value.data : []
+    const pros = proRes.status === 'fulfilled' ? proRes.value.data : []
+    const cuss = cusRes.status === 'fulfilled' ? cusRes.value.data : []
 
       const allMembers = [
         ...admins.map(m => ({ ...m, _role: 'Admin', _id: m.admin_id, _roleColor: '#22d3ee', _dob: m.dob, _ann: m.anniversary_date, _joined: m.user?.created_at || null })),
@@ -1282,16 +1287,22 @@ const fetchMetalPrices = async () => {
   }
 
 
-  useEffect(() => {
-    fetchAdmins()
-    fetchAnnouncementCount()
-    fetchMyAnnouncements()
-    fetchProfileRequests()
-    fetchAllMembers()
-    fetchMetalPrices()
-    fetchOrderStats()
-    fetchHierarchy()
-  }, [])
+  // AFTER
+// AFTER
+useEffect(() => {
+  (async () => {
+    const adminsData = await fetchAdmins()
+    fetchAllMembers(adminsData)
+  })()
+  ;(async () => {
+    const annData = await fetchMyAnnouncements()
+    fetchAnnouncementCount(annData)
+  })()
+  fetchProfileRequests()
+  fetchMetalPrices()
+  fetchOrderStats()
+  fetchHierarchy()
+}, [])
 
 
   const handleOpenHierarchy = () => {
@@ -3309,14 +3320,16 @@ setOrderPopupState({
                   if (!specialAnnForm.title.trim() || !specialAnnForm.message.trim()) { setSpecialAnnMsg('❌ Title and Message required.'); return }
                   if (specialAnnForm.roles.length === 0) { setSpecialAnnMsg('❌ Select at least one role.'); return }
                   setSpecialAnnSending(true)
-                  try {
-                    await api.post('/announcements/', { title: specialAnnForm.title, message: specialAnnForm.message, target_roles: specialAnnForm.roles })
-                    setSpecialAnnMsg('✅ Announcement sent successfully!')
-                    fetchAnnouncementCount()
-                    setTimeout(() => setShowSpecialAnn(false), 1500)
-                  } catch (err) {
-                    setSpecialAnnMsg('❌ Failed: ' + JSON.stringify(err.response?.data))
-                  }
+                  // AFTER
+try {
+  await api.post('/announcements/', { title: specialAnnForm.title, message: specialAnnForm.message, target_roles: specialAnnForm.roles })
+  setSpecialAnnMsg('✅ Announcement sent successfully!')
+  const annData = await fetchMyAnnouncements()
+  fetchAnnouncementCount(annData)
+  setTimeout(() => setShowSpecialAnn(false), 1500)
+} catch (err) {
+  setSpecialAnnMsg('❌ Failed: ' + JSON.stringify(err.response?.data))
+}
                   setSpecialAnnSending(false)
                 }}
                 style={{ width: '100%', padding: '14px', background: specialAnnSending ? 'rgba(251,146,60,0.3)' : 'linear-gradient(90deg,#fb923c,#f97316)', border: 'none', borderRadius: '12px', fontWeight: 800, color: specialAnnSending ? '#fb923c' : '#431407', fontSize: '15px', cursor: specialAnnSending ? 'not-allowed' : 'pointer', letterSpacing: '0.5px' }}
@@ -4407,10 +4420,12 @@ setOrderPopupState({
                   if (announcementForm.roles.length === 0) { setAnnouncementMsg('❌ Please select at least one role.'); return }
                   setAnnouncingSending(true)
                   try {
-                    await api.post('/announcements/', { title: announcementForm.title, message: announcementForm.message, target_roles: announcementForm.roles })
-                    setAnnouncementMsg('✅ Announcement sent successfully!')
-                    setAnnouncementForm({ title: '', message: '', roles: [] })
-                    fetchAnnouncementCount()
+                    // AFTER
+await api.post('/announcements/', { title: announcementForm.title, message: announcementForm.message, target_roles: announcementForm.roles })
+setAnnouncementMsg('✅ Announcement sent successfully!')
+setAnnouncementForm({ title: '', message: '', roles: [] })
+const annData = await fetchMyAnnouncements()
+fetchAnnouncementCount(annData)
                   } catch (err) {
                     setAnnouncementMsg('❌ Failed: ' + JSON.stringify(err.response?.data))
                   }
