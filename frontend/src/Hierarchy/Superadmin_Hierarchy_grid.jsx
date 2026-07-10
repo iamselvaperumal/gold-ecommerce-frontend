@@ -520,19 +520,10 @@ function LaneRow({ role, items, activeId, onSelect, ancestors, superAdminEmail, 
 export default function SuperadminHierarchyGrid() {
   const navigate = useNavigate()
   const [dark] = useState(true)
-  const [admins, setAdmins] = useState([])
-const [dealers, setDealers] = useState([])
-const [subDealers, setSubDealers] = useState([])
-const [promotors, setPromotors] = useState([])
-const [customers, setCustomers] = useState([])
-
-const [loading, setLoading] = useState(false)
-const [levelLoading, setLevelLoading] = useState(null)
-
-const [search, setSearch] = useState('')
-const [debouncedSearch, setDebouncedSearch] = useState('')
-const [searchResults, setSearchResults] = useState([])
-const [searchLoading, setSearchLoading] = useState(false)
+  const [hierarchyData, setHierarchyData] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
 
   // ── selection state — ore oru id per level. Ithu than "eppo edhu highlight" nu decide pannum ──
   const [selAdmin, setSelAdmin] = useState(null)
@@ -593,52 +584,16 @@ setMessageSending(false)
     return () => clearTimeout(t)
   }, [search])
 
-  const fetchAdmins = async () => {
-  setLoading(true)
-  try {
-    const res = await api.get('/hierarchy/children/?role=admin')
-    setAdmins(res.data)
-  } catch (err) { console.error(err) }
-  setLoading(false)
-}
+  const fetchHierarchy = async () => {
+    setLoading(true)
+    try {
+      const res = await api.get('/hierarchy/full/')
+      setHierarchyData(res.data)
+    } catch (err) { console.error(err) }
+    setLoading(false)
+  }
 
-useEffect(() => { fetchAdmins() }, [])
-
-const fetchDealers = async (adminId) => {
-  setLevelLoading('dealer')
-  try {
-    const res = await api.get(`/hierarchy/children/?role=dealer&parent_id=${adminId}`)
-    setDealers(res.data)
-  } catch (err) { console.error(err) }
-  setLevelLoading(null)
-}
-
-const fetchSubDealers = async (dealerId) => {
-  setLevelLoading('sub_dealer')
-  try {
-    const res = await api.get(`/hierarchy/children/?role=sub_dealer&parent_id=${dealerId}`)
-    setSubDealers(res.data)
-  } catch (err) { console.error(err) }
-  setLevelLoading(null)
-}
-
-const fetchPromotors = async (subDealerId) => {
-  setLevelLoading('promotor')
-  try {
-    const res = await api.get(`/hierarchy/children/?role=promotor&parent_id=${subDealerId}`)
-    setPromotors(res.data)
-  } catch (err) { console.error(err) }
-  setLevelLoading(null)
-}
-
-const fetchCustomers = async (promotorId) => {
-  setLevelLoading('customer')
-  try {
-    const res = await api.get(`/hierarchy/children/?role=customer&parent_id=${promotorId}`)
-    setCustomers(res.data)
-  } catch (err) { console.error(err) }
-  setLevelLoading(null)
-}
+  useEffect(() => { fetchHierarchy() }, [])
 
   useEffect(() => {
     return () => {
@@ -649,10 +604,34 @@ const fetchCustomers = async (promotorId) => {
 
   // ── DERIVED CHAIN — each level falls back to "first item" automatically
   // when nothing (or a now-invalid id) is selected. Ithu than cascade logic. ──
-  const currentAdmin = useMemo(() => admins.find(a => a.id === selAdmin) || null, [admins, selAdmin])
-const currentDealer = useMemo(() => dealers.find(d => d.id === selDealer) || null, [dealers, selDealer])
-const currentSubDealer = useMemo(() => subDealers.find(sd => sd.id === selSubDealer) || null, [subDealers, selSubDealer])
-const currentPromotor = useMemo(() => promotors.find(p => p.id === selPromotor) || null, [promotors, selPromotor])
+  const admins = hierarchyData?.admins || []
+
+  // ── NOTHING auto-falls-back anymore. A level shows ONLY after its
+  // parent card is explicitly clicked (selXxx stays null until then). ──
+  const currentAdmin = useMemo(() => {
+    if (!selAdmin) return null
+    return admins.find(a => a.id === selAdmin) || null
+  }, [admins, selAdmin])
+
+  const dealers = currentAdmin?.dealers || []
+  const currentDealer = useMemo(() => {
+    if (!selDealer) return null
+    return dealers.find(d => d.id === selDealer) || null
+  }, [dealers, selDealer])
+
+  const subDealers = currentDealer?.sub_dealers || []
+  const currentSubDealer = useMemo(() => {
+    if (!selSubDealer) return null
+    return subDealers.find(sd => sd.id === selSubDealer) || null
+  }, [subDealers, selSubDealer])
+
+  const promotors = currentSubDealer?.promotors || []
+  const currentPromotor = useMemo(() => {
+    if (!selPromotor) return null
+    return promotors.find(p => p.id === selPromotor) || null
+  }, [promotors, selPromotor])
+
+  const customers = currentPromotor?.customers || []
 
   // ── ancestor chains per level, for the hover popup + print card ──
   const adminAncestors = []
@@ -663,77 +642,64 @@ const currentPromotor = useMemo(() => promotors.find(p => p.id === selPromotor) 
 
   // ── click handlers — select this level, reset everything BELOW it
   // (so the next rows auto-fall-back to their own "first" item) ──
-  const selectAdmin = (node) => {
-  setSelAdmin(node.id); setSelDealer(null); setSelSubDealer(null); setSelPromotor(null)
-  setDealers([]); setSubDealers([]); setPromotors([]); setCustomers([])
-  fetchDealers(node.id)
-}
-const selectDealer = (node) => {
-  setSelDealer(node.id); setSelSubDealer(null); setSelPromotor(null)
-  setSubDealers([]); setPromotors([]); setCustomers([])
-  fetchSubDealers(node.id)
-}
-const selectSubDealer = (node) => {
-  setSelSubDealer(node.id); setSelPromotor(null)
-  setPromotors([]); setCustomers([])
-  fetchPromotors(node.id)
-}
-const selectPromotor = (node) => {
-  setSelPromotor(node.id)
-  setCustomers([])
-  fetchCustomers(node.id)
-}
+  const selectAdmin = (node) => { setSelAdmin(node.id); setSelDealer(null); setSelSubDealer(null); setSelPromotor(null) }
+  const selectDealer = (node) => { setSelDealer(node.id); setSelSubDealer(null); setSelPromotor(null) }
+  const selectSubDealer = (node) => { setSelSubDealer(node.id); setSelPromotor(null) }
+  const selectPromotor = (node) => { setSelPromotor(node.id) }
 
   // ── search across the whole hierarchy (unchanged from before) ──
-  useEffect(() => {
-  if (!debouncedSearch) { setSearchResults([]); return }
-  const doSearch = async () => {
-    setSearchLoading(true)
-    try {
-      const res = await api.get(`/hierarchy/search/?q=${encodeURIComponent(debouncedSearch)}`)
-      // backend already gives { role, node fields..., ancestors } — map to what LaneCard expects
-      const mapped = res.data.map(item => ({
-        node: item,
-        role: item.role,
-        ancestors: item.ancestors.map(a => ({ node: a.node, role: a.role })),
-      }))
-      setSearchResults(mapped)
-    } catch (err) { console.error(err); setSearchResults([]) }
-    setSearchLoading(false)
+  const searchAllHierarchy = (query) => {
+    if (!hierarchyData || !query.trim()) return []
+    const q = query.trim().toLowerCase()
+    const result = []
+    const checkMatch = (node, idKey) => {
+      const idVal = (node[idKey] || '').toString().toLowerCase()
+      const nameVal = `${node.first_name || ''} ${node.last_name || ''}`.toLowerCase()
+      const phoneVal = (node.mobile_number || '').toString().toLowerCase()
+      return idVal.includes(q) || nameVal.includes(q) || phoneVal.includes(q)
+    }
+    hierarchyData.admins.forEach(admin => {
+      if (checkMatch(admin, 'admin_id')) result.push({ node: admin, role: 'admin', ancestors: [] })
+      admin.dealers.forEach(dealer => {
+        if (checkMatch(dealer, 'dealer_id')) result.push({ node: dealer, role: 'dealer', ancestors: [{ node: admin, role: 'admin' }] })
+        dealer.sub_dealers.forEach(sd => {
+          if (checkMatch(sd, 'sub_dealer_id')) result.push({ node: sd, role: 'sub_dealer', ancestors: [{ node: admin, role: 'admin' }, { node: dealer, role: 'dealer' }] })
+          sd.promotors.forEach(pr => {
+            if (checkMatch(pr, 'promotor_id')) result.push({ node: pr, role: 'promotor', ancestors: [{ node: admin, role: 'admin' }, { node: dealer, role: 'dealer' }, { node: sd, role: 'sub_dealer' }] })
+            pr.customers.forEach(cus => {
+              if (checkMatch(cus, 'customer_id')) result.push({ node: cus, role: 'customer', ancestors: [{ node: admin, role: 'admin' }, { node: dealer, role: 'dealer' }, { node: sd, role: 'sub_dealer' }, { node: pr, role: 'promotor' }] })
+            })
+          })
+        })
+      })
+    })
+    return result
   }
-  doSearch()
-}, [debouncedSearch])
+
+  const searchResults = useMemo(() => {
+    if (!debouncedSearch) return []
+    return searchAllHierarchy(debouncedSearch)
+  }, [debouncedSearch, hierarchyData])
 
   // clicking a search result jumps the whole grid to that node's chain
-  const jumpToSearchResult = async (item) => {
-  setSearch('')
-  const map = {}
-  item.ancestors.forEach(a => { map[a.role] = a.node.id })
-  map[item.role] = item.node.id
+  const jumpToSearchResult = (item) => {
+    const map = {}
+    item.ancestors.forEach(a => { map[a.role] = a.node.id })
+    map[item.role] = item.node.id
+    setSelAdmin(map.admin ?? null)
+    setSelDealer(map.dealer ?? null)
+    setSelSubDealer(map.sub_dealer ?? null)
+    setSelPromotor(map.promotor ?? null)
+    setSearch('')
+  }
 
-  // Reset everything first
-  setSelAdmin(null); setSelDealer(null); setSelSubDealer(null); setSelPromotor(null)
-  setDealers([]); setSubDealers([]); setPromotors([]); setCustomers([])
-
-  if (map.admin) {
-    setSelAdmin(map.admin)
-    await fetchDealers(map.admin)
-  }
-  if (map.dealer) {
-    setSelDealer(map.dealer)
-    await fetchSubDealers(map.dealer)
-  }
-  if (map.sub_dealer) {
-    setSelSubDealer(map.sub_dealer)
-    await fetchPromotors(map.sub_dealer)
-  }
-  if (map.promotor) {
-    setSelPromotor(map.promotor)
-    await fetchCustomers(map.promotor)
-  }
-}
-
-  const totalStats = null  // full counts backend la vera endpoint venum, so hide pண்ணுрோm
+  const totalStats = hierarchyData ? {
+    admins: hierarchyData.admins.length,
+    dealers: hierarchyData.admins.reduce((a, ad) => a + ad.dealers.length, 0),
+    subDealers: hierarchyData.admins.reduce((a, ad) => a + ad.dealers.reduce((b, d) => b + d.sub_dealers.length, 0), 0),
+    promotors: hierarchyData.admins.reduce((a, ad) => a + ad.dealers.reduce((b, d) => b + d.sub_dealers.reduce((c, sd) => c + sd.promotors.length, 0), 0), 0),
+    customers: hierarchyData.admins.reduce((a, ad) => a + ad.dealers.reduce((b, d) => b + d.sub_dealers.reduce((c, sd) => c + sd.promotors.reduce((e, pr) => e + pr.customers.length, 0), 0), 0), 0),
+  } : null
 
   const statPills = totalStats ? [
     { label: 'Admins', roleKey: 'admin', count: totalStats.admins },
@@ -850,31 +816,34 @@ const selectPromotor = (node) => {
           </div>
         )}
 
-        {!loading && debouncedSearch ? (
-  searchLoading ? (
-    <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>Searching...</div>
-  ) : searchResults.length === 0 ? (
-    <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No results found for "{debouncedSearch}"</div>
-  ) : (
-    <div className="glane-track" style={{ flexWrap: 'wrap' }}>
-      {searchResults.map((item, idx) => (
-        <LaneCard
-          key={item.node.id || idx}
-          node={item.node}
-          role={item.role}
-          active={true}
-          onClick={() => jumpToSearchResult(item)}
-          ancestors={item.ancestors}
-          superAdminEmail={superAdminEmail}
-          dark={dark} text={text} subtext={subtext}
-          showChildCount={item.role !== 'customer'}
-          onMessage={openMessagePopup}
-        />
-      ))}
-    </div>
-  )
-) : !loading && (
-  admins.length === 0 ? (
+        {!loading && !hierarchyData && (
+          <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>Failed to load hierarchy.</div>
+        )}
+
+        {!loading && hierarchyData && debouncedSearch ? (
+          // ── SEARCH MODE ──
+          searchResults.length === 0 ? (
+            <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No results found for "{debouncedSearch}"</div>
+          ) : (
+            <div className="glane-track" style={{ flexWrap: 'wrap' }}>
+              {searchResults.map((item, idx) => (
+                <LaneCard
+                  key={item.node.id || idx}
+                  node={item.node}
+                  role={item.role}
+                  active={true}
+                  onClick={() => jumpToSearchResult(item)}
+                  ancestors={item.ancestors}
+                  superAdminEmail={superAdminEmail}
+                  dark={dark} text={text} subtext={subtext}
+                  showChildCount={item.role !== 'customer'}
+                  onMessage={openMessagePopup}
+                />
+              ))}
+            </div>
+          )
+        ) : !loading && hierarchyData && (
+          admins.length === 0 ? (
             <div style={{ color: subtext, padding: '60px', textAlign: 'center', fontSize: '15px' }}>No admins created yet.</div>
           ) : (
             // ── GRID MODE — this is the main view ──
