@@ -403,7 +403,7 @@ function showChainPopup(anchorEl, ancestors, current, dark, superAdminEmail) {
 // `active` = this is the currently selected one in its row (full bright).
 // not active = dimmed, but still clickable.
 // ══════════════════════════════════════════════════════════════════
-const STATUS_COLOR = { red: '#ef4444', yellow: '#eab308', green: '#22c55e' }
+const STATUS_COLOR = { red: '#ef4444', orange: '#f97316', yellow: '#eab308', green: '#22c55e' }
 
 function LaneCard({ node, role, active, onClick, ancestors, superAdminEmail, dark, text, subtext, showChildCount, onMessage }) {
   const navigate = useNavigate()
@@ -491,7 +491,9 @@ function LaneRow({ role, items, activeId, onSelect, ancestors, superAdminEmail, 
       </div>
       <div className="glane-track" style={{ '--nc': cfg.color, scrollbarColor: `${cfg.color} rgba(255,255,255,0.06)` }}>
         {items.length === 0 ? (
-          <div className="glane-empty" style={{ color: subtext }}>{emptyText}</div>
+          <div className="glane-empty" style={{ color: subtext }}>
+            <span style={{ fontSize: 16 }}>🌱</span> {emptyText}
+          </div>
         ) : (
           items.map(item => (
             <LaneCard
@@ -529,7 +531,18 @@ export default function SuperadminHierarchyGrid() {
   const [selAdmin, setSelAdmin] = useState(null)
   const [selDealer, setSelDealer] = useState(null)
   const [selSubDealer, setSelSubDealer] = useState(null)
-  const [selPromotor, setSelPromotor] = useState(null)
+const [selPromotor, setSelPromotor] = useState(null)
+
+  // ── NEW: status color filter checkboxes (red/orange/yellow/green) ──
+  const [statusFilter, setStatusFilter] = useState({ red: false, orange: false, yellow: false, green: false })
+  const toggleStatusFilter = (key) => setStatusFilter(prev => ({ ...prev, [key]: !prev[key] }))
+  const filterByStatus = (list) => {
+    const active = Object.keys(statusFilter).filter(k => statusFilter[k])
+    if (active.length === 0) return list
+    return list.filter(n => active.includes(n.status))
+  }
+
+  
 
   // ── NEW: Direct message popup state ──
   const [messageTarget, setMessageTarget] = useState(null) // { node, role }
@@ -631,7 +644,13 @@ setMessageSending(false)
     return promotors.find(p => p.id === selPromotor) || null
   }, [promotors, selPromotor])
 
-  const customers = currentPromotor?.customers || []
+const customers = currentPromotor?.customers || []
+
+  // ── NEW: apply color filter — admin/dealer/sub_dealer/promotor mattum, customer skip ──
+  const filteredAdmins = useMemo(() => filterByStatus(admins), [admins, statusFilter])
+  const filteredDealers = useMemo(() => filterByStatus(dealers), [dealers, statusFilter])
+  const filteredSubDealers = useMemo(() => filterByStatus(subDealers), [subDealers, statusFilter])
+  const filteredPromotors = useMemo(() => filterByStatus(promotors), [promotors, statusFilter])
 
   // ── ancestor chains per level, for the hover popup + print card ──
   const adminAncestors = []
@@ -711,16 +730,18 @@ setMessageSending(false)
 
   return (
     <>
-    <div style={{ minHeight: '100vh', background: '#020617', color: text, fontFamily: '"Inter",system-ui,sans-serif', padding: '28px 32px' }}>
+    <div style={{ minHeight: '100vh', background: 'radial-gradient(circle at 20% 0%, #0b1a2e 0%, #020617 55%)', color: text, fontFamily: '"Inter",system-ui,sans-serif', padding: '28px 32px' }}>
       <style>{`
         @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
         .gcard{
-          background:rgba(255,255,255,0.03); border:1.5px solid var(--nc); border-radius:12px; padding:12px 16px;
+          background:linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+          border:1.5px solid var(--nc); border-radius:16px; padding:14px 18px;
           min-width:172px; max-width:210px; cursor:pointer; position:relative;
-          transition:opacity .15s ease, transform .15s ease, box-shadow .15s ease;
+          transition:opacity .2s ease, transform .2s cubic-bezier(0.22,1,0.36,1), box-shadow .2s ease;
           flex-shrink:0;
         }
+        .gcard:hover{ transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,0.35); }
         .gcard-msg-btn{
           position:absolute; top:8px; right:8px; z-index:2;
           width:22px; height:22px; border-radius:6px;
@@ -729,7 +750,7 @@ setMessageSending(false)
           cursor:pointer; transition:background .2s ease, transform .2s ease;
         }
         .gcard-msg-btn:hover{ background:rgba(255,255,255,0.18); transform:scale(1.08); }
-        .gcard-active{ opacity:1; transform:translateY(-2px); box-shadow:0 0 0 1px var(--nc), 0 10px 24px rgba(0,0,0,0.4); }
+        .gcard-active{ opacity:1; transform:translateY(-3px); box-shadow:0 0 0 1.5px var(--nc), 0 14px 30px rgba(0,0,0,0.45); }
         .gcard-dim{ opacity:0.45; }
         .gcard-dim:hover{ opacity:0.85; }
         .gcard-badge{ display:inline-flex; align-items:center; gap:5px; font-size:9px; font-weight:700; padding:2px 8px; border-radius:20px; margin-bottom:8px; color:var(--nc); border:1px solid var(--nc); }
@@ -737,7 +758,8 @@ setMessageSending(false)
         .gcard-name{ font-weight:700; font-size:13px; margin-bottom:6px; }
         .gcard-sub{ display:flex; align-items:center; gap:4px; font-size:11px; margin-bottom:2px; }
         .gcard-actions{ margin-top:8px; display:flex; gap:6px; }
-        .gcard-btn{ flex:1; display:flex; align-items:center; justify-content:center; gap:4px; padding:3px 0; font-size:9px; font-weight:700; background:transparent; border:1px solid var(--nc); border-radius:6px; color:var(--nc); cursor:pointer; }
+        .gcard-btn{ flex:1; display:flex; align-items:center; justify-content:center; gap:4px; padding:5px 0; font-size:9px; font-weight:700; background:rgba(255,255,255,0.03); border:1px solid var(--nc); border-radius:20px; color:var(--nc); cursor:pointer; transition:background .15s ease, transform .1s ease; }
+        .gcard-btn:hover{ background:var(--nc); color:#020617; transform:scale(1.03); }
         .gcard-btn-sales{ border-color:#22c55e; color:#22c55e; }
         .gcard-count{ position:absolute; bottom:-9px; left:50%; transform:translateX(-50%); color:#000; font-size:9px; font-weight:800; padding:1px 7px; border-radius:20px; white-space:nowrap; }
 
@@ -751,7 +773,7 @@ setMessageSending(false)
         .glane-track::-webkit-scrollbar-track{ background:rgba(255,255,255,0.03); border-radius:10px; }
         .glane-track::-webkit-scrollbar-thumb{ background:var(--nc); border-radius:10px; opacity:0.7; }
         .glane-track::-webkit-scrollbar-thumb:hover{ background:var(--nc); opacity:1; }
-        .glane-empty{ font-size:12px; padding:14px 4px; }
+        .glane-empty{ font-size:12px; padding:14px 4px; display:flex; align-items:center; gap:8px; opacity:0.75; }
         .glane-divider{ height:3px; border-radius:3px; margin:0 4px 4px 4px; opacity:0.55; }
 
         .gsa-card{
@@ -788,13 +810,55 @@ setMessageSending(false)
             </div>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          {/* ── NEW: small status color filter pill ── */}
+          {totalStats && (
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '20px', padding: '6px 12px' }}>
+              {[
+                { key: 'red', color: '#ef4444' },
+                { key: 'orange', color: '#f97316' },
+                { key: 'yellow', color: '#eab308' },
+                { key: 'green', color: '#22c55e' },
+              ].map(opt => (
+                <label key={opt.key} title={opt.key} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={statusFilter[opt.key]}
+                    onChange={() => toggleStatusFilter(opt.key)}
+                    style={{
+                      appearance: 'none', WebkitAppearance: 'none',
+                      width: 13, height: 13, borderRadius: '4px',
+                      border: `1.5px solid ${opt.color}`,
+                      background: statusFilter[opt.key] ? opt.color : 'transparent',
+                      cursor: 'pointer', margin: 0,
+                      boxShadow: statusFilter[opt.key] ? `0 0 6px ${opt.color}88` : 'none',
+                    }}
+                  />
+                </label>
+              ))}
+              {Object.values(statusFilter).some(Boolean) && (
+                <button
+                  onClick={() => setStatusFilter({ red: false, orange: false, yellow: false, green: false })}
+                  style={{ background: 'none', border: 'none', color: subtext, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
+                  title="Clear filter"
+                >
+                  <IconX color={subtext} size={11} />
+                </button>
+              )}
+            </div>
+          )}
           <div style={{ position: 'relative' }}>
             <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
               <IconSearch color={subtext} />
             </span>
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search ID, Name, Phone..."
-              style={{ width: '240px', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '10px', padding: '9px 14px 9px 34px', color: text, fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} />
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search ID, Name, Phone..."
+              style={{ width: '240px', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '20px', padding: '9px 14px 9px 34px', color: text, fontSize: '13px', outline: 'none', boxSizing: 'border-box', transition: 'border-color .15s ease, box-shadow .15s ease' }}
+              onFocus={e => { e.target.style.borderColor = '#22c55e'; e.target.style.boxShadow = '0 0 0 3px rgba(34,197,94,0.15)' }}
+              onBlur={e => { e.target.style.borderColor = inpBorder; e.target.style.boxShadow = 'none' }}
+            />
             {search && (
               <button onClick={() => setSearch('')} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: subtext, cursor: 'pointer' }}>
                 <IconX color={subtext} />
@@ -812,7 +876,7 @@ setMessageSending(false)
         {loading && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 0', gap: '16px' }}>
             <div style={{ width: 32, height: 32, border: '3px solid rgba(34,197,94,0.2)', borderTop: '3px solid #22c55e', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-            <span style={{ color: subtext, fontSize: '14px' }}>Loading hierarchy...</span>
+            <span style={{ color: subtext, fontSize: '14px' }}>Hold on bro, pulling up your team tree...</span>
           </div>
         )}
 
@@ -860,26 +924,26 @@ setMessageSending(false)
                 <IconChevronDown color={subtext} />
               </div>
 
-              <LaneRow role="admin" items={admins} activeId={currentAdmin?.id} onSelect={selectAdmin}
+              <LaneRow role="admin" items={filteredAdmins} activeId={currentAdmin?.id} onSelect={selectAdmin}
                 ancestors={adminAncestors} superAdminEmail={superAdminEmail} dark={dark} text={text} subtext={subtext}
-                emptyText="No admins yet." onMessage={openMessagePopup} />
+                emptyText="No admins match this filter." onMessage={openMessagePopup} />
 
               {currentAdmin && (
-                <LaneRow role="dealer" items={dealers} activeId={currentDealer?.id} onSelect={selectDealer}
+                <LaneRow role="dealer" items={filteredDealers} activeId={currentDealer?.id} onSelect={selectDealer}
                   ancestors={dealerAncestors} superAdminEmail={superAdminEmail} dark={dark} text={text} subtext={subtext}
-                  emptyText={`${currentAdmin.first_name} has no dealers yet.`} onMessage={openMessagePopup} />
+                  emptyText={`No dealers match this filter under ${currentAdmin.first_name}.`} onMessage={openMessagePopup} />
               )}
 
               {currentDealer && (
-                <LaneRow role="sub_dealer" items={subDealers} activeId={currentSubDealer?.id} onSelect={selectSubDealer}
+                <LaneRow role="sub_dealer" items={filteredSubDealers} activeId={currentSubDealer?.id} onSelect={selectSubDealer}
                   ancestors={subDealerAncestors} superAdminEmail={superAdminEmail} dark={dark} text={text} subtext={subtext}
-                  emptyText={`${currentDealer.first_name} has no sub dealers yet.`} onMessage={openMessagePopup} />
+                  emptyText={`No sub dealers match this filter under ${currentDealer.first_name}.`} onMessage={openMessagePopup} />
               )}
 
               {currentSubDealer && (
-                <LaneRow role="promotor" items={promotors} activeId={currentPromotor?.id} onSelect={selectPromotor}
+                <LaneRow role="promotor" items={filteredPromotors} activeId={currentPromotor?.id} onSelect={selectPromotor}
                   ancestors={promotorAncestors} superAdminEmail={superAdminEmail} dark={dark} text={text} subtext={subtext}
-                  emptyText={`${currentSubDealer.first_name} has no promotors yet.`} onMessage={openMessagePopup} />
+                  emptyText={`No promotors match this filter under ${currentSubDealer.first_name}.`} onMessage={openMessagePopup} />
               )}
 
               {currentPromotor && (

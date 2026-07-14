@@ -26,10 +26,12 @@ def get_target_status(order_count):
         return 'green'
     elif order_count >= 7:
         return 'yellow'
+    elif order_count >= 1:
+        return 'orange'
     else:
         return 'red'
 
-STATUS_SEVERITY = {'red': 0, 'yellow': 1, 'green': 2}
+STATUS_SEVERITY = {'red': 0, 'orange': 1, 'yellow': 2, 'green': 3}
 
 def worst_status(statuses):
     """Worst (lowest) status among children. No children => red."""
