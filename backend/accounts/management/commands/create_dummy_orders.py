@@ -2,15 +2,16 @@
 File: BitByte-Marketing/backend/accounts/management/commands/create_dummy_orders.py
 
 Purpose : Ella dummy customer kum RANDOM order count (min-max range) create pannurathukku
-          Example: Customer A -> 4 orders, Customer B -> 11 orders, Customer C -> 8 orders (ellame vera vera)
-          Fast bulk insert (BATCH_SIZE=1000), re-run panna resume support (already irukura orders skip aagum)
+          --force-add use pannினா, existing orders touch pannாம ella customer kkும் puthusa
+          extra orders (min-max range) ADD pannும் (top-up illa, kandippa add pannும்)
 
 Args    :
-    --min-orders   Minimum orders per customer (default: 2)
-    --max-orders   Maximum orders per customer (default: 15)
+    --min-orders   Minimum NEW orders to add per customer (default: 2)
+    --max-orders   Maximum NEW orders to add per customer (default: 15)
+    --force-add    Ignore existing count, ADD this many new orders to EVERY customer regardless
 
 Run:
-    python manage.py create_dummy_orders --min-orders 2 --max-orders 15
+    python manage.py create_dummy_orders --min-orders 1 --max-orders 1 --force-add
 """
 import random
 from django.core.management.base import BaseCommand
@@ -35,12 +36,15 @@ class Command(BaseCommand):
     help = 'Create RANDOM number of dummy JewelryOrders for every dummy customer — FAST bulk version'
 
     def add_arguments(self, parser):
-        parser.add_argument('--min-orders', type=int, default=2, help='Minimum orders per customer')
-        parser.add_argument('--max-orders', type=int, default=15, help='Maximum orders per customer')
+        parser.add_argument('--min-orders', type=int, default=2, help='Minimum NEW orders to add per customer')
+        parser.add_argument('--max-orders', type=int, default=15, help='Maximum NEW orders to add per customer')
+        parser.add_argument('--force-add', action='store_true',
+                             help='Ignore existing order count, ADD this many new orders to EVERY customer regardless')
 
     def handle(self, *args, **options):
         min_orders = options['min_orders']
         max_orders = options['max_orders']
+        force_add = options['force_add']
 
         customers = list(
             CustomerProfile.objects.all()
@@ -55,9 +59,16 @@ class Command(BaseCommand):
         for row in JewelryOrder.objects.filter(user__in=[c.user_id for c in customers]).values('user_id'):
             existing_counts[row['user_id']] = existing_counts.get(row['user_id'], 0) + 1
 
-        customer_targets = {c.user_id: random.randint(min_orders, max_orders) for c in customers}
-
-        customers = [c for c in customers if existing_counts.get(c.user_id, 0) < customer_targets[c.user_id]]
+        if force_add:
+            # ADD mode: every customer gets random(min,max) NEW orders on top of existing ones
+            customer_targets = {
+                c.user_id: existing_counts.get(c.user_id, 0) + random.randint(min_orders, max_orders)
+                for c in customers
+            }
+        else:
+            # TOP-UP mode (old behavior): customer reaches random(min,max) total orders only if below it
+            customer_targets = {c.user_id: random.randint(min_orders, max_orders) for c in customers}
+            customers = [c for c in customers if existing_counts.get(c.user_id, 0) < customer_targets[c.user_id]]
 
         if not customers:
             self.stdout.write(self.style.SUCCESS("All dummy customers already have orders. Nothing to do."))
@@ -80,7 +91,7 @@ class Command(BaseCommand):
         )
 
         self.stdout.write(self.style.SUCCESS(
-            f"{len(customers)} customers still need orders (random {min_orders}-{max_orders} each). "
+            f"{len(customers)} customers getting new orders (random {min_orders}-{max_orders} each). "
             f"{len(products)} products available. Starting bulk insert..."
         ))
 

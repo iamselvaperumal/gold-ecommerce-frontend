@@ -707,10 +707,21 @@ function OrderTrendChart({ dark }) {
     { key: 'all', label: 'All' },
   ]
 
-  const formatLabel = (iso, p) => {
+  // Full date+time label for tooltip — always shows date + time regardless of period
+  const formatFullLabel = (iso) => {
     const d = new Date(iso)
-    if (p === 'today') return d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })
-    if (p === 'week' || p === 'month' || p === '3month') return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+    const datePart = d.toLocaleDateString('en-IN', { year: 'numeric', month: '2-digit', day: '2-digit' }).split('/').reverse().join('-')
+    const timePart = d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })
+    return { datePart, timePart }
+  }
+
+  // Short label for X-axis ticks
+  const formatAxisLabel = (iso, p) => {
+    const d = new Date(iso)
+    if (p === 'today') return d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true })
+    if (p === 'week' || p === 'month' || p === '3month') {
+      return `${d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true })} ${d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}`
+    }
     return d.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })
   }
 
@@ -718,7 +729,11 @@ function OrderTrendChart({ dark }) {
     setLoading(true)
     try {
       const res = await api.get('/order-timeseries/', { params: { period: p } })
-      const formatted = (res.data.data || []).map(d => ({ ...d, label: formatLabel(d.time, p) }))
+      const formatted = (res.data.data || []).map(d => ({
+        ...d,
+        label: formatAxisLabel(d.time, p),
+        full: formatFullLabel(d.time),
+      }))
       setData(formatted)
     } catch {
       setData([])
@@ -732,9 +747,16 @@ function OrderTrendChart({ dark }) {
     if (!active || !payload?.length) return null
     const p = payload[0].payload
     return (
-      <div style={{ background: '#0a1628', border: '1px solid rgba(255,215,0,0.4)', borderRadius: 8, padding: '10px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
-        <div style={{ color: '#94a3b8', fontSize: 11 }}>{p.label}</div>
-        <div style={{ color: '#ffd700', fontWeight: 800, fontSize: 15, marginTop: 2 }}>{p.count} orders</div>
+      <div style={{
+        background: '#1a2332', border: 'none', borderRadius: 8,
+        padding: '14px 18px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+        minWidth: 220,
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <span style={{ color: '#94a3b8', fontSize: 13 }}>{p.full.datePart}</span>
+          <span style={{ color: '#e2e8f0', fontSize: 13, fontWeight: 600, background: 'rgba(255,255,255,0.08)', padding: '3px 10px', borderRadius: 5 }}>{p.full.timePart}</span>
+        </div>
+        <div style={{ color: '#fff', fontWeight: 800, fontSize: 20 }}>{p.count} orders</div>
       </div>
     )
   }
@@ -756,7 +778,7 @@ function OrderTrendChart({ dark }) {
             🔄 Refresh
           </button>
         </div>
-        <div style={{ height: 320 }}>
+        <div style={{ height: 520 }}>
           {loading ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', fontSize: 13 }}>Loading...</div>
           ) : data.length === 0 ? (
@@ -771,10 +793,21 @@ function OrderTrendChart({ dark }) {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="label" stroke="#64748b" fontSize={11} tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} />
+                <XAxis
+                  dataKey="label"
+                  stroke="#64748b"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                  minTickGap={40}
+                  interval="preserveStartEnd"
+                />
                 <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
-                <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="count" stroke="#ffd700" strokeWidth={2} fill="url(#orderGrad)" />
+                <Tooltip
+                  content={<CustomTooltip />}
+                  cursor={{ stroke: '#ffd700', strokeWidth: 1, strokeDasharray: '4 4' }}
+                />
+                <Area type="monotone" dataKey="count" stroke="#ffd700" strokeWidth={2} fill="url(#orderGrad)" dot={false} activeDot={{ r: 4, fill: '#ffd700', stroke: '#0a1628', strokeWidth: 2 }} />
               </AreaChart>
             </ResponsiveContainer>
           )}

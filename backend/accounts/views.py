@@ -1644,21 +1644,41 @@ class OrderTimeSeriesView(APIView):
 
         if period == 'today':
             start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            end = start + timedelta(days=1)
             qs = qs.filter(created_at__gte=start).annotate(bucket=TruncHour('created_at'))
+            step = timedelta(hours=1)
+            bucket_start = start
         elif period == 'week':
-            start = now - timedelta(days=7)
+            start = (now - timedelta(days=7)).replace(hour=0, minute=0, second=0, microsecond=0)
+            end = now
             qs = qs.filter(created_at__gte=start).annotate(bucket=TruncDate('created_at'))
+            step = timedelta(days=1)
+            bucket_start = start
         elif period == 'month':
-            start = now - timedelta(days=30)
+            start = (now - timedelta(days=30)).replace(hour=0, minute=0, second=0, microsecond=0)
+            end = now
             qs = qs.filter(created_at__gte=start).annotate(bucket=TruncDate('created_at'))
+            step = timedelta(days=1)
+            bucket_start = start
         elif period == '3month':
-            start = now - timedelta(days=90)
+            start = (now - timedelta(days=90)).replace(hour=0, minute=0, second=0, microsecond=0)
+            end = now
             qs = qs.filter(created_at__gte=start).annotate(bucket=TruncWeek('created_at'))
+            step = timedelta(weeks=1)
+            bucket_start = start
         elif period == 'year':
-            start = now - timedelta(days=365)
+            start = (now - timedelta(days=365)).replace(hour=0, minute=0, second=0, microsecond=0)
+            end = now
             qs = qs.filter(created_at__gte=start).annotate(bucket=TruncMonth('created_at'))
+            step = timedelta(days=30)
+            bucket_start = start.replace(day=1)
         else:  # all
+            earliest = JewelryOrder.objects.order_by('created_at').first()
+            start = earliest.created_at if earliest else now
+            end = now
             qs = qs.annotate(bucket=TruncMonth('created_at'))
+            step = timedelta(days=30)
+            bucket_start = start.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
         rows = (
             qs.values('bucket')
@@ -1666,10 +1686,21 @@ class OrderTimeSeriesView(APIView):
               .order_by('bucket')
         )
 
-        data = [
-            {'time': row['bucket'].isoformat(), 'count': row['count']}
-            for row in rows if row['bucket']
-        ]
+        # actual order counts, keyed by bucket datetime
+        counts_map = {row['bucket']: row['count'] for row in rows if row['bucket']}
+
+        # ── Fill every bucket in the range, even with 0 orders ──
+        data = []
+        cursor = bucket_start
+        safety_limit = 500  # avoid infinite loop
+        i = 0
+        while cursor <= end and i < safety_limit:
+            data.append({
+                'time': cursor.isoformat(),
+                'count': counts_map.get(cursor, 0),
+            })
+            cursor += step
+            i += 1
 
         return Response({'period': period, 'data': data})
 
