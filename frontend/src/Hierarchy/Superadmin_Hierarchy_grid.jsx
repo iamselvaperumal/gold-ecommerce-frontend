@@ -126,6 +126,80 @@ function hexToRgb(hex) {
   return `${r},${g},${b}`
 }
 
+// ── NEW: shared dark print theme (same app color world), used by both print modes ──
+function getPrintStyles(accent) {
+  return `
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    body { font-family:'Inter',system-ui,sans-serif; background:radial-gradient(circle at 20% 0%, #0b1a2e 0%, #020617 55%); color:#f8fafc; padding:40px; }
+    .wrapper { max-width:520px; margin:0 auto; }
+    .header { text-align:center; margin-bottom:26px; }
+    .header h1 { font-size:20px; font-weight:800; background:linear-gradient(90deg,#22c55e,#38bdf8); -webkit-background-clip:text; background-clip:text; color:transparent; letter-spacing:0.3px; }
+    .header p { font-size:12px; color:#64748b; margin-top:4px; letter-spacing:0.5px; }
+    .chain-item { background:linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015)); border:1.5px solid #334155; border-radius:14px; padding:14px 18px; margin-bottom:8px; }
+    .chain-item.current { border-color:${accent}; background:${accent}14; box-shadow:0 0 22px ${accent}33; }
+    .chain-role { font-size:10px; font-weight:800; color:#94a3b8; letter-spacing:1.4px; margin-bottom:4px; text-transform:uppercase; }
+    .chain-item.current .chain-role { color:${accent}; }
+    .chain-id { font-family:monospace; font-size:11px; color:${accent}; margin-bottom:4px; }
+    .chain-name { font-size:16px; font-weight:800; color:#f8fafc; margin-bottom:6px; }
+    .chain-email { font-size:12px; color:#94a3b8; }
+    .chain-info { font-size:12px; color:#94a3b8; margin-top:3px; }
+    .chain-arrow { text-align:center; color:#475569; margin:4px 0; font-size:14px; }
+    .footer { text-align:center; font-size:10px; color:#475569; margin-top:24px; letter-spacing:0.5px; }
+    .count-row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:18px 0 22px; }
+    .count-pill { font-size:10px; font-weight:800; border:1px solid; border-radius:20px; padding:4px 12px; }
+    .tree-node { margin-bottom:6px; }
+    .tree-children { margin-left:22px; padding-left:16px; border-left:2px dashed #334155; margin-top:10px; display:flex; flex-direction:column; gap:10px; }
+    .tree-card { background:linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015)); border:1.5px solid; border-radius:12px; padding:10px 14px; }
+    .tree-role { font-size:9px; font-weight:800; letter-spacing:1.2px; margin-bottom:2px; }
+    .tree-id { font-family:monospace; font-size:10px; margin-bottom:3px; }
+    .tree-name { font-size:13px; font-weight:700; color:#f8fafc; margin-bottom:2px; }
+    .tree-info { font-size:11px; color:#94a3b8; }
+    @media print { body { padding:20px; } }
+  `
+}
+
+// ── NEW: single node card used inside the hierarchy tree ──
+function renderTreeNodeCard(node, role, extraStyle = '') {
+  const cfg = ROLE_CFG[role]
+  const idVal = node[cfg.idKey] || node.id || '—'
+  const name = [node.first_name, node.last_name].filter(Boolean).join(' ') || '—'
+  const phone = node.mobile_number || '—'
+  const city = node.city_name || ''
+  return `<div class="tree-card" style="border-color:${cfg.color};${extraStyle}">
+    <div class="tree-role" style="color:${cfg.color}">${cfg.label}</div>
+    <div class="tree-id" style="color:${cfg.color}">${idVal}</div>
+    <div class="tree-name">${name}</div>
+    <div class="tree-info">Tel: ${phone}${city ? ' • ' + city : ''}</div>
+  </div>`
+}
+
+// ── NEW: recursively renders every child, grandchild... below a node ──
+function renderDescendantsTree(node, role) {
+  const childRole = CHILD_ROLE[role]
+  if (!childRole) return ''
+  const children = node[CHILD_KEY[role]] || []
+  if (!children.length) return ''
+  return `<div class="tree-children">${children.map(ch => `
+    <div class="tree-node">
+      ${renderTreeNodeCard(ch, childRole)}
+      ${renderDescendantsTree(ch, childRole)}
+    </div>`).join('')}</div>`
+}
+
+// ── NEW: counts every level below a node, for the summary pills ──
+function countDescendants(node, role) {
+  const counts = {}
+  const walk = (n, r) => {
+    const childRole = CHILD_ROLE[r]
+    if (!childRole) return
+    const children = n[CHILD_KEY[r]] || []
+    counts[childRole] = (counts[childRole] || 0) + children.length
+    children.forEach(ch => walk(ch, childRole))
+  }
+  walk(node, role)
+  return counts
+}
+
 // ══════════════════════════════════════════════════════════════════
 // HOVER CHAIN POPUP + PRINT — same behaviour as your old page,
 // only pasted here as-is so nothing breaks.
@@ -173,28 +247,64 @@ function printPersonCard(node, role, cfg, color, ancestors, superAdminEmail) {
   const printWindow = window.open('', '_blank')
   printWindow.document.write(`
     <!DOCTYPE html><html><head><title>${roleLabel} — ${currentName}</title>
-    <style>
-      * { margin:0; padding:0; box-sizing:border-box; }
-      body { font-family:'Inter',system-ui,sans-serif; background:#f8fafc; padding:40px; display:flex; justify-content:center; }
-      .wrapper { max-width:480px; width:100%; }
-      .header { text-align:center; margin-bottom:28px; }
-      .header h1 { font-size:20px; font-weight:800; color:#020617; }
-      .header p { font-size:12px; color:#64748b; margin-top:4px; }
-      .chain-item { background:#ffffff; border:1.5px solid #e2e8f0; border-radius:12px; padding:14px 18px; margin-bottom:8px; }
-      .chain-item.current { border-color:${color}; background:${color}11; }
-      .chain-role { font-size:10px; font-weight:800; color:#64748b; letter-spacing:1px; margin-bottom:4px; text-transform:uppercase; }
-      .chain-item.current .chain-role { color:${color}; }
-      .chain-id { font-family:monospace; font-size:11px; color:${color}; margin-bottom:4px; }
-      .chain-name { font-size:16px; font-weight:800; color:#020617; margin-bottom:6px; }
-      .chain-email { font-size:12px; color:#475569; }
-      .chain-info { font-size:12px; color:#475569; margin-top:3px; }
-      .chain-arrow { text-align:center; color:#94a3b8; margin:4px 0; font-size:14px; }
-      .footer { text-align:center; font-size:10px; color:#94a3b8; margin-top:24px; letter-spacing:0.5px; }
-      @media print { body { background:white; padding:20px; } }
-    </style></head>
+    <style>${getPrintStyles(color)}</style></head>
     <body><div class="wrapper">
       <div class="header"><h1>BitByte — ${roleLabel} Profile</h1><p>Hierarchy Chain Report</p></div>
       ${chainHtml}
+      <div class="footer">Printed on ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
+    </div>
+    <script>window.onload = () => { window.print() }<\/script>
+    </body></html>
+  `)
+  printWindow.document.close()
+}
+
+// ── NEW: prints the full downward hierarchy starting from this node ──
+function printHierarchyTree(node, role, ancestors, superAdminEmail) {
+  const cfg = ROLE_CFG[role]
+  const chain = [
+    { type: 'super_admin', data: { email: superAdminEmail } },
+    ...ancestors.map(a => ({ type: a.role, data: a.node })),
+  ]
+  const chainHtml = chain.map(item => {
+    if (item.type === 'super_admin') {
+      return `<div class="chain-item">
+        <div class="chain-role">SUPER ADMIN</div>
+        <div class="chain-email">${item.data.email || '—'}</div>
+      </div><div class="chain-arrow">↓</div>`
+    }
+    const r = ROLE_CFG[item.type]
+    const d = item.data || {}
+    const idVal = d[r.idKey] || d.id || '—'
+    const name = [d.first_name, d.last_name].filter(Boolean).join(' ') || '—'
+    return `<div class="chain-item" style="border-color:${r.color}">
+      <div class="chain-role" style="color:${r.color}">${r.label}</div>
+      <div class="chain-id" style="color:${r.color}">${idVal}</div>
+      <div class="chain-name">${name}</div>
+    </div><div class="chain-arrow">↓</div>`
+  }).join('')
+
+  const counts = countDescendants(node, role)
+  const countPillsHtml = Object.keys(counts).length
+    ? Object.entries(counts).map(([r, c]) => {
+        const rc = ROLE_CFG[r]
+        return `<span class="count-pill" style="border-color:${rc.color}; color:${rc.color}">${c} ${rc.label}${c === 1 ? '' : 'S'}</span>`
+      }).join('')
+    : `<span class="count-pill" style="border-color:#475569;color:#94a3b8">No one under this ${cfg.label.toLowerCase()} yet</span>`
+
+  const currentName = [node.first_name, node.last_name].filter(Boolean).join(' ') || '—'
+  const treeHtml = renderDescendantsTree(node, role)
+
+  const printWindow = window.open('', '_blank')
+  printWindow.document.write(`
+    <!DOCTYPE html><html><head><title>${cfg.label} Hierarchy — ${currentName}</title>
+    <style>${getPrintStyles(cfg.color)}</style></head>
+    <body><div class="wrapper">
+      <div class="header"><h1>BitByte — ${cfg.label} Hierarchy Report</h1><p>Full downward chain, every level</p></div>
+      ${chainHtml}
+      ${renderTreeNodeCard(node, role, `box-shadow:0 0 22px ${cfg.color}33;`)}
+      <div class="count-row">${countPillsHtml}</div>
+      ${treeHtml}
       <div class="footer">Printed on ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
     </div>
     <script>window.onload = () => { window.print() }<\/script>
@@ -405,15 +515,32 @@ function showChainPopup(anchorEl, ancestors, current, dark, superAdminEmail) {
 // ══════════════════════════════════════════════════════════════════
 const STATUS_COLOR = { red: '#ef4444', orange: '#f97316', yellow: '#eab308', green: '#22c55e' }
 
-function LaneCard({ node, role, active, onClick, ancestors, superAdminEmail, dark, text, subtext, showChildCount, onMessage }) {
+function LaneCard({ node, role, active, onClick, ancestors, superAdminEmail, dark, text, subtext, showChildCount, onMessage, onPrint, activeStatusFilter, onToggleStatusFilter }) {
   const navigate = useNavigate()
   const cfg = ROLE_CFG[role]
   // ── CHANGED: card color-ah role fixed color-ku badhila, target status color use pannuvom.
-  // super_admin-ku status field kidiyathu, so ana role color-ah fallback pannuvom. ──
-  const c = (role !== 'super_admin' && node.status) ? STATUS_COLOR[node.status] : cfg.color
+  // super_admin-ku status field kidiyathu, so ana role color-ah fallback pannuvom.
+  // CUSTOMER-ku target illaya (avanga order_count base panni than MELE irukura
+  // promotor/sub_dealer/dealer/admin status calculate aagum), so customer card
+  // eppayume default GREEN-a fixed-a kaanpikkanum, own status-ah follow pannakutathu. ──
+  const c = role === 'customer'
+    ? STATUS_COLOR.green
+    : (role !== 'super_admin' && node.status) ? STATUS_COLOR[node.status] : cfg.color
   const Icon = cfg.Icon
   const childRole = CHILD_ROLE[role]
   const childCount = childRole && showChildCount ? (node[CHILD_KEY[role]] || []).length : null
+
+  // ── NEW: count how many direct children (dealers/sub_dealers/promotors/customers)
+  // fall into each color bucket. Ithu than dots-la kaanpikkura number. ──
+  const childStatusCounts = childRole
+    ? (() => {
+        const counts = { red: 0, orange: 0, yellow: 0, green: 0 }
+        ;(node[CHILD_KEY[role]] || []).forEach(ch => {
+          if (ch.status && counts[ch.status] !== undefined) counts[ch.status]++
+        })
+        return counts
+      })()
+    : null
 
   return (
     <div
@@ -450,7 +577,16 @@ function LaneCard({ node, role, active, onClick, ancestors, superAdminEmail, dar
 
       <div className="gcard-actions">
         <button
-          onClick={e => { e.stopPropagation(); printPersonCard(node, role, cfg, c, ancestors, superAdminEmail) }}
+          onClick={e => {
+            e.stopPropagation()
+            // ── NEW: leaf role (customer) na hierarchy kideiyathu, straight-a print pannidum.
+            // Children irukura roles (admin/dealer/sub_dealer/promotor)-ku choice popup varum. ──
+            if (CHILD_ROLE[role]) {
+              onPrint({ node, role, cfg, color: c, ancestors })
+            } else {
+              printPersonCard(node, role, cfg, c, ancestors, superAdminEmail)
+            }
+          }}
           className="gcard-btn" style={{ '--nc': c }}
         >
           <IconPrinter color={c} /> PRINT
@@ -468,6 +604,38 @@ function LaneCard({ node, role, active, onClick, ancestors, superAdminEmail, dar
         </button>
       </div>
 
+      {/* ── NEW: status breakdown dots.
+           Ovvoru dot-um "indha node-kீழ irukkura direct children (dealers/sub_dealers/
+           promotors/customers) la ethanaper andha color-la irukanga" nu kaanpikkum.
+           Andha dot click pannினா, adhே color-la kீழ level lane filter aagும். ── */}
+      {role !== 'super_admin' && node.status && (
+        <div className="gcard-status-dots">
+          {['red', 'orange', 'yellow', 'green'].map(s => {
+            const count = childStatusCounts ? childStatusCounts[s] : (s === node.status ? (node.order_count ?? 0) : 0)
+            const isFilterActive = activeStatusFilter && activeStatusFilter.role === role && activeStatusFilter.nodeId === node.id && activeStatusFilter.status === s
+            return (
+              <span
+                key={s}
+                onClick={e => { e.stopPropagation(); onToggleStatusFilter && onToggleStatusFilter(role, node, s) }}
+                className="gcard-dot"
+                style={{
+                  background: STATUS_COLOR[s],
+                  borderColor: STATUS_COLOR[s],
+                  color: '#020617',
+                  opacity: count > 0 ? 1 : 0.3,
+                  outline: isFilterActive ? '2px solid #f8fafc' : 'none',
+                  outlineOffset: '2px',
+                  cursor: onToggleStatusFilter ? 'pointer' : 'default',
+                }}
+                title={`${s.toUpperCase()}: ${count}`}
+              >
+                {count}
+              </span>
+            )
+          })}
+        </div>
+      )}
+
       {childCount !== null && (
         <div className="gcard-count" style={{ background: c }}>
           {childCount} {childRole.replace('_', ' ')}
@@ -480,7 +648,7 @@ function LaneCard({ node, role, active, onClick, ancestors, superAdminEmail, dar
 // ══════════════════════════════════════════════════════════════════
 // LANE ROW — a full horizontal level: label on the left, cards scroll right.
 // ══════════════════════════════════════════════════════════════════
-function LaneRow({ role, items, activeId, onSelect, ancestors, superAdminEmail, dark, text, subtext, emptyText, onMessage }) {
+function LaneRow({ role, items, activeId, onSelect, ancestors, superAdminEmail, dark, text, subtext, emptyText, onMessage, onPrint, activeStatusFilter, onToggleStatusFilter }) {
   const cfg = ROLE_CFG[role]
   return (
     <div className="glane">
@@ -492,10 +660,10 @@ function LaneRow({ role, items, activeId, onSelect, ancestors, superAdminEmail, 
       <div className="glane-track" style={{ '--nc': cfg.color, scrollbarColor: `${cfg.color} rgba(255,255,255,0.06)` }}>
         {items.length === 0 ? (
           <div className="glane-empty" style={{ color: subtext }}>
-            <span style={{ fontSize: 16 }}>🌱</span> {emptyText}
+            {emptyText}
           </div>
         ) : (
-          items.map(item => (
+         items.map(item => (
             <LaneCard
               key={item.id}
               node={item}
@@ -507,6 +675,9 @@ function LaneRow({ role, items, activeId, onSelect, ancestors, superAdminEmail, 
               dark={dark} text={text} subtext={subtext}
               showChildCount={role !== 'customer'}
               onMessage={onMessage}
+              onPrint={onPrint}
+              activeStatusFilter={activeStatusFilter}
+              onToggleStatusFilter={onToggleStatusFilter}
             />
           ))
         )}
@@ -533,16 +704,10 @@ export default function SuperadminHierarchyGrid() {
   const [selSubDealer, setSelSubDealer] = useState(null)
 const [selPromotor, setSelPromotor] = useState(null)
 
-  // ── NEW: status color filter checkboxes (red/orange/yellow/green) ──
-  const [statusFilter, setStatusFilter] = useState({ red: false, orange: false, yellow: false, green: false })
-  const toggleStatusFilter = (key) => setStatusFilter(prev => ({ ...prev, [key]: !prev[key] }))
-  const filterByStatus = (list) => {
-    const active = Object.keys(statusFilter).filter(k => statusFilter[k])
-    if (active.length === 0) return list
-    return list.filter(n => active.includes(n.status))
-  }
-
-  
+// ── NEW: status filter — scoped to the SPECIFIC card whose dot was clicked.
+  // { role, nodeId, status } — role + nodeId identify WHICH card, status is the color.
+  // Only that card's own children lane gets filtered. ──
+  const [activeStatusFilter, setActiveStatusFilter] = useState(null)
 
   // ── NEW: Direct message popup state ──
   const [messageTarget, setMessageTarget] = useState(null) // { node, role }
@@ -556,6 +721,20 @@ const [selPromotor, setSelPromotor] = useState(null)
     setMessageTitle('')
     setMessageBody('')
     setMessageMsg('')
+  }
+
+  // ── NEW: Print choice popup state — "only this / full hierarchy" select panna ──
+  const [printTarget, setPrintTarget] = useState(null) // { node, role, cfg, color, ancestors }
+  const openPrintPopup = (target) => setPrintTarget(target)
+  const handlePrintOnly = () => {
+    const { node, role, cfg, color, ancestors } = printTarget
+    printPersonCard(node, role, cfg, color, ancestors, superAdminEmail)
+    setPrintTarget(null)
+  }
+  const handlePrintHierarchy = () => {
+    const { node, role, ancestors } = printTarget
+    printHierarchyTree(node, role, ancestors, superAdminEmail)
+    setPrintTarget(null)
   }
 
   const sendDirectMessage = async () => {
@@ -646,11 +825,35 @@ setMessageSending(false)
 
 const customers = currentPromotor?.customers || []
 
-  // ── NEW: apply color filter — admin/dealer/sub_dealer/promotor mattum, customer skip ──
-  const filteredAdmins = useMemo(() => filterByStatus(admins), [admins, statusFilter])
-  const filteredDealers = useMemo(() => filterByStatus(dealers), [dealers, statusFilter])
-  const filteredSubDealers = useMemo(() => filterByStatus(subDealers), [subDealers, statusFilter])
-  const filteredPromotors = useMemo(() => filterByStatus(promotors), [promotors, statusFilter])
+// ── NEW: filter scoped per-parent — dealers filter only when the active dot
+  // belongs to currentAdmin, sub_dealers only when it belongs to currentDealer, etc. ──
+  const filteredDealers = useMemo(() => {
+    if (activeStatusFilter && activeStatusFilter.role === 'admin' && activeStatusFilter.nodeId === currentAdmin?.id) {
+      return dealers.filter(d => d.status === activeStatusFilter.status)
+    }
+    return dealers
+  }, [dealers, activeStatusFilter, currentAdmin])
+
+  const filteredSubDealers = useMemo(() => {
+    if (activeStatusFilter && activeStatusFilter.role === 'dealer' && activeStatusFilter.nodeId === currentDealer?.id) {
+      return subDealers.filter(sd => sd.status === activeStatusFilter.status)
+    }
+    return subDealers
+  }, [subDealers, activeStatusFilter, currentDealer])
+
+  const filteredPromotors = useMemo(() => {
+    if (activeStatusFilter && activeStatusFilter.role === 'sub_dealer' && activeStatusFilter.nodeId === currentSubDealer?.id) {
+      return promotors.filter(p => p.status === activeStatusFilter.status)
+    }
+    return promotors
+  }, [promotors, activeStatusFilter, currentSubDealer])
+
+  const filteredCustomers = useMemo(() => {
+    if (activeStatusFilter && activeStatusFilter.role === 'promotor' && activeStatusFilter.nodeId === currentPromotor?.id) {
+      return customers.filter(c => c.status === activeStatusFilter.status)
+    }
+    return customers
+  }, [customers, activeStatusFilter, currentPromotor])
 
   // ── ancestor chains per level, for the hover popup + print card ──
   const adminAncestors = []
@@ -661,10 +864,21 @@ const customers = currentPromotor?.customers || []
 
   // ── click handlers — select this level, reset everything BELOW it
   // (so the next rows auto-fall-back to their own "first" item) ──
-  const selectAdmin = (node) => { setSelAdmin(node.id); setSelDealer(null); setSelSubDealer(null); setSelPromotor(null) }
+const selectAdmin = (node) => { setSelAdmin(node.id); setSelDealer(null); setSelSubDealer(null); setSelPromotor(null) }
   const selectDealer = (node) => { setSelDealer(node.id); setSelSubDealer(null); setSelPromotor(null) }
   const selectSubDealer = (node) => { setSelSubDealer(node.id); setSelPromotor(null) }
   const selectPromotor = (node) => { setSelPromotor(node.id) }
+
+  // ── NEW: dot click = (1) select that card so its children lane opens,
+  // (2) set/clear a filter scoped ONLY to that card's id. Same dot again = clear. ──
+  const selectFns = { admin: selectAdmin, dealer: selectDealer, sub_dealer: selectSubDealer, promotor: selectPromotor }
+  const currentSelIds = { admin: selAdmin, dealer: selDealer, sub_dealer: selSubDealer, promotor: selPromotor }
+  const toggleStatusFilter = (role, node, status) => {
+    setActiveStatusFilter(prev =>
+      (prev && prev.role === role && prev.nodeId === node.id && prev.status === status) ? null : { role, nodeId: node.id, status }
+    )
+    if (currentSelIds[role] !== node.id) selectFns[role](node)
+  }
 
   // ── search across the whole hierarchy (unchanged from before) ──
   const searchAllHierarchy = (query) => {
@@ -762,6 +976,9 @@ const customers = currentPromotor?.customers || []
         .gcard-btn:hover{ background:var(--nc); color:#020617; transform:scale(1.03); }
         .gcard-btn-sales{ border-color:#22c55e; color:#22c55e; }
         .gcard-count{ position:absolute; bottom:-9px; left:50%; transform:translateX(-50%); color:#000; font-size:9px; font-weight:800; padding:1px 7px; border-radius:20px; white-space:nowrap; }
+        .gcard-status-dots{ display:flex; gap:6px; justify-content:center; margin-top:9px; }
+        .gcard-dot{ width:20px; height:20px; border-radius:50%; border:1.5px solid; box-sizing:border-box; transition:all .15s ease; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:800; }
+        .gcard-dot:hover{ transform:scale(1.15); }
 
         .glane{ margin-bottom:26px; }
         .glane-label{ display:flex; align-items:baseline; gap:10px; margin-bottom:10px; padding-left:2px; }
@@ -810,43 +1027,7 @@ const customers = currentPromotor?.customers || []
             </div>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          {/* ── NEW: small status color filter pill ── */}
-          {totalStats && (
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '20px', padding: '6px 12px' }}>
-              {[
-                { key: 'red', color: '#ef4444' },
-                { key: 'orange', color: '#f97316' },
-                { key: 'yellow', color: '#eab308' },
-                { key: 'green', color: '#22c55e' },
-              ].map(opt => (
-                <label key={opt.key} title={opt.key} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={statusFilter[opt.key]}
-                    onChange={() => toggleStatusFilter(opt.key)}
-                    style={{
-                      appearance: 'none', WebkitAppearance: 'none',
-                      width: 13, height: 13, borderRadius: '4px',
-                      border: `1.5px solid ${opt.color}`,
-                      background: statusFilter[opt.key] ? opt.color : 'transparent',
-                      cursor: 'pointer', margin: 0,
-                      boxShadow: statusFilter[opt.key] ? `0 0 6px ${opt.color}88` : 'none',
-                    }}
-                  />
-                </label>
-              ))}
-              {Object.values(statusFilter).some(Boolean) && (
-                <button
-                  onClick={() => setStatusFilter({ red: false, orange: false, yellow: false, green: false })}
-                  style={{ background: 'none', border: 'none', color: subtext, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
-                  title="Clear filter"
-                >
-                  <IconX color={subtext} size={11} />
-                </button>
-              )}
-            </div>
-          )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ position: 'relative' }}>
             <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
               <IconSearch color={subtext} />
@@ -876,7 +1057,7 @@ const customers = currentPromotor?.customers || []
         {loading && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 0', gap: '16px' }}>
             <div style={{ width: 32, height: 32, border: '3px solid rgba(34,197,94,0.2)', borderTop: '3px solid #22c55e', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-            <span style={{ color: subtext, fontSize: '14px' }}>Hold on bro, pulling up your team tree...</span>
+            <span style={{ color: subtext, fontSize: '14px' }}>Hold on, pulling up your team tree...</span>
           </div>
         )}
 
@@ -902,6 +1083,7 @@ const customers = currentPromotor?.customers || []
                   dark={dark} text={text} subtext={subtext}
                   showChildCount={item.role !== 'customer'}
                   onMessage={openMessagePopup}
+                  onPrint={openPrintPopup}
                 />
               ))}
             </div>
@@ -924,32 +1106,37 @@ const customers = currentPromotor?.customers || []
                 <IconChevronDown color={subtext} />
               </div>
 
-              <LaneRow role="admin" items={filteredAdmins} activeId={currentAdmin?.id} onSelect={selectAdmin}
+              <LaneRow role="admin" items={admins} activeId={currentAdmin?.id} onSelect={selectAdmin}
                 ancestors={adminAncestors} superAdminEmail={superAdminEmail} dark={dark} text={text} subtext={subtext}
-                emptyText="No admins match this filter." onMessage={openMessagePopup} />
+                emptyText="No admins yet." onMessage={openMessagePopup} onPrint={openPrintPopup}
+                activeStatusFilter={activeStatusFilter} onToggleStatusFilter={toggleStatusFilter} />
 
               {currentAdmin && (
                 <LaneRow role="dealer" items={filteredDealers} activeId={currentDealer?.id} onSelect={selectDealer}
                   ancestors={dealerAncestors} superAdminEmail={superAdminEmail} dark={dark} text={text} subtext={subtext}
-                  emptyText={`No dealers match this filter under ${currentAdmin.first_name}.`} onMessage={openMessagePopup} />
+                  emptyText={`No dealers match this filter under ${currentAdmin.first_name}.`} onMessage={openMessagePopup} onPrint={openPrintPopup}
+                  activeStatusFilter={activeStatusFilter} onToggleStatusFilter={toggleStatusFilter} />
               )}
 
               {currentDealer && (
                 <LaneRow role="sub_dealer" items={filteredSubDealers} activeId={currentSubDealer?.id} onSelect={selectSubDealer}
                   ancestors={subDealerAncestors} superAdminEmail={superAdminEmail} dark={dark} text={text} subtext={subtext}
-                  emptyText={`No sub dealers match this filter under ${currentDealer.first_name}.`} onMessage={openMessagePopup} />
+                  emptyText={`No sub dealers match this filter under ${currentDealer.first_name}.`} onMessage={openMessagePopup} onPrint={openPrintPopup}
+                  activeStatusFilter={activeStatusFilter} onToggleStatusFilter={toggleStatusFilter} />
               )}
 
               {currentSubDealer && (
                 <LaneRow role="promotor" items={filteredPromotors} activeId={currentPromotor?.id} onSelect={selectPromotor}
                   ancestors={promotorAncestors} superAdminEmail={superAdminEmail} dark={dark} text={text} subtext={subtext}
-                  emptyText={`No promotors match this filter under ${currentSubDealer.first_name}.`} onMessage={openMessagePopup} />
+                  emptyText={`No promotors match this filter under ${currentSubDealer.first_name}.`} onMessage={openMessagePopup} onPrint={openPrintPopup}
+                  activeStatusFilter={activeStatusFilter} onToggleStatusFilter={toggleStatusFilter} />
               )}
 
               {currentPromotor && (
-                <LaneRow role="customer" items={customers} activeId={null} onSelect={() => {}}
+                <LaneRow role="customer" items={filteredCustomers} activeId={null} onSelect={() => {}}
                   ancestors={customerAncestors} superAdminEmail={superAdminEmail} dark={dark} text={text} subtext={subtext}
-                  emptyText={`${currentPromotor.first_name} has no customers yet.`} onMessage={openMessagePopup} />
+                  emptyText={`No customers match this filter under ${currentPromotor.first_name}.`} onMessage={openMessagePopup} onPrint={openPrintPopup}
+                  activeStatusFilter={activeStatusFilter} onToggleStatusFilter={toggleStatusFilter} />
               )}
             </>
           )
@@ -1074,6 +1261,69 @@ const customers = currentPromotor?.customers || []
               ) : (
                 <><IconMessage color={(messageSending || !messageTitle.trim() || !messageBody.trim()) ? '#22c55e' : '#02240f'} size={14} /> Send to this person only</>
               )}
+</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── NEW: PRINT CHOICE POPUP — Only vs Full Hierarchy ── */}
+      {printTarget && (
+        <div
+          onClick={() => setPrintTarget(null)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.45)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+            zIndex: 1400, display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: 'linear-gradient(145deg,#0a1628,#060e1c)',
+              border: `1px solid ${printTarget.color}55`,
+              borderRadius: '20px', padding: '26px',
+              width: '95%', maxWidth: '380px',
+              boxShadow: '0 32px 80px rgba(0,0,0,0.7)',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+              <IconPrinter color={printTarget.color} size={22} />
+            </div>
+            <div style={{ color: '#f8fafc', fontWeight: 800, fontSize: '15px', marginBottom: '4px' }}>
+              Print {printTarget.node.first_name}'s Profile
+            </div>
+            <div style={{ color: subtext, fontSize: '12px', marginBottom: '20px' }}>
+              Enna print pannanum nu select pannunga bro
+            </div>
+
+            <button
+              onClick={handlePrintOnly}
+              style={{
+                width: '100%', padding: '13px', marginBottom: '10px',
+                background: 'rgba(255,255,255,0.04)', border: `1.5px solid ${printTarget.color}`,
+                borderRadius: '12px', color: printTarget.color, fontWeight: 800, fontSize: '13px', cursor: 'pointer',
+              }}
+            >
+              {ROLE_CFG[printTarget.role]?.label} Only
+            </button>
+            <button
+              onClick={handlePrintHierarchy}
+              style={{
+                width: '100%', padding: '13px', marginBottom: '10px',
+                background: `linear-gradient(90deg, ${printTarget.color}, #38bdf8)`,
+                border: 'none', borderRadius: '12px', color: '#020617', fontWeight: 800, fontSize: '13px', cursor: 'pointer',
+              }}
+            >
+              {ROLE_CFG[printTarget.role]?.label} Hierarchy (Full Tree)
+            </button>
+            <button
+              onClick={() => setPrintTarget(null)}
+              style={{
+                width: '100%', padding: '10px', background: 'none', border: 'none',
+                color: subtext, fontSize: '12px', cursor: 'pointer',
+              }}
+            >
+              Cancel
             </button>
           </div>
         </div>

@@ -1374,44 +1374,72 @@ def _bulk_orders_for_promotor(p):
     return _orders_by_user_map(ids)
 
 
+def _monthly_order_count(orders):
+    """orders list (each dict has 'created_at') la irundhu, indha current
+    month-ku mattum order count edukurom — FullHierarchyView same logic. ──"""
+    now = timezone.now()
+    count = 0
+    for o in orders:
+        created = o.get('created_at')
+        if created and created.year == now.year and created.month == now.month:
+            count += 1
+    return count
+
+
 def _build_customer(c, orders_by_user):
+    orders = orders_by_user.get(c.user_id, [])
+    monthly_count = _monthly_order_count(orders)
     return {
         'type': 'customer', 'id': c.id, 'customer_id': c.customer_id,
         'first_name': c.first_name, 'last_name': c.last_name,
         'mobile_number': c.mobile_number, 'city_name': c.city_name,
-        'orders': orders_by_user.get(c.user_id, []),
+        'orders': orders,
+        'order_count': monthly_count,           # ← NEW
+        'status': get_target_status(monthly_count),   # ← NEW
     }
 
 def _build_promotor(p, orders_by_user):
+    customers = [_build_customer(c, orders_by_user) for c in p.assigned_customers.all()]
     return {
         'type': 'promotor', 'id': p.id, 'promotor_id': p.promotor_id,
         'first_name': p.first_name, 'last_name': p.last_name,
         'mobile_number': p.mobile_number, 'city_name': p.city_name,
-        'customers': [_build_customer(c, orders_by_user) for c in p.assigned_customers.all()],
+        'customers': customers,
+        'order_count': sum(c['order_count'] for c in customers),         # ← NEW
+        'status': worst_status([c['status'] for c in customers]),        # ← NEW
     }
 
 def _build_sub_dealer(sd, orders_by_user):
+    promotors = [_build_promotor(p, orders_by_user) for p in sd.assigned_promotors.all()]
     return {
         'type': 'sub_dealer', 'id': sd.id, 'sub_dealer_id': sd.sub_dealer_id,
         'first_name': sd.first_name, 'last_name': sd.last_name,
         'mobile_number': sd.mobile_number, 'city_name': sd.city_name,
-        'promotors': [_build_promotor(p, orders_by_user) for p in sd.assigned_promotors.all()],
+        'promotors': promotors,
+        'order_count': sum(p['order_count'] for p in promotors),         # ← NEW
+        'status': worst_status([p['status'] for p in promotors]),        # ← NEW
     }
 
 def _build_dealer(d, orders_by_user):
+    sub_dealers = [_build_sub_dealer(sd, orders_by_user) for sd in d.assigned_sub_dealers.all()]
     return {
         'type': 'dealer', 'id': d.id, 'dealer_id': d.dealer_id,
         'first_name': d.first_name, 'last_name': d.last_name,
         'mobile_number': d.mobile_number, 'city_name': d.city_name,
-        'sub_dealers': [_build_sub_dealer(sd, orders_by_user) for sd in d.assigned_sub_dealers.all()],
+        'sub_dealers': sub_dealers,
+        'order_count': sum(sd['order_count'] for sd in sub_dealers),     # ← NEW
+        'status': worst_status([sd['status'] for sd in sub_dealers]),    # ← NEW
     }
 
 def _build_admin(a, orders_by_user):
+    dealers = [_build_dealer(d, orders_by_user) for d in a.assigned_dealers.all()]
     return {
         'type': 'admin', 'id': a.id, 'admin_id': a.admin_id,
         'first_name': a.first_name, 'last_name': a.last_name,
         'mobile_number': a.mobile_number, 'city_name': a.city_name,
-        'dealers': [_build_dealer(d, orders_by_user) for d in a.assigned_dealers.all()],
+        'dealers': dealers,
+        'order_count': sum(d['order_count'] for d in dealers),           # ← NEW
+        'status': worst_status([d['status'] for d in dealers]),          # ← NEW
     }
 
 

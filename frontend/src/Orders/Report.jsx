@@ -47,6 +47,10 @@ const ROLE_CFG = {
   promotor:    { label: 'Promotor',    color: '#a78bfa' },
 }
 
+// ── NEW: same status colors as the hierarchy grid — customer order_count base
+// panni backend calculate pannina cascading status (red/orange/yellow/green) ──
+const STATUS_COLOR = { red: '#ef4444', orange: '#f97316', yellow: '#eab308', green: '#22c55e' }
+
 // ── Column labels shown in the breakdown table, based on root type ──
 const COLUMN_MAP = {
   super_admin_view: ['Admin', 'Dealer', 'Sub Dealer', 'Promotor', 'Customer'],
@@ -92,7 +96,11 @@ function flattenToRows(root) {
   function getIdName(node, type) {
     const idVal = node[`${type}_id`] || node.id || '—'
     const name = `${node.first_name || ''} ${node.last_name || ''}`.trim() || node.dealer_name || node.promotor_name || idVal
-    return { id: idVal, name }
+    // ── NEW: customer eppayume fixed GREEN. Vera ella roles-um (admin/dealer/
+    // sub_dealer/promotor) andha node's own status field (backend cascade
+    // pannina, customer order_count base panni) follow pannும். ──
+    const color = type === 'customer' ? STATUS_COLOR.green : (node.status ? STATUS_COLOR[node.status] : null)
+    return { id: idVal, name, color }
   }
 
   function walk(node, chain) {
@@ -291,6 +299,127 @@ function TrendLineChart({ buckets, color }) {
         <text key={i} x={p.x} y={height - 10} fontSize="11" fill="#94a3b8" textAnchor="middle">{p.label}</text>
       ))}
     </svg>
+  )
+}
+
+
+
+// ── NEW: small helpers to read id / name / color off any node in the tree ──
+function nodeIdVal(node) {
+  return node.customer_id || node[`${node.type}_id`] || node.id || '—'
+}
+function nodeName(node) {
+  return `${node.first_name || ''} ${node.last_name || ''}`.trim() || node.dealer_name || node.promotor_name || nodeIdVal(node)
+}
+function nodeColor(node) {
+  // customer eppayume fixed green (target illaya). Vera ella roles-um andha
+  // node's own status field (backend cascade pannina, customer order_count base panni) follow pannum.
+  if (node.type === 'customer') return STATUS_COLOR.green
+  return node.status ? STATUS_COLOR[node.status] : (ROLE_CFG[node.type]?.color || '#94a3b8')
+}
+
+// ── NEW: Hierarchy Grid — same lane-row style as SuperadminHierarchyGrid.
+// roots = top-level nodes (admin list, or single dealer/sub_dealer/promotor
+// depending on login role / selected drill-down node). Click a card to open
+// its children lane below, exactly like the main hierarchy grid page. ──
+function HierarchyBreakdownGrid({ roots, cardBg, border, text, subtext }) {
+  const [selChain, setSelChain] = useState([])
+
+  useEffect(() => { setSelChain([]) }, [roots])
+
+  const levels = []
+  let currentNodes = roots
+  let depth = 0
+  while (currentNodes && currentNodes.length > 0) {
+    levels.push(currentNodes)
+    const selId = selChain[depth]
+    if (!selId) break
+    const selectedNode = currentNodes.find(n => nodeIdVal(n).toString() === selId)
+    if (!selectedNode) break
+    const { key, childType } = getChildren(selectedNode)
+    if (!key) break
+    const children = (selectedNode[key] || []).map(c => ({ ...c, type: childType }))
+    if (children.length === 0) { levels.push(children); break }
+    currentNodes = children
+    depth++
+  }
+
+  const selectAt = (depthIdx, node) => {
+    setSelChain(prev => {
+      const next = prev.slice(0, depthIdx)
+      next[depthIdx] = nodeIdVal(node).toString()
+      return next
+    })
+  }
+
+  if (!roots || roots.length === 0) {
+    return <div style={{ color: subtext, textAlign: 'center', padding: '50px 0' }}>No sales found yet.</div>
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {levels.map((nodes, depthIdx) => {
+        // ── NEW: lane divider color — role fixed color base (like glane-divider
+        // in the hierarchy grid page), na status color illa, role color base ──
+        const laneColor = nodes[0] ? (ROLE_CFG[nodes[0].type]?.color || subtext) : subtext
+        return (
+        <div key={depthIdx}>
+          <div style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '1.2px', color: subtext, marginBottom: '10px', textTransform: 'uppercase' }}>
+            {nodes[0] ? `${LEVEL_LABELS[nodes[0].type] || nodes[0].type} · ${nodes.length}` : 'No matches'}
+          </div>
+          <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '14px' }}>
+            {nodes.map(node => {
+              const c = nodeColor(node)
+              const idVal = nodeIdVal(node)
+              const { key, childType } = getChildren(node)
+              const childCount = key ? (node[key] || []).length : null
+              const active = selChain[depthIdx] === idVal.toString()
+              const isDim = selChain[depthIdx] && !active
+              return (
+                <div
+                  key={idVal}
+                  onClick={() => childCount !== null && selectAt(depthIdx, node)}
+                  style={{
+                    minWidth: '176px', maxWidth: '210px', flexShrink: 0,
+                    cursor: childCount !== null ? 'pointer' : 'default',
+                    background: 'linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015))',
+                    border: `1.5px solid ${c}`, borderRadius: '14px', padding: '13px 16px',
+                    opacity: isDim ? 0.45 : 1,
+                    boxShadow: active ? `0 0 0 1.5px ${c}, 0 10px 22px rgba(0,0,0,0.4)` : 'none',
+                    transition: 'opacity .15s ease, box-shadow .15s ease',
+                  }}
+                >
+                  <div style={{ fontSize: '9px', fontWeight: 800, color: c, letterSpacing: '1.2px', marginBottom: '7px' }}>
+                    {(LEVEL_LABELS[node.type] || node.type).toUpperCase()}
+                  </div>
+                  <div style={{ fontFamily: 'monospace', fontSize: '10px', color: c, marginBottom: '4px' }}>{idVal}</div>
+                  <div style={{ fontWeight: 700, fontSize: '13px', color: text, marginBottom: '5px' }}>{nodeName(node)}</div>
+                  {node.mobile_number && (
+                    <div style={{ fontSize: '11px', color: subtext, marginBottom: '2px' }}>{node.mobile_number}</div>
+                  )}
+                  {node.city_name && (
+                    <div style={{ fontSize: '11px', color: subtext }}>{node.city_name}</div>
+                  )}
+                  {node.type === 'customer' && (
+                    <div style={{ marginTop: '8px', fontSize: '11px', fontWeight: 700, color: c }}>
+                      {(node.orders || []).length} orders
+                    </div>
+                  )}
+                  {childCount !== null && (
+                    <div style={{ marginTop: '8px', fontSize: '10px', fontWeight: 800, color: c }}>
+                      {childCount} {(LEVEL_LABELS[childType] || childType).toLowerCase()}{childCount === 1 ? '' : 's'}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          {/* ── NEW: full-width horizontal divider bar under this lane —
+               same "glane-divider" style as SuperadminHierarchyGrid ── */}
+          <div style={{ height: '3px', borderRadius: '3px', background: laneColor, opacity: 0.55, margin: '0 4px 22px 4px' }} />
+        </div>
+      )})}
+    </div>
   )
 }
 
@@ -501,7 +630,8 @@ const filteredNodes = useMemo(() => {
     if (isMultiAdminView) {
       const adminId = root.admin_id || root.id || '—'
       const adminName = `${root.first_name || ''} ${root.last_name || ''}`.trim() || adminId
-      rootRows.forEach(r => { r.chain = [{ id: adminId, name: adminName }, ...r.chain] })
+      const adminColor = root.status ? STATUS_COLOR[root.status] : null
+      rootRows.forEach(r => { r.chain = [{ id: adminId, name: adminName, color: adminColor }, ...r.chain] })
     }
     rows = rows.concat(rootRows)
   })
@@ -882,45 +1012,12 @@ const filteredNodes = useMemo(() => {
             <TrendLineChart buckets={trendBuckets} color={cfg.color} />
           </div>
 
-          {/* Breakdown table */}
+          {/* Breakdown grid — same lane style as the hierarchy grid page */}
           <div className="print-card" style={{ background: cardBg, border: `1px solid ${border}`, borderRadius: '16px', padding: '24px 28px' }}>
             <div style={{ fontSize: '13px', fontWeight: 700, color: cfg.color, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '18px' }}>
               Network breakdown
             </div>
-
-            {allRows.length === 0 ? (
-              <div style={{ color: subtext, textAlign: 'center', padding: '50px 0' }}>No sales found yet.</div>
-            ) : (
-              <div className="print-table-wrap" style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                  <thead>
-                    <tr style={{ borderBottom: `1px solid ${border}` }}>
-                      {columns.map(c => (
-                        <th key={c} style={{ textAlign: 'left', padding: '10px 12px', color: subtext, fontWeight: 600, fontSize: '12px', textTransform: 'uppercase' }}>{c}</th>
-                      ))}
-                      <th style={{ textAlign: 'center', padding: '10px 12px', color: subtext, fontWeight: 600, fontSize: '12px', textTransform: 'uppercase' }}>Orders</th>
-                      <th style={{ textAlign: 'right', padding: '10px 12px', color: subtext, fontWeight: 600, fontSize: '12px', textTransform: 'uppercase' }}>Sales</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-    {allRows.map((row, i) => (
-      <tr key={i} style={{ borderBottom: `1px solid ${border}` }}>
-        {row.chain.map((item, ci) => (
-          <td key={ci} style={{ padding: '10px 12px', color: text }}>
-            <div style={{ color: cfg.color, fontFamily: 'monospace', fontSize: '11px', marginBottom: '2px' }}>{item.id}</div>
-            <div style={{ color: subtext, fontSize: '13px' }}>({item.name})</div>
-          </td>
-        ))}
-        <td style={{ padding: '10px 12px', textAlign: 'center', color: subtext }}>{row.orders}</td>
-        <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: cfg.color }}>
-          ₹{row.amount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-        </td>
-      </tr>
-    ))}
-  </tbody>
-                </table>
-              </div>
-            )}
+            <HierarchyBreakdownGrid roots={activeTree} cardBg={cardBg} border={border} text={text} subtext={subtext} />
           </div>
 
         </div>

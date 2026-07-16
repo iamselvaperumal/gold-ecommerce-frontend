@@ -100,7 +100,9 @@ function getImageUrl(url) {
 
 function collectOrders(node) {
   if (!node) return []
-  if (node.type === 'customer') return node.orders || []
+  // ── NEW: ovvoru order-kum adha place panna customer node-a attach pannuvom,
+  // so product click pannina yaaru order pannanganu therinjukalam ──
+  if (node.type === 'customer') return (node.orders || []).map(o => ({ ...o, _ownerNode: node }))
   const cfg = ROLE_CFG[node.type]
   const children = node[cfg.childKey] || []
   return children.flatMap(collectOrders)
@@ -121,6 +123,7 @@ function TreeItem({ node, selectedId, onSelect, isLast = true }) {
   return (
     <div className="stree-node">
       <div
+        id={`streeid-${node.type}-${node.id}`}
         onClick={() => onSelect(node)}
         className="stree-item"
         style={{
@@ -177,7 +180,8 @@ export default function SuperAdminHierarchySalesCount() {
 
   const [root, setRoot] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [selected, setSelected] = useState(null)
+ const [selected, setSelected] = useState(null)
+
 
   useEffect(() => {
     if (!role || !id) return
@@ -188,24 +192,45 @@ export default function SuperAdminHierarchySalesCount() {
       .finally(() => setLoading(false))
   }, [role, id])
 
+ // ── NEW: product-la irundhu neraa antha customer-ku jump pannum —
+  // selected node-ah maathi, tree-la andha customer row-ku smooth scroll pannும் ──
+  const jumpToCustomer = (custNode) => {
+    setSelected(custNode)
+    setActiveProductKey(null)
+    setTimeout(() => {
+      const el = document.getElementById(`streeid-customer-${custNode.id}`)
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 60)
+  }
+
   const orders = selected ? collectOrders(selected) : []
 
+ 
   const grouped = {}
   orders.forEach(o => {
-    const key = `${o.metal}__${o.grade}__${o.product_name}`
+    const ownerId = o._ownerNode ? o._ownerNode.id : 'unknown'
+    const key = `${o.metal}__${o.grade}__${o.product_name}__${ownerId}`
     if (!grouped[key]) {
       grouped[key] = {
+        key,
         metal: o.metal, grade: o.grade, product_name: o.product_name,
         category: o.category, net_weight: o.net_weight,
         image: o.product_image_url,
         totalQty: 0, totalAmount: 0, lastRate: 0,
+        owner: o._ownerNode || null,
+        latestAt: o.created_at, // ── NEW: indha card-oda latest order time track pannuvom ──
       }
     }
     grouped[key].totalQty += o.quantity
     grouped[key].totalAmount += o.total_price
     grouped[key].lastRate = o.unit_price
+    // ── NEW: puthu order vandha, latestAt update pannuvom ──
+    if (new Date(o.created_at) > new Date(grouped[key].latestAt)) {
+      grouped[key].latestAt = o.created_at
+    }
   })
-  const groupedList = Object.values(grouped)
+  // ── NEW: latest order mela, pazhaya order kீழe — always newest-first ──
+  const groupedList = Object.values(grouped).sort((a, b) => new Date(b.latestAt) - new Date(a.latestAt))
   const overallCount = orders.length
   const overallAmount = orders.reduce((s, o) => s + o.total_price, 0)
 
@@ -408,7 +433,15 @@ export default function SuperAdminHierarchySalesCount() {
                   {groupedList.map((g, i) => {
                     const imgUrl = getImageUrl(g.image)
                     return (
-                      <div key={i} className="sprod-card" style={{ animationDelay: `${i * 45}ms` }}>
+                      <div
+                        key={g.key}
+                        className="sprod-card"
+                        onClick={() => g.owner && jumpToCustomer(g.owner)}
+                        style={{
+                          animationDelay: `${i * 45}ms`,
+                          cursor: g.owner ? 'pointer' : 'default',
+                        }}
+                      >
                         <div className="sprod-img">
                           {imgUrl ? (
                             <img src={imgUrl} alt={g.product_name} onError={e => { e.currentTarget.style.display = 'none' }} />
@@ -416,6 +449,20 @@ export default function SuperAdminHierarchySalesCount() {
                             <IconBox color="#475569" size={32} />
                           )}
                         </div>
+
+                        {/* ── NEW: indha card ЕТHU customer-oda order-nu fixed-a top-la kaatrom.
+                             Click pannina antha customer-ku tree-la jump aagum ── */}
+                        {g.owner && (
+                          <div style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 5, marginBottom: 8,
+                            background: 'rgba(251,113,133,0.1)', border: '1px solid rgba(251,113,133,0.3)',
+                            borderRadius: 20, padding: '3px 10px',
+                          }}>
+                            <IconUser color="#fb7185" size={10} />
+                            <span style={{ fontSize: 10.5, fontWeight: 800, color: '#fb7185' }}>{g.owner.first_name} {g.owner.last_name || ''}</span>
+                          </div>
+                        )}
+
                         <div style={{ fontSize: 14, fontWeight: 800, color: text, marginBottom: 2 }}>{g.product_name}</div>
                         <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
                           <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'capitalize', color: '#38bdf8', background: 'rgba(56,189,248,0.1)', border: '1px solid rgba(56,189,248,0.25)', borderRadius: 20, padding: '2px 9px' }}>{g.metal}</span>
