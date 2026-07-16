@@ -111,10 +111,12 @@ function collectOrders(node) {
 // ══════════════════════════════════════════════════════════════════
 // TREE ITEM — left panel, one node per row, indented by depth.
 // ══════════════════════════════════════════════════════════════════
-function TreeItem({ node, selectedId, onSelect, isLast = true }) {
+function TreeItem({ node, selectedId, onSelect, isLast = true, pulseId }) {
   const cfg = ROLE_CFG[node.type]
   const Icon = cfg.Icon
   const isSelected = selectedId === `${node.type}-${node.id}`
+  // ── NEW: product-la irundhu jump pannina, oru chinna neram glow flash aagum ──
+  const isPulsing = pulseId === `${node.type}-${node.id}`
   const children = cfg.childKey ? (node[cfg.childKey] || []) : []
   const orderCount = collectOrders(node).length
   const rgb = hexToRgb(cfg.color)
@@ -125,7 +127,7 @@ function TreeItem({ node, selectedId, onSelect, isLast = true }) {
       <div
         id={`streeid-${node.type}-${node.id}`}
         onClick={() => onSelect(node)}
-        className="stree-item"
+        className={`stree-item ${isPulsing ? 'stree-item-pulse' : ''}`}
         style={{
           '--nc': cfg.color,
           background: isSelected ? `rgba(${rgb},0.14)` : 'rgba(255,255,255,0.02)',
@@ -160,7 +162,7 @@ function TreeItem({ node, selectedId, onSelect, isLast = true }) {
         <div className="stree-children" style={{ '--cc': childColor }}>
           {children.map((child, idx) => (
             <div className="stree-branch" key={`${child.type}-${child.id}`} style={{ '--cc': childColor }}>
-              <TreeItem node={child} selectedId={selectedId} onSelect={onSelect} isLast={idx === children.length - 1} />
+              <TreeItem node={child} selectedId={selectedId} onSelect={onSelect} isLast={idx === children.length - 1} pulseId={pulseId} />
             </div>
           ))}
         </div>
@@ -180,7 +182,9 @@ export default function SuperAdminHierarchySalesCount() {
 
   const [root, setRoot] = useState(null)
   const [loading, setLoading] = useState(true)
- const [selected, setSelected] = useState(null)
+const [selected, setSelected] = useState(null)
+  // ── NEW: which tree node should flash-glow right now (cleared after animation) ──
+  const [pulseId, setPulseId] = useState(null)
 
 
   useEffect(() => {
@@ -196,11 +200,13 @@ export default function SuperAdminHierarchySalesCount() {
   // selected node-ah maathi, tree-la andha customer row-ku smooth scroll pannும் ──
   const jumpToCustomer = (custNode) => {
     setSelected(custNode)
-    setActiveProductKey(null)
+    setPulseId(`customer-${custNode.id}`)
     setTimeout(() => {
       const el = document.getElementById(`streeid-customer-${custNode.id}`)
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }, 60)
+    // ── NEW: glow konjam neram kaatitu off aagum ──
+    setTimeout(() => setPulseId(null), 1600)
   }
 
   const orders = selected ? collectOrders(selected) : []
@@ -288,6 +294,12 @@ export default function SuperAdminHierarchySalesCount() {
           border:1.5px solid; transition: all .18s ease; position:relative; overflow:hidden;
         }
         .stree-item:hover{ transform: translateX(2px); }
+        @keyframes streePulseFlash{
+          0%{ box-shadow: 0 0 0 0 rgba(251,113,133,0.6); }
+          50%{ box-shadow: 0 0 0 8px rgba(251,113,133,0); }
+          100%{ box-shadow: 0 0 0 0 rgba(251,113,133,0); }
+        }
+        .stree-item-pulse{ animation: streePulseFlash 0.8s ease-out 2; }
         .stree-accent{
           position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:0 3px 3px 0;
           box-shadow: 0 0 10px currentColor;
@@ -379,7 +391,7 @@ export default function SuperAdminHierarchySalesCount() {
             <IconLink color="#4ade80" size={14} />
             <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, color: '#4ade80' }}>HIERARCHY TREE</span>
           </div>
-          <TreeItem node={root} selectedId={selected ? `${selected.type}-${selected.id}` : null} onSelect={setSelected} />
+          <TreeItem node={root} selectedId={selected ? `${selected.type}-${selected.id}` : null} onSelect={setSelected} pulseId={pulseId} />
           <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.06)', textAlign: 'center' }}>
             <span style={{ fontSize: 9.5, color: '#334155', letterSpacing: 0.5 }}>BitByte Network • Live Tree</span>
           </div>

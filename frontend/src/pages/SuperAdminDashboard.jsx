@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import logo from '../assets/logo.png'
-// import goldCoin from '../assets/gold-coin.png'
-// import silverCoin from '../assets/silver-coin.png'
+
 import goldCoin from '../assets/gold-coin-transparent.png'
 import silverCoin from '../assets/silver-coin-transparent.png'
 
@@ -692,6 +692,97 @@ function createAdminPopup(a, i, anchorEl, dark, subtext, text) {
 }
 
 
+// ─── ORDER TREND CHART ──────────────────────────────────────────────────
+function OrderTrendChart({ dark }) {
+  const [period, setPeriod] = useState('today')
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(false)
+
+  const PERIODS = [
+    { key: 'today', label: 'Today' },
+    { key: 'week', label: '7D' },
+    { key: 'month', label: '1M' },
+    { key: '3month', label: '3M' },
+    { key: 'year', label: '1Y' },
+    { key: 'all', label: 'All' },
+  ]
+
+  const formatLabel = (iso, p) => {
+    const d = new Date(iso)
+    if (p === 'today') return d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })
+    if (p === 'week' || p === 'month' || p === '3month') return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+    return d.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })
+  }
+
+  const fetchData = async (p = period) => {
+    setLoading(true)
+    try {
+      const res = await api.get('/order-timeseries/', { params: { period: p } })
+      const formatted = (res.data.data || []).map(d => ({ ...d, label: formatLabel(d.time, p) }))
+      setData(formatted)
+    } catch {
+      setData([])
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => { fetchData(period) }, [period])
+
+  const CustomTooltip = ({ active, payload }) => {
+    if (!active || !payload?.length) return null
+    const p = payload[0].payload
+    return (
+      <div style={{ background: '#0a1628', border: '1px solid rgba(255,215,0,0.4)', borderRadius: 8, padding: '10px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
+        <div style={{ color: '#94a3b8', fontSize: 11 }}>{p.label}</div>
+        <div style={{ color: '#ffd700', fontWeight: 800, fontSize: 15, marginTop: 2 }}>{p.count} orders</div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ width: '65%', padding: '20px 40px 0' }}>
+      <div style={{ background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)', border: dark ? '1px solid rgba(103,232,249,0.1)' : '1px solid rgba(0,0,0,0.1)', borderRadius: 20, padding: '20px 24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {PERIODS.map(p => (
+              <button key={p.key} onClick={() => setPeriod(p.key)}
+                style={{ padding: '6px 14px', borderRadius: 20, border: period === p.key ? '1px solid #ffd700' : '1px solid rgba(255,255,255,0.1)', background: period === p.key ? 'rgba(255,215,0,0.15)' : 'transparent', color: period === p.key ? '#ffd700' : '#94a3b8', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <button onClick={() => fetchData(period)}
+            style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(255,215,0,0.35)', background: 'rgba(255,215,0,0.08)', color: '#ffd700', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+            🔄 Refresh
+          </button>
+        </div>
+        <div style={{ height: 320 }}>
+          {loading ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', fontSize: 13 }}>Loading...</div>
+          ) : data.length === 0 ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', fontSize: 13 }}>No orders in this period</div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="orderGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ffd700" stopOpacity={0.5} />
+                    <stop offset="95%" stopColor="#ffd700" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <XAxis dataKey="label" stroke="#64748b" fontSize={11} tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} />
+                <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
+                <Tooltip content={<CustomTooltip />} />
+                <Area type="monotone" dataKey="count" stroke="#ffd700" strokeWidth={2} fill="url(#orderGrad)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 export default function SuperAdminDashboard() {
   const navigate = useNavigate()
   const [dark, setDark] = useState(true)
@@ -1814,6 +1905,8 @@ const buildHierarchyOrders = (period, metalKey) => {
           </button>
         </div>
       </div>
+
+      <OrderTrendChart dark={dark} />
 
       <div style={{ position: 'relative', zIndex: 10, padding: '36px 20px', maxWidth: '1400px', margin: '0 auto' }}>
         {msg && (

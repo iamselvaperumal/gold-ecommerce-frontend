@@ -424,6 +424,10 @@ function HierarchyBreakdownGrid({ roots, cardBg, border, text, subtext }) {
 }
 
 function HierarchyChainCard({ selectedLevel, selectedNodeId, treeData, ancestors, cardBg, border, text, subtext }) {
+  // ── CHANGED: labels mattum fixed. Color ippo node.status base pannina
+  // STATUS_COLOR (red/orange/yellow/green) follow pannum — same logic as the
+  // hierarchy grid. Customer eppayume fixed GREEN (target illaya). Super Admin
+  // ku status field kidiyathu, so fixed gold-a irukkum. ──
   const ROLE_STEPS = {
     super_admin: { label: 'Super Admin', color: '#ffd700' },
     admin: { label: 'Admin', color: '#22d3ee' },
@@ -431,6 +435,11 @@ function HierarchyChainCard({ selectedLevel, selectedNodeId, treeData, ancestors
     sub_dealer: { label: 'Sub Dealer', color: '#f59e0b' },
     promotor: { label: 'Promotor', color: '#a78bfa' },
     customer: { label: 'Customer', color: '#f472b6' },
+  }
+  const chainNodeColor = (node) => {
+    if (node.type === 'super_admin') return ROLE_STEPS.super_admin.color
+    if (node.type === 'customer') return STATUS_COLOR.green
+    return node.status ? STATUS_COLOR[node.status] : (ROLE_STEPS[node.type]?.color || '#94a3b8')
   }
 
   if (selectedLevel === 'own' || !selectedNodeId) {
@@ -451,7 +460,7 @@ function HierarchyChainCard({ selectedLevel, selectedNodeId, treeData, ancestors
     : [{ type: 'super_admin' }, ...chain]
 
  const currentNode = fullChain[fullChain.length - 1]
-  const currentCfg = ROLE_STEPS[currentNode.type] || { color: '#94a3b8' }
+  const currentCfg = { ...(ROLE_STEPS[currentNode.type] || {}), color: chainNodeColor(currentNode) }
   const currentName = `${currentNode.first_name || ''} ${currentNode.last_name || ''}`.trim()
 
   return (
@@ -480,7 +489,7 @@ function HierarchyChainCard({ selectedLevel, selectedNodeId, treeData, ancestors
 
       {fullChain.map((node, idx) => {
         const isLast = idx === fullChain.length - 1
-        const cfg = ROLE_STEPS[node.type] || { label: node.type, color: '#94a3b8' }
+        const cfg = { ...(ROLE_STEPS[node.type] || { label: node.type }), color: chainNodeColor(node) }
         const name = node.type === 'super_admin' ? '' : `${node.first_name || ''} ${node.last_name || ''}`.trim()
         const idVal = node.type === 'super_admin' ? '' : (node[`${node.type}_id`] || node.id)
 

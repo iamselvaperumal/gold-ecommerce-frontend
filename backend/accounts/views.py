@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
 from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder, JewelryProduct, JewelryProductImage, HomeBanner, CartItem, Wishlist, JewelryOrder
 from django.db.models import Prefetch, Count, Q
+from django.db.models.functions import TruncHour, TruncDate, TruncWeek, TruncMonth
 from .serializers import *
 from django.utils import timezone
 from datetime import timedelta
@@ -1630,7 +1631,47 @@ class SalesReportView(APIView):
         return Response({'error': 'Invalid role'}, status=400)
 
 
+class OrderTimeSeriesView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        if request.user.role != 'super_admin':
+            return Response({'error': 'Permission denied'}, status=403)
+
+        period = request.query_params.get('period', 'today')
+        now = timezone.now()
+        qs = JewelryOrder.objects.all()
+
+        if period == 'today':
+            start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            qs = qs.filter(created_at__gte=start).annotate(bucket=TruncHour('created_at'))
+        elif period == 'week':
+            start = now - timedelta(days=7)
+            qs = qs.filter(created_at__gte=start).annotate(bucket=TruncDate('created_at'))
+        elif period == 'month':
+            start = now - timedelta(days=30)
+            qs = qs.filter(created_at__gte=start).annotate(bucket=TruncDate('created_at'))
+        elif period == '3month':
+            start = now - timedelta(days=90)
+            qs = qs.filter(created_at__gte=start).annotate(bucket=TruncWeek('created_at'))
+        elif period == 'year':
+            start = now - timedelta(days=365)
+            qs = qs.filter(created_at__gte=start).annotate(bucket=TruncMonth('created_at'))
+        else:  # all
+            qs = qs.annotate(bucket=TruncMonth('created_at'))
+
+        rows = (
+            qs.values('bucket')
+              .annotate(count=Count('id'))
+              .order_by('bucket')
+        )
+
+        data = [
+            {'time': row['bucket'].isoformat(), 'count': row['count']}
+            for row in rows if row['bucket']
+        ]
+
+        return Response({'period': period, 'data': data})
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
