@@ -1639,7 +1639,7 @@ class OrderTimeSeriesView(APIView):
             return Response({'error': 'Permission denied'}, status=403)
 
         period = request.query_params.get('period', 'today')
-        now = timezone.now()
+        now = timezone.localtime(timezone.now())
         qs = JewelryOrder.objects.all()
 
         if period == 'today':

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import logo from '../assets/logo.png'
 
 import goldCoin from '../assets/gold-coin-transparent.png'
@@ -693,6 +693,7 @@ function createAdminPopup(a, i, anchorEl, dark, subtext, text) {
 
 
 // ─── ORDER TREND CHART ──────────────────────────────────────────────────
+// ─── ORDER TREND CHART — Style 52 (Volume bars + price line) ───────────
 function OrderTrendChart({ dark }) {
   const [period, setPeriod] = useState('today')
   const [data, setData] = useState([])
@@ -707,7 +708,6 @@ function OrderTrendChart({ dark }) {
     { key: 'all', label: 'All' },
   ]
 
-  // Full date+time label for tooltip — always shows date + time regardless of period
   const formatFullLabel = (iso) => {
     const d = new Date(iso)
     const datePart = d.toLocaleDateString('en-IN', { year: 'numeric', month: '2-digit', day: '2-digit' }).split('/').reverse().join('-')
@@ -715,7 +715,6 @@ function OrderTrendChart({ dark }) {
     return { datePart, timePart }
   }
 
-  // Short label for X-axis ticks
   const formatAxisLabel = (iso, p) => {
     const d = new Date(iso)
     if (p === 'today') return d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true })
@@ -743,6 +742,17 @@ function OrderTrendChart({ dark }) {
 
   useEffect(() => { fetchData(period) }, [period])
 
+  // ── KPI: total orders + trend % (second half avg vs first half avg) ──
+  const totalOrders = data.reduce((sum, d) => sum + (d.count || 0), 0)
+  const mid = Math.floor(data.length / 2)
+  const firstHalf = data.slice(0, mid)
+  const secondHalf = data.slice(mid)
+  const avg = arr => arr.length ? arr.reduce((s, d) => s + d.count, 0) / arr.length : 0
+  const firstAvg = avg(firstHalf)
+  const secondAvg = avg(secondHalf)
+  const trendPercent = firstAvg > 0 ? (((secondAvg - firstAvg) / firstAvg) * 100).toFixed(1) : (secondAvg > 0 ? 100 : 0)
+  const isUp = trendPercent >= 0
+
   const CustomTooltip = ({ active, payload }) => {
     if (!active || !payload?.length) return null
     const p = payload[0].payload
@@ -763,52 +773,64 @@ function OrderTrendChart({ dark }) {
 
   return (
     <div style={{ width: '65%', padding: '20px 40px 0' }}>
-      <div style={{ background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)', border: dark ? '1px solid rgba(103,232,249,0.1)' : '1px solid rgba(0,0,0,0.1)', borderRadius: 20, padding: '20px 24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {PERIODS.map(p => (
-              <button key={p.key} onClick={() => setPeriod(p.key)}
-                style={{ padding: '6px 14px', borderRadius: 20, border: period === p.key ? '1px solid #ffd700' : '1px solid rgba(255,255,255,0.1)', background: period === p.key ? 'rgba(255,215,0,0.15)' : 'transparent', color: period === p.key ? '#ffd700' : '#94a3b8', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-                {p.label}
-              </button>
-            ))}
+      <div style={{
+        background: '#0a1628',
+        border: '1px solid rgba(56,189,248,0.25)',
+        borderRadius: 20, padding: '20px 24px',
+      }}>
+        {/* Header row: title + % badge, period tabs, refresh */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4, flexWrap: 'wrap', gap: 10 }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+              <span style={{ fontSize: 12, fontWeight: 500, color: '#38bdf8' }}>Order Volume</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: isUp ? '#4ade80' : '#f87171' }}>
+                {isUp ? '+' : ''}{trendPercent}%
+              </span>
+            </div>
+            <p style={{ fontSize: 22, fontWeight: 500, margin: '2px 0 0', color: '#f8fafc' }}>{totalOrders} orders</p>
           </div>
           <button onClick={() => fetchData(period)}
-            style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(255,215,0,0.35)', background: 'rgba(255,215,0,0.08)', color: '#ffd700', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+            style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(56,189,248,0.35)', background: 'rgba(56,189,248,0.08)', color: '#38bdf8', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
             🔄 Refresh
           </button>
         </div>
-        <div style={{ height: 520 }}>
+
+        {/* Period tabs */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16, marginTop: 12 }}>
+          {PERIODS.map(p => (
+            <button key={p.key} onClick={() => setPeriod(p.key)}
+              style={{ padding: '6px 14px', borderRadius: 20, border: period === p.key ? '1px solid #38bdf8' : '1px solid rgba(255,255,255,0.1)', background: period === p.key ? 'rgba(56,189,248,0.15)' : 'transparent', color: period === p.key ? '#38bdf8' : '#94a3b8', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+              {p.label}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ height: 480 }}>
           {loading ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', fontSize: 13 }}>Loading...</div>
           ) : data.length === 0 ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', fontSize: 13 }}>No orders in this period</div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="orderGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ffd700" stopOpacity={0.5} />
-                    <stop offset="95%" stopColor="#ffd700" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+              <ComposedChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                 <XAxis
                   dataKey="label"
-                  stroke="#64748b"
-                  fontSize={11}
+                  stroke="rgba(148,163,184,0.6)"
+                  fontSize={9}
                   tickLine={false}
                   axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
                   minTickGap={40}
                   interval="preserveStartEnd"
                 />
-                <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
+                <YAxis stroke="rgba(148,163,184,0.6)" fontSize={9} tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip
                   content={<CustomTooltip />}
-                  cursor={{ stroke: '#ffd700', strokeWidth: 1, strokeDasharray: '4 4' }}
+                  cursor={{ fill: 'rgba(56,189,248,0.06)' }}
                 />
-                <Area type="monotone" dataKey="count" stroke="#ffd700" strokeWidth={2} fill="url(#orderGrad)" dot={false} activeDot={{ r: 4, fill: '#ffd700', stroke: '#0a1628', strokeWidth: 2 }} />
-              </AreaChart>
+                <Bar dataKey="count" fill="rgba(56,189,248,0.25)" radius={[2, 2, 0, 0]} barSize={14} />
+                <Line type="monotone" dataKey="count" stroke="#38bdf8" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#38bdf8', stroke: '#0a1628', strokeWidth: 2 }} />
+              </ComposedChart>
             </ResponsiveContainer>
           )}
         </div>
