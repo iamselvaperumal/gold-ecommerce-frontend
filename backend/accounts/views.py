@@ -1734,10 +1734,11 @@ class TodayLoginStatusView(APIView):
 
         today = timezone.now().date()
 
-        def build_entry(profile, id_field, role_label):
+        def build_entry(profile, id_field, role_label, level):
             u = profile.user
             is_active = bool(u.last_login and u.last_login.date() == today)
             return {
+                'level': level,
                 'level_role': role_label,
                 'id': getattr(profile, id_field, None),
                 'name': f"{profile.first_name} {profile.last_name or ''}".strip(),
@@ -1745,19 +1746,18 @@ class TodayLoginStatusView(APIView):
                 'phone': profile.mobile_number,
                 'location': profile.city_name,
                 'active': is_active,
+                'last_login': u.last_login.isoformat() if u.last_login else None,
             }
 
         all_entries = []
         for p in AdminProfile.objects.select_related('user'):
-            all_entries.append(build_entry(p, 'admin_id', 'Admin'))
+            all_entries.append(build_entry(p, 'admin_id', 'Admin', 2))
         for p in DealerProfile.objects.select_related('user'):
-            all_entries.append(build_entry(p, 'dealer_id', 'Dealer'))
+            all_entries.append(build_entry(p, 'dealer_id', 'Dealer', 3))
         for p in SubDealerProfile.objects.select_related('user'):
-            all_entries.append(build_entry(p, 'sub_dealer_id', 'Sub Dealer'))
+            all_entries.append(build_entry(p, 'sub_dealer_id', 'Sub Dealer', 4))
         for p in PromotorProfile.objects.select_related('user'):
-            all_entries.append(build_entry(p, 'promotor_id', 'Promotor'))
-        for p in CustomerProfile.objects.select_related('user'):
-            all_entries.append(build_entry(p, 'customer_id', 'Customer'))
+            all_entries.append(build_entry(p, 'promotor_id', 'Promotor', 5))
 
         active_list = [e for e in all_entries if e['active']]
         inactive_list = [e for e in all_entries if not e['active']]

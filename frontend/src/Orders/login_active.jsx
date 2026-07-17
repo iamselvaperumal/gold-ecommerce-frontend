@@ -2,15 +2,6 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
 
-const ROLE_ORDER = ['Admin', 'Dealer', 'Sub Dealer', 'Promotor', 'Customer']
-const ROLE_COLOR = {
-  'Admin': '#22d3ee',
-  'Dealer': '#4ade80',
-  'Sub Dealer': '#f59e0b',
-  'Promotor': '#a78bfa',
-  'Customer': '#f472b6',
-}
-
 export default function LoginActive() {
   const navigate = useNavigate()
   const [data, setData] = useState([])
@@ -22,7 +13,8 @@ export default function LoginActive() {
       setLoading(true)
       try {
         const res = await api.get('/today-login-status/')
-        setData(res.data.active || [])
+        const sorted = [...(res.data.active || [])].sort((a, b) => a.level - b.level)
+        setData(sorted)
       } catch (err) {
         setError('Failed to load active users')
       }
@@ -31,11 +23,11 @@ export default function LoginActive() {
     fetchData()
   }, [])
 
-  const grouped = ROLE_ORDER.map(role => ({
-    role,
-    color: ROLE_COLOR[role],
-    users: data.filter(u => u.level_role === role),
-  }))
+  const formatTime = (iso) => {
+    if (!iso) return '—'
+    const d = new Date(iso)
+    return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#020617', color: '#f8fafc', fontFamily: '"Inter",system-ui,sans-serif', padding: '32px 24px' }}>
@@ -66,53 +58,40 @@ export default function LoginActive() {
           </div>
         )}
 
-        {!loading && !error && grouped.map(group => (
-          <div key={group.role} style={{ marginBottom: '28px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: group.color }} />
-              <h2 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: group.color }}>
-                {group.role} ({group.users.length})
-              </h2>
+        {!loading && !error && (
+          data.length === 0 ? (
+            <div style={{ color: '#64748b', fontSize: '14px', padding: '40px 0', textAlign: 'center' }}>No one logged in today</div>
+          ) : (
+            <div style={{ overflowX: 'auto', border: '1px solid rgba(74,222,128,0.2)', borderRadius: '14px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                <thead>
+                  <tr style={{ background: 'rgba(74,222,128,0.08)', borderBottom: '1px solid rgba(74,222,128,0.25)' }}>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4ade80', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>Level</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4ade80', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>Position</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4ade80', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>User ID</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4ade80', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>Name</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4ade80', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>Phone No</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4ade80', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>Login Active</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.map((u, i) => (
+                    <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <td style={{ padding: '14px 16px', color: '#94a3b8' }}>{u.level}</td>
+                      <td style={{ padding: '14px 16px', color: '#f8fafc', fontWeight: 700 }}>{u.level_role}</td>
+                      <td style={{ padding: '14px 16px', color: '#4ade80', fontFamily: 'monospace' }}>{u.id || '—'}</td>
+                      <td style={{ padding: '14px 16px', color: '#f8fafc' }}>{u.name || 'Unknown'}</td>
+                      <td style={{ padding: '14px 16px', color: '#94a3b8' }}>{u.phone || '—'}</td>
+                      <td style={{ padding: '14px 16px', color: '#4ade80', fontWeight: 700 }}>{formatTime(u.last_login)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-
-            {group.users.length === 0 ? (
-              <div style={{ color: '#64748b', fontSize: '13px', padding: '12px 0' }}>No active {group.role.toLowerCase()} today</div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '14px' }}>
-                {group.users.map((u, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      background: `rgba(${hexToRgb(group.color)},0.06)`,
-                      border: `1px solid rgba(${hexToRgb(group.color)},0.3)`,
-                      borderRadius: '14px',
-                      padding: '16px 18px',
-                    }}
-                  >
-                    <div style={{ color: group.color, fontFamily: 'monospace', fontSize: '11px', marginBottom: '6px' }}>
-                      {u.id || '—'}
-                    </div>
-                    <div style={{ color: '#f8fafc', fontWeight: 700, fontSize: '14px', marginBottom: '8px' }}>
-                      {u.name || 'Unknown'}
-                    </div>
-                    <div style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '3px' }}>✉️ {u.email || '—'}</div>
-                    <div style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '3px' }}>📞 {u.phone || '—'}</div>
-                    <div style={{ color: '#94a3b8', fontSize: '12px' }}>📍 {u.location || '—'}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+          )
+        )}
 
       </div>
     </div>
   )
-}
-
-function hexToRgb(hex) {
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  return `${r},${g},${b}`
 }
