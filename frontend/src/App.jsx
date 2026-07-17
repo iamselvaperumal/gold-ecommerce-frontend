@@ -68,6 +68,8 @@ import OrderConfirm from './Orders/Orderconfirm'
 import OrderSummary from './Orders/Ordersummary'
 import AdminOrdersPage from './Orders/Adminorderspage'
 import Report from './Orders/Report'
+import LoginActive from './Orders/login_active'
+import LoginInactive from './Orders/login_inactive'
 
 
 
@@ -230,6 +232,9 @@ export default function App() {
         } />
 
         <Route path="/hierarchy-sales-count" element={<SuperAdminHierarchySalesCount />} />
+
+        <Route path="/login-active" element={<LoginActive />} />
+        <Route path="/login-inactive" element={<LoginInactive />} />
 
 
       </Routes>

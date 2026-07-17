@@ -85,7 +85,11 @@ class LoginView(APIView):
         if not user:
             return Response({'error': 'Incorrect password'}, status=400)
 
-        # Step 3: Success
+        # Step 3: last_login update pannu (Active/Inactive pie chart-ku idhu than base)
+        user.last_login = timezone.now()
+        user.save(update_fields=['last_login'])
+
+        # Step 4: Success
         refresh = RefreshToken.for_user(user)
         return Response({
             'access': str(refresh.access_token),
@@ -1686,8 +1690,23 @@ class OrderTimeSeriesView(APIView):
               .order_by('bucket')
         )
 
-        # actual order counts, keyed by bucket datetime
-        counts_map = {row['bucket']: row['count'] for row in rows if row['bucket']}
+        # ── FIX: TruncHour returns datetime, but TruncDate/TruncWeek/TruncMonth
+        # return date objects (no time part). Normalize both sides so the
+        # lookup actually matches — otherwise week/month/year/all always show 0. ──
+        is_hourly = (period == 'today')
+
+        def normalize_key(value):
+            if value is None:
+                return None
+            if is_hourly:
+                return value
+            return value.date() if hasattr(value, 'date') else value
+
+        counts_map = {}
+        for row in rows:
+            key = normalize_key(row['bucket'])
+            if key is not None:
+                counts_map[key] = row['count']
 
         # ── Fill every bucket in the range, even with 0 orders ──
         data = []
@@ -1695,14 +1714,60 @@ class OrderTimeSeriesView(APIView):
         safety_limit = 500  # avoid infinite loop
         i = 0
         while cursor <= end and i < safety_limit:
+            lookup_key = cursor if is_hourly else cursor.date()
             data.append({
                 'time': cursor.isoformat(),
-                'count': counts_map.get(cursor, 0),
+                'count': counts_map.get(lookup_key, 0),
             })
             cursor += step
             i += 1
 
         return Response({'period': period, 'data': data})
+
+
+class TodayLoginStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role != 'super_admin':
+            return Response({'error': 'Permission denied'}, status=403)
+
+        today = timezone.now().date()
+
+        def build_entry(profile, id_field, role_label):
+            u = profile.user
+            is_active = bool(u.last_login and u.last_login.date() == today)
+            return {
+                'level_role': role_label,
+                'id': getattr(profile, id_field, None),
+                'name': f"{profile.first_name} {profile.last_name or ''}".strip(),
+                'email': u.email,
+                'phone': profile.mobile_number,
+                'location': profile.city_name,
+                'active': is_active,
+            }
+
+        all_entries = []
+        for p in AdminProfile.objects.select_related('user'):
+            all_entries.append(build_entry(p, 'admin_id', 'Admin'))
+        for p in DealerProfile.objects.select_related('user'):
+            all_entries.append(build_entry(p, 'dealer_id', 'Dealer'))
+        for p in SubDealerProfile.objects.select_related('user'):
+            all_entries.append(build_entry(p, 'sub_dealer_id', 'Sub Dealer'))
+        for p in PromotorProfile.objects.select_related('user'):
+            all_entries.append(build_entry(p, 'promotor_id', 'Promotor'))
+        for p in CustomerProfile.objects.select_related('user'):
+            all_entries.append(build_entry(p, 'customer_id', 'Customer'))
+
+        active_list = [e for e in all_entries if e['active']]
+        inactive_list = [e for e in all_entries if not e['active']]
+
+        return Response({
+            'active_count': len(active_list),
+            'inactive_count': len(inactive_list),
+            'active': active_list,
+            'inactive': inactive_list,
+        })
 
 @api_view(['GET'])
 @permission_classes([AllowAny])

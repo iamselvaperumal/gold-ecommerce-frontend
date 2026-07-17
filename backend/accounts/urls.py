@@ -5,7 +5,7 @@ from .views import (
     CreateSubDealerView, CreatePromotorView, CreateCustomerView,
     DashboardView, AdminListForAdminView, DealerListForDealerView,
     SubDealerListForView, PromotorListForView,  FullHierarchyView, AnnouncementView, AnnouncementReplyView, ProfileUpdateRequestView, ProfileUpdateApproveView,MetalRateView,MetalOrderView, MetalOrderSummaryView, JewelryProductView, JewelryProductDetailView, JewelryProductImageDeleteView, HomeBannerView, HomeBannerDetailView, CartView, CartItemQtyView, WishlistView, JewelryOrderView, create_razorpay_order, verify_payment, ping,
-    HierarchySubtreeOrdersView, SalesReportView, OrderTimeSeriesView  
+    HierarchySubtreeOrdersView, SalesReportView, OrderTimeSeriesView, TodayLoginStatusView  
 
 )
 
@@ -46,7 +46,7 @@ urlpatterns = [
     path('verify-payment/', verify_payment),
     path('sales-report/', SalesReportView.as_view()),
     path('order-timeseries/', OrderTimeSeriesView.as_view()),
-    
+    path('today-login-status/', TodayLoginStatusView.as_view()),
     
     
 ]

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
-import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import logo from '../assets/logo.png'
 
 import goldCoin from '../assets/gold-coin-transparent.png'
@@ -1310,6 +1310,16 @@ const fetchAllMembers = async (adminsData = []) => {
     setHierarchyLoading(false)
   }
 
+  const [loginStatus, setLoginStatus] = useState({ active_count: 0, inactive_count: 0 })
+  const fetchLoginStatus = async () => {
+    try {
+      const res = await api.get('/today-login-status/')
+      setLoginStatus(res.data)
+    } catch (err) {
+      console.error('Login status fetch error:', err)
+    }
+  }
+
 const fetchMetalPrices = async () => {
     setMetalLoading(true)
     try {
@@ -1448,6 +1458,7 @@ useEffect(() => {
   fetchMetalPrices()
   fetchOrderStats()
   fetchHierarchy()
+  fetchLoginStatus()
 }, [])
 
 
@@ -1961,7 +1972,115 @@ const buildHierarchyOrders = (period, metalKey) => {
         </div>
       </div>
 
-      <OrderTrendChart dark={dark} />
+      <div style={{ display: 'flex', width: '100%' }}>
+        <OrderTrendChart dark={dark} />
+
+        {/* ── RIGHT SIDE: Role Distribution + Login Status Pies ── */}
+        <div style={{ width: '35%', padding: '20px 40px 0 0', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+          {/* Role Distribution Pie */}
+          <div style={{ background: '#0a1628', border: '1px solid rgba(56,189,248,0.25)', borderRadius: 20, padding: '20px 24px' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#38bdf8', marginBottom: 4 }}>Role Distribution</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#f8fafc', marginBottom: 10 }}>
+              {totalStats ? (totalStats.admins + totalStats.dealers + totalStats.subDealers + totalStats.promotors + totalStats.customers) : 0} total
+            </div>
+            {totalStats && (
+              <ResponsiveContainer width="100%" height={180}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Admin', value: totalStats.admins },
+                      { name: 'Dealer', value: totalStats.dealers },
+                      { name: 'Sub Dealer', value: totalStats.subDealers },
+                      { name: 'Promotor', value: totalStats.promotors },
+                      { name: 'Customer', value: totalStats.customers },
+                    ]}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={70}
+                    paddingAngle={2}
+                  >
+                    <Cell fill="#22d3ee" />
+                    <Cell fill="#4ade80" />
+                    <Cell fill="#f59e0b" />
+                    <Cell fill="#a78bfa" />
+                    <Cell fill="#f472b6" />
+                  </Pie>
+                  <Tooltip contentStyle={{ background: '#1a2332', border: 'none', borderRadius: 8, fontSize: 12 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px', justifyContent: 'center' }}>
+              {[
+                { label: 'Admin', color: '#22d3ee', count: totalStats?.admins || 0 },
+                { label: 'Dealer', color: '#4ade80', count: totalStats?.dealers || 0 },
+                { label: 'Sub Dealer', color: '#f59e0b', count: totalStats?.subDealers || 0 },
+                { label: 'Promotor', color: '#a78bfa', count: totalStats?.promotors || 0 },
+                { label: 'Customer', color: '#f472b6', count: totalStats?.customers || 0 },
+              ].map(l => (
+                <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: l.color }} />
+                  <span style={{ fontSize: 10, color: '#94a3b8' }}>{l.label} {l.count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Active/Inactive Login Pie */}
+          <div style={{ background: '#0a1628', border: '1px solid rgba(56,189,248,0.25)', borderRadius: 20, padding: '20px 24px' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#38bdf8', marginBottom: 4 }}>Today's Login Status</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#f8fafc', marginBottom: 10 }}>
+              {loginStatus.active_count + loginStatus.inactive_count} total users
+            </div>
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Active', value: loginStatus.active_count },
+                    { name: 'Inactive', value: loginStatus.inactive_count },
+                  ]}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={40}
+                  outerRadius={70}
+                  paddingAngle={2}
+                  onClick={(entry) => {
+                    if (entry.name === 'Active') navigate('/login-active')
+                    else navigate('/login-inactive')
+                  }}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <Cell fill="#4ade80" />
+                  <Cell fill="#f87171" />
+                </Pie>
+                <Tooltip contentStyle={{ background: '#1a2332', border: 'none', borderRadius: 8, fontSize: 12 }} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div style={{ display: 'flex', gap: '16px', marginTop: '8px', justifyContent: 'center' }}>
+              <div
+                onClick={() => navigate('/login-active')}
+                style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}
+              >
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4ade80' }} />
+                <span style={{ fontSize: 11, color: '#4ade80', fontWeight: 700 }}>Active {loginStatus.active_count}</span>
+              </div>
+              <div
+                onClick={() => navigate('/login-inactive')}
+                style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}
+              >
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f87171' }} />
+                <span style={{ fontSize: 11, color: '#f87171', fontWeight: 700 }}>Inactive {loginStatus.inactive_count}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
 
       <div style={{ position: 'relative', zIndex: 10, padding: '36px 20px', maxWidth: '1400px', margin: '0 auto' }}>
         {msg && (
