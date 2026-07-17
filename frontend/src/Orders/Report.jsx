@@ -89,6 +89,26 @@ function getChildren(node) {
   return { key: null, childType: null }
 }
 
+// ── NEW: node oda subtree la irukka ella admin/dealer/sub_dealer/promotor
+// IDs-um collect pannu (customer login status track pannathu, so skip) ──
+function collectSubtreeRoleIds(node) {
+  const ids = new Set()
+  function addId(n) {
+    if (n.type === 'admin') ids.add(n.admin_id)
+    else if (n.type === 'dealer') ids.add(n.dealer_id)
+    else if (n.type === 'sub_dealer') ids.add(n.sub_dealer_id)
+    else if (n.type === 'promotor') ids.add(n.promotor_id)
+  }
+  function walk(n) {
+    addId(n)
+    const { key, childType } = getChildren(n)
+    const children = n[key] || []
+    children.forEach(c => walk({ ...c, type: childType }))
+  }
+  walk(node)
+  return ids
+}
+
 // ── Flatten a tree (rooted at admin/dealer/sub_dealer/promotor) into leaf rows ──
 function flattenToRows(root) {
   const rows = []
@@ -211,49 +231,51 @@ function buildTrendBuckets(rows, range) {
 
   if (range === 'Today') {
     // 6 buckets of 4 hours each
-    buckets = Array.from({ length: 6 }, (_, i) => ({ label: `${i * 4}:00`, total: 0 }))
-    rows.forEach(r => r.rawOrders.forEach(o => {
-      const d = orderDate(o)
-      if (!isInRange(d, range)) return
-      const idx = Math.min(5, Math.floor(d.getHours() / 4))
-      buckets[idx].total += parseFloat(o.total_price) || 0
-    }))
+    buckets = Array.from({ length: 6 }, (_, i) => ({ label: `${i * 4}:00`, total: 0, count: 0 }))
+rows.forEach(r => r.rawOrders.forEach(o => {
+  const d = orderDate(o)
+  if (!isInRange(d, range)) return
+  const idx = Math.min(5, Math.floor(d.getHours() / 4))
+  buckets[idx].total += parseFloat(o.total_price) || 0
+  buckets[idx].count += 1
+}))
   } else if (range === 'Week') {
     const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
     buckets = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(now); d.setDate(now.getDate() - (6 - i))
-      return { label: days[d.getDay()], total: 0, _key: d.toDateString() }
-    })
-    rows.forEach(r => r.rawOrders.forEach(o => {
-      const d = orderDate(o)
-      if (!isInRange(d, range)) return
-      const b = buckets.find(b => b._key === d.toDateString())
-      if (b) b.total += parseFloat(o.total_price) || 0
-    }))
+  const d = new Date(now); d.setDate(now.getDate() - (6 - i))
+  return { label: days[d.getDay()], total: 0, count: 0, _key: d.toDateString() }
+})
+rows.forEach(r => r.rawOrders.forEach(o => {
+  const d = orderDate(o)
+  if (!isInRange(d, range)) return
+  const b = buckets.find(b => b._key === d.toDateString())
+  if (b) { b.total += parseFloat(o.total_price) || 0; b.count += 1 }
+}))
   } else if (range === 'Month') {
     // 4 weekly buckets
-    buckets = Array.from({ length: 4 }, (_, i) => ({ label: `Week ${i + 1}`, total: 0 }))
-    rows.forEach(r => r.rawOrders.forEach(o => {
-      const d = orderDate(o)
-      if (!isInRange(d, range)) return
-      const daysAgo = Math.floor((now - d) / (1000 * 60 * 60 * 24))
-      const idx = Math.min(3, Math.floor(daysAgo / 7))
-      buckets[3 - idx].total += parseFloat(o.total_price) || 0
-    }))
+    buckets = Array.from({ length: 4 }, (_, i) => ({ label: `Week ${i + 1}`, total: 0, count: 0 }))
+rows.forEach(r => r.rawOrders.forEach(o => {
+  const d = orderDate(o)
+  if (!isInRange(d, range)) return
+  const daysAgo = Math.floor((now - d) / (1000 * 60 * 60 * 24))
+  const idx = Math.min(3, Math.floor(daysAgo / 7))
+  buckets[3 - idx].total += parseFloat(o.total_price) || 0
+  buckets[3 - idx].count += 1
+}))
   } else {
     // Year — 12 monthly buckets
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
     buckets = Array.from({ length: 12 }, (_, i) => {
-      const d = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1)
-      return { label: months[d.getMonth()], total: 0, _key: `${d.getFullYear()}-${d.getMonth()}` }
-    })
-    rows.forEach(r => r.rawOrders.forEach(o => {
-      const d = orderDate(o)
-      if (!isInRange(d, range)) return
-      const key = `${d.getFullYear()}-${d.getMonth()}`
-      const b = buckets.find(b => b._key === key)
-      if (b) b.total += parseFloat(o.total_price) || 0
-    }))
+  const d = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1)
+  return { label: months[d.getMonth()], total: 0, count: 0, _key: `${d.getFullYear()}-${d.getMonth()}` }
+})
+rows.forEach(r => r.rawOrders.forEach(o => {
+  const d = orderDate(o)
+  if (!isInRange(d, range)) return
+  const key = `${d.getFullYear()}-${d.getMonth()}`
+  const b = buckets.find(b => b._key === key)
+  if (b) { b.total += parseFloat(o.total_price) || 0; b.count += 1 }
+}))
   }
 
   return buckets
@@ -261,6 +283,7 @@ function buildTrendBuckets(rows, range) {
 
 // ── Simple inline SVG line chart (no external library needed) ──
 function TrendLineChart({ buckets, color }) {
+  const [hoverIdx, setHoverIdx] = useState(null)   // ── NEW
   const width = 700, height = 220, padding = 36
   const max = Math.max(1, ...buckets.map(b => b.total))
   const stepX = (width - padding * 2) / Math.max(1, buckets.length - 1)
@@ -273,16 +296,16 @@ function TrendLineChart({ buckets, color }) {
 
   const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
   const areaD = `${pathD} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`
+  const hp = hoverIdx !== null ? points[hoverIdx] : null   // ── NEW
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: '220px' }}>
+    <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: '220px', overflow: 'visible' }}>
       <defs>
         <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={color} stopOpacity="0.25" />
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      {/* horizontal grid lines */}
       {[0, 0.25, 0.5, 0.75, 1].map((f, i) => (
         <line key={i}
           x1={padding} x2={width - padding}
@@ -292,12 +315,31 @@ function TrendLineChart({ buckets, color }) {
       ))}
       <path d={areaD} fill="url(#trendFill)" />
       <path d={pathD} fill="none" stroke={color} strokeWidth="2.5" />
+
+      {/* ── NEW: wide invisible hover zones ── */}
       {points.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r="4" fill={color} />
+        <rect key={`hz-${i}`} x={p.x - stepX / 2} y={0} width={stepX} height={height}
+          fill="transparent"
+          onMouseEnter={() => setHoverIdx(i)}
+          onMouseLeave={() => setHoverIdx(null)} />
+      ))}
+
+      {points.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r={hoverIdx === i ? 6 : 4} fill={color} style={{ pointerEvents: 'none' }} />
       ))}
       {points.map((p, i) => (
         <text key={i} x={p.x} y={height - 10} fontSize="11" fill="#94a3b8" textAnchor="middle">{p.label}</text>
       ))}
+
+      {/* ── NEW: hover tooltip — amount + order count ── */}
+      {hp && (
+        <g style={{ pointerEvents: 'none' }}>
+          <line x1={hp.x} x2={hp.x} y1={padding} y2={height - padding} stroke={color} strokeOpacity="0.3" strokeDasharray="3 3" />
+          <rect x={Math.min(Math.max(hp.x - 55, 4), width - 114)} y={Math.max(hp.y - 46, 4)} width="110" height="38" rx="8" fill="#0f172a" stroke={color} strokeOpacity="0.5" />
+          <text x={Math.min(Math.max(hp.x - 55, 4), width - 114) + 10} y={Math.max(hp.y - 46, 4) + 16} fontSize="11" fontWeight="700" fill={color}>₹{hp.total.toLocaleString('en-IN')}</text>
+          <text x={Math.min(Math.max(hp.x - 55, 4), width - 114) + 10} y={Math.max(hp.y - 46, 4) + 30} fontSize="10" fill="#94a3b8">{hp.count || 0} orders</text>
+        </g>
+      )}
     </svg>
   )
 }
@@ -322,7 +364,7 @@ function nodeColor(node) {
 // roots = top-level nodes (admin list, or single dealer/sub_dealer/promotor
 // depending on login role / selected drill-down node). Click a card to open
 // its children lane below, exactly like the main hierarchy grid page. ──
-function HierarchyBreakdownGrid({ roots, cardBg, border, text, subtext }) {
+function HierarchyBreakdownGrid({ roots, cardBg, border, text, subtext, selectedNode, onSelectNode }) {
   const [selChain, setSelChain] = useState([])
 
   useEffect(() => { setSelChain([]) }, [roots])
@@ -369,26 +411,35 @@ function HierarchyBreakdownGrid({ roots, cardBg, border, text, subtext }) {
           </div>
           <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '14px' }}>
             {nodes.map(node => {
-              const c = nodeColor(node)
-              const idVal = nodeIdVal(node)
-              const { key, childType } = getChildren(node)
-              const childCount = key ? (node[key] || []).length : null
-              const active = selChain[depthIdx] === idVal.toString()
-              const isDim = selChain[depthIdx] && !active
-              return (
-                <div
-                  key={idVal}
-                  onClick={() => childCount !== null && selectAt(depthIdx, node)}
-                  style={{
-                    minWidth: '176px', maxWidth: '210px', flexShrink: 0,
-                    cursor: childCount !== null ? 'pointer' : 'default',
-                    background: 'linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015))',
-                    border: `1.5px solid ${c}`, borderRadius: '14px', padding: '13px 16px',
-                    opacity: isDim ? 0.45 : 1,
-                    boxShadow: active ? `0 0 0 1.5px ${c}, 0 10px 22px rgba(0,0,0,0.4)` : 'none',
-                    transition: 'opacity .15s ease, box-shadow .15s ease',
-                  }}
-                >
+  const c = nodeColor(node)
+  const idVal = nodeIdVal(node)
+  const { key, childType } = getChildren(node)
+  const childCount = key ? (node[key] || []).length : null
+  const active = selChain[depthIdx] === idVal.toString()
+  const isDim = selChain[depthIdx] && !active
+  // ── NEW: intha card ippo stats-ku select pannirukka nu check ──
+  const isStatsSelected = selectedNode
+    && selectedNode.type === node.type
+    && nodeIdVal(selectedNode).toString() === idVal.toString()
+  return (
+    <div
+      key={idVal}
+      onClick={() => {
+        onSelectNode?.(node)                                 // ── NEW: stats filter
+        if (childCount !== null) selectAt(depthIdx, node)     // existing drill-down
+      }}
+      style={{
+        minWidth: '176px', maxWidth: '210px', flexShrink: 0,
+        cursor: childCount !== null ? 'pointer' : 'default',
+        background: 'linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015))',
+        border: `1.5px solid ${c}`, borderRadius: '14px', padding: '13px 16px',
+        opacity: isDim ? 0.45 : 1,
+        boxShadow: isStatsSelected
+          ? `0 0 0 2px #facc15, 0 10px 22px rgba(0,0,0,0.4)`   // ── NEW: yellow ring for stats-selected
+          : (active ? `0 0 0 1.5px ${c}, 0 10px 22px rgba(0,0,0,0.4)` : 'none'),
+        transition: 'opacity .15s ease, box-shadow .15s ease',
+      }}
+    >
                   <div style={{ fontSize: '9px', fontWeight: 800, color: c, letterSpacing: '1.2px', marginBottom: '7px' }}>
                     {(LEVEL_LABELS[node.type] || node.type).toUpperCase()}
                   </div>
@@ -423,128 +474,51 @@ function HierarchyBreakdownGrid({ roots, cardBg, border, text, subtext }) {
   )
 }
 
-function HierarchyChainCard({ selectedLevel, selectedNodeId, treeData, ancestors, cardBg, border, text, subtext }) {
-  // ── CHANGED: labels mattum fixed. Color ippo node.status base pannina
-  // STATUS_COLOR (red/orange/yellow/green) follow pannum — same logic as the
-  // hierarchy grid. Customer eppayume fixed GREEN (target illaya). Super Admin
-  // ku status field kidiyathu, so fixed gold-a irukkum. ──
-  const ROLE_STEPS = {
-    super_admin: { label: 'Super Admin', color: '#ffd700' },
-    admin: { label: 'Admin', color: '#22d3ee' },
-    dealer: { label: 'Dealer', color: '#4ade80' },
-    sub_dealer: { label: 'Sub Dealer', color: '#f59e0b' },
-    promotor: { label: 'Promotor', color: '#a78bfa' },
-    customer: { label: 'Customer', color: '#f472b6' },
-  }
-  const chainNodeColor = (node) => {
-    if (node.type === 'super_admin') return ROLE_STEPS.super_admin.color
-    if (node.type === 'customer') return STATUS_COLOR.green
-    return node.status ? STATUS_COLOR[node.status] : (ROLE_STEPS[node.type]?.color || '#94a3b8')
-  }
-
-  if (selectedLevel === 'own' || !selectedNodeId) {
-    return (
-      <div style={{ background: cardBg, border: `1px solid ${border}`, borderRadius: '16px', padding: '20px', textAlign: 'center' }}>
-        <div style={{ color: subtext, fontSize: '13px' }}>
-          Select a {selectedLevel !== 'own' ? selectedLevel.replace('_', ' ') : 'node'} to view its hierarchy chain
-        </div>
-      </div>
-    )
-  }
-
-  const chain = findAncestorChain(treeData, selectedLevel, selectedNodeId)
-  if (!chain) return null
-
-  const fullChain = ancestors && ancestors.length > 0
-    ? [...ancestors, ...chain]
-    : [{ type: 'super_admin' }, ...chain]
-
- const currentNode = fullChain[fullChain.length - 1]
-  const currentCfg = { ...(ROLE_STEPS[currentNode.type] || {}), color: chainNodeColor(currentNode) }
-  const currentName = `${currentNode.first_name || ''} ${currentNode.last_name || ''}`.trim()
+function LoginStatusPie({ activeCount, inactiveCount, scopeLabel, cardBg, border, text, subtext, onClickActive, onClickInactive }) {
+  const total = activeCount + inactiveCount
+  const activeFrac = total > 0 ? activeCount / total : 0
+  const size = 170, stroke = 26, r = (size - stroke) / 2, c = 2 * Math.PI * r
+  const activeLen = c * activeFrac
 
   return (
-    <div style={{ background: cardBg, border: `2px solid ${currentCfg.color}55`, borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '4px', boxShadow: `0 0 24px ${currentCfg.color}11` }}>
-      <div style={{ marginBottom: '14px', paddingBottom: '14px', borderBottom: `1px solid ${border}` }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-          <div style={{ width: '30px', height: '30px', borderRadius: '9px', background: 'rgba(34,211,238,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2">
-              <circle cx="6" cy="6" r="2.5"/>
-              <circle cx="18" cy="18" r="2.5"/>
-              <path d="M8 8l8 8" strokeLinecap="round"/>
-            </svg>
-          </div>
-          <div>
-            <div style={{ fontSize: '11px', fontWeight: 800, color: '#22d3ee', letterSpacing: '1px' }}>HIERARCHY CHAIN</div>
-            <div style={{ fontSize: '10px', color: subtext }}>{fullChain.length} levels deep</div>
-          </div>
-        </div>
-        <div style={{
-          background: `${currentCfg.color}15`, border: `1px solid ${currentCfg.color}40`,
-          borderRadius: '10px', padding: '8px 12px', fontSize: '11px', color: text,
-        }}>
-          Showing full network path for <span style={{ color: currentCfg.color, fontWeight: 700 }}>{currentName}</span>
-        </div>
+    <div style={{ background: cardBg, border: `1px solid ${border}`, borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
+      <div style={{ fontSize: '11px', fontWeight: 800, color: '#22d3ee', letterSpacing: '1px', alignSelf: 'flex-start' }}>
+        LOGIN STATUS TODAY
+      </div>
+      <div style={{ fontSize: '11px', color: subtext, alignSelf: 'flex-start', marginTop: '-8px' }}>
+        {scopeLabel}
       </div>
 
-      {fullChain.map((node, idx) => {
-        const isLast = idx === fullChain.length - 1
-        const cfg = { ...(ROLE_STEPS[node.type] || { label: node.type }), color: chainNodeColor(node) }
-        const name = node.type === 'super_admin' ? '' : `${node.first_name || ''} ${node.last_name || ''}`.trim()
-        const idVal = node.type === 'super_admin' ? '' : (node[`${node.type}_id`] || node.id)
+      {total === 0 ? (
+        <div style={{ color: subtext, fontSize: '13px', padding: '30px 0' }}>No data</div>
+      ) : (
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#f87171" strokeWidth={stroke} />
+          <circle
+            cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#4ade80" strokeWidth={stroke}
+            strokeDasharray={`${activeLen} ${c - activeLen}`}
+            strokeDashoffset={c / 4}
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
+            style={{ transition: 'stroke-dasharray 0.4s ease' }}
+          />
+          <text x={size / 2} y={size / 2 - 2} textAnchor="middle" fontSize="22" fontWeight="800" fill={text}>{total}</text>
+          <text x={size / 2} y={size / 2 + 16} textAnchor="middle" fontSize="10" fill={subtext}>total users</text>
+        </svg>
+      )}
 
-        return (
-          <div key={idx}>
-            {idx > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2px 0' }}>
-                <svg width="14" height="18" viewBox="0 0 14 18" fill="none">
-                  <path d="M7 17V3" stroke={cfg.color} strokeOpacity="0.55" strokeWidth="2" strokeLinecap="round"/>
-                  <path d="M3 7L7 2L11 7" stroke={cfg.color} strokeOpacity="0.55" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-            )}
-            <div style={{
-              borderRadius: '12px', padding: '12px 14px',
-              background: isLast ? `${cfg.color}22` : `${cfg.color}0d`,
-              border: `1px solid ${isLast ? cfg.color : cfg.color + '33'}`,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <span style={{ fontSize: '10px', fontWeight: 800, color: cfg.color, letterSpacing: '1px' }}>{cfg.label.toUpperCase()}</span>
-                {isLast && <span style={{ fontSize: '8px', fontWeight: 800, padding: '2px 8px', borderRadius: '20px', background: `${cfg.color}33`, color: cfg.color }}>● CURRENT</span>}
-              </div>
-              {node.type === 'super_admin' ? (
-                <div style={{ color: text, fontWeight: 700, fontSize: '13px' }}>Root • Full Access</div>
-              ) : (
-                <>
-                  <div style={{ color: cfg.color, fontFamily: 'monospace', fontSize: '10px', marginBottom: '2px' }}>{idVal}</div>
-                  <div style={{ color: text, fontWeight: 700, fontSize: '13px' }}>{name}</div>
-                  {node.mobile_number && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: subtext, fontSize: '11px', marginTop: '3px' }}>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      {node.mobile_number}
-                    </div>
-                  )}
-                  {node.city_name && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: subtext, fontSize: '11px' }}>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinejoin="round"/>
-                        <circle cx="12" cy="10" r="3"/>
-                      </svg>
-                      {node.city_name}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        )
-      })}
+      <div style={{ display: 'flex', gap: '18px' }}>
+        <div onClick={onClickActive} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+          <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#4ade80' }} />
+          <span style={{ color: '#4ade80', fontWeight: 700, fontSize: '12px' }}>Active {activeCount}</span>
+        </div>
+        <div onClick={onClickInactive} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+          <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#f87171' }} />
+          <span style={{ color: '#f87171', fontWeight: 700, fontSize: '12px' }}>Inactive {inactiveCount}</span>
+        </div>
+      </div>
     </div>
   )
 }
-
 export default function Report() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
@@ -556,6 +530,13 @@ export default function Report() {
   const [selectedLevel, setSelectedLevel] = useState('own')
 const [selectedNodeId, setSelectedNodeId] = useState('')
 const [timeRange, setTimeRange] = useState('Week')
+
+// ── NEW: Network breakdown grid la click pannina node ──
+const [gridSelectedNode, setGridSelectedNode] = useState(null)
+
+// ── NEW: full active/inactive login list (super_admin only) ──
+const [loginStatusFull, setLoginStatusFull] = useState({ active: [], inactive: [] })
+
 const [nodeSearch, setNodeSearch] = useState('')
 const [debouncedNodeSearch, setDebouncedNodeSearch] = useState('')
 const [showNodeDropdown, setShowNodeDropdown] = useState(false)
@@ -585,6 +566,14 @@ useEffect(() => {
     }
     fetchReport()
   }, [])
+
+  // ── NEW: super_admin ku mattum login status fetch pannu ──
+  useEffect(() => {
+    if (role !== 'super_admin') return
+    api.get('/today-login-status/')
+      .then(res => setLoginStatusFull({ active: res.data.active || [], inactive: res.data.inactive || [] }))
+      .catch(() => {})
+  }, [role])
 
   const cfg = ROLE_CFG[role] || { label: role, color: '#a5f3fc' }
   const availableLevels = DRILL_LEVELS[role] || ['own']
@@ -632,11 +621,34 @@ const filteredNodes = useMemo(() => {
 
   const isMultiAdminView = role === 'super_admin' && selectedLevel === 'own' && activeTree.length > 1
 
+// ── NEW: top dropdown maathaanum grid selection clear pannidanum ──
+useEffect(() => { setGridSelectedNode(null) }, [activeTree])
+
+// ── NEW: card click pannirundha andha node mattum, illana existing activeTree ──
+const statsTree = gridSelectedNode ? [gridSelectedNode] : activeTree
+const isMultiAdminViewStats = !gridSelectedNode && isMultiAdminView
+
+// ── NEW: pie chart ku scoped node — grid click OR dropdown single-node select ──
+const scopedNode = gridSelectedNode || (selectedLevel !== 'own' && activeTree.length === 1 ? activeTree[0] : null)
+const scopedLoginLabel = scopedNode ? `${LEVEL_LABELS[scopedNode.type] || scopedNode.type} · ${nodeName(scopedNode)}` : 'Full Network'
+
+const scopedLoginStats = useMemo(() => {
+  if (!scopedNode) return loginStatusFull
+  const ids = collectSubtreeRoleIds(scopedNode)
+  return {
+    active: loginStatusFull.active.filter(e => ids.has(e.id)),
+    inactive: loginStatusFull.inactive.filter(e => ids.has(e.id)),
+  }
+}, [scopedNode, loginStatusFull])
+
+const goToActiveLogin = () => navigate('/login-active', { state: { ids: scopedNode ? Array.from(collectSubtreeRoleIds(scopedNode)) : null, scopeLabel: scopedLoginLabel } })
+const goToInactiveLogin = () => navigate('/login-inactive', { state: { ids: scopedNode ? Array.from(collectSubtreeRoleIds(scopedNode)) : null, scopeLabel: scopedLoginLabel } })
+
  const allRows = useMemo(() => {
   let rows = []
-  activeTree.forEach(root => {
+  statsTree.forEach(root => {
     const rootRows = flattenToRows(root)
-    if (isMultiAdminView) {
+    if (isMultiAdminViewStats) {
       const adminId = root.admin_id || root.id || '—'
       const adminName = `${root.first_name || ''} ${root.last_name || ''}`.trim() || adminId
       const adminColor = root.status ? STATUS_COLOR[root.status] : null
@@ -645,15 +657,17 @@ const filteredNodes = useMemo(() => {
     rows = rows.concat(rootRows)
   })
   return rows
-}, [activeTree, isMultiAdminView])
+}, [statsTree, isMultiAdminViewStats])
 
   const totalSales = allRows.reduce((s, r) => s + r.amount, 0)
   const totalOrders = allRows.reduce((s, r) => s + r.orders, 0)
   const totalCustomers = allRows.length
 
-  const columns = isMultiAdminView
-    ? COLUMN_MAP.super_admin_view
-    : (activeTree[0] ? (COLUMN_MAP[activeTree[0].type] || []) : [])
+  const columns = gridSelectedNode
+  ? (COLUMN_MAP[gridSelectedNode.type] || [])
+  : (isMultiAdminView
+      ? COLUMN_MAP.super_admin_view
+      : (activeTree[0] ? (COLUMN_MAP[activeTree[0].type] || []) : []))
 
   const trendBuckets = useMemo(() => buildTrendBuckets(allRows, timeRange), [allRows, timeRange])
 
@@ -982,8 +996,22 @@ const filteredNodes = useMemo(() => {
 
         <div style={{ flex: '1 1 0%', minWidth: 0 }}>
 
-          {/* Summary cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+          {/* ── NEW: selected node indicator ── */}
+{gridSelectedNode && (
+  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', background: cardBg, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 16px' }}>
+    <span style={{ color: subtext, fontSize: '12px' }}>Showing data for</span>
+    <span style={{ color: nodeColor(gridSelectedNode), fontWeight: 700, fontSize: '13px' }}>
+      {(LEVEL_LABELS[gridSelectedNode.type] || gridSelectedNode.type)} · {nodeName(gridSelectedNode)}
+    </span>
+    <button onClick={() => setGridSelectedNode(null)}
+      style={{ marginLeft: 'auto', background: 'transparent', border: `1px solid ${border}`, color: subtext, borderRadius: '8px', padding: '4px 10px', fontSize: '12px', cursor: 'pointer' }}>
+      Clear
+    </button>
+  </div>
+)}
+
+{/* Summary cards */}
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '28px' }}>
            <div className="print-card" style={{ background: cardBg, border: `1px solid ${border}`, borderRadius: '16px', padding: '18px 20px' }}>
     <div style={{ color: subtext, fontSize: '12px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total sales</div>
     <div style={{ fontSize: '24px', fontWeight: 800, lineHeight: 1.2, letterSpacing: 'normal', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>₹{totalSales.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
@@ -1026,31 +1054,32 @@ const filteredNodes = useMemo(() => {
             <div style={{ fontSize: '13px', fontWeight: 700, color: cfg.color, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '18px' }}>
               Network breakdown
             </div>
-            <HierarchyBreakdownGrid roots={activeTree} cardBg={cardBg} border={border} text={text} subtext={subtext} />
+            <HierarchyBreakdownGrid
+  roots={activeTree}
+  cardBg={cardBg} border={border} text={text} subtext={subtext}
+  selectedNode={gridSelectedNode}
+  onSelectNode={setGridSelectedNode}
+/>
           </div>
 
         </div>
 
-        {/* ── RIGHT: Hierarchy Chain panel ── */}
-        <div style={{ width: '320px', flexShrink: 0, position: 'sticky', top: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: subtext, textTransform: 'uppercase', letterSpacing: '0.08em', paddingLeft: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="8" r="4"/>
-              <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" strokeLinecap="round"/>
-            </svg>
-            Selected Network Path
+        {/* ── RIGHT: Login Status Pie panel ── */}
+        {role === 'super_admin' && (
+          <div style={{ width: '320px', flexShrink: 0, position: 'sticky', top: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <LoginStatusPie
+              activeCount={scopedLoginStats.active.length}
+              inactiveCount={scopedLoginStats.inactive.length}
+              scopeLabel={scopedLoginLabel}
+              cardBg={cardBg}
+              border={border}
+              text={text}
+              subtext={subtext}
+              onClickActive={goToActiveLogin}
+              onClickInactive={goToInactiveLogin}
+            />
           </div>
-          <HierarchyChainCard
-            selectedLevel={selectedLevel}
-            selectedNodeId={selectedNodeId}
-            treeData={treeData}
-            ancestors={ancestors}
-            cardBg={cardBg}
-            border={border}
-            text={text}
-            subtext={subtext}
-          />
-        </div>
+        )}
 
       </div>
     </div>

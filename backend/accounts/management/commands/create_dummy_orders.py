@@ -14,11 +14,16 @@ Run:
     python manage.py create_dummy_orders --min-orders 1 --max-orders 1 --force-add
 """
 import random
+from datetime import timedelta
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
 from accounts.models import CustomerProfile, JewelryProduct, JewelryOrder
+
+# Live chart testing ku - ovvoru order um indha gaps la RANDOM ah oru gap edutthu,
+# andha nerathukku munnadi create aana madhiri created_at timestamp vaikkum
+GAP_OPTIONS_MINUTES = [10, 20, 30, 60, 120, 180, 240]  # 10min,20min,30min,1hr,2hr,3hr,4hr
 
 ADDRESS_LINES = [
     "12, Gandhi Street", "45, Anna Nagar Main Road", "8, Bharathi Colony",
@@ -120,6 +125,12 @@ class Command(BaseCommand):
             if batch:
                 with transaction.atomic():
                     JewelryOrder.objects.bulk_create(batch, batch_size=BATCH_SIZE)
+                    # auto_now_add bypass pannanum na, insert aana appuram
+                    # ovvoru order id kkum dedicated random timestamp UPDATE pannuvom
+                    for order_obj in batch:
+                        JewelryOrder.objects.filter(order_id=order_obj.order_id).update(
+                            created_at=order_obj._staggered_time
+                        )
                 created += len(batch)
                 self.stdout.write(self.style.SUCCESS(f"  ...{created}/{total_to_create} orders inserted"))
                 batch = []
@@ -136,6 +147,8 @@ class Command(BaseCommand):
                 qty = random.randint(1, 2)
                 unit_price = float(product.price or 0)
                 total_price = round(unit_price * qty, 2)
+
+                order_time = timezone.now() - timedelta(minutes=random.choice(GAP_OPTIONS_MINUTES))
 
                 order_obj = JewelryOrder(
                     order_id=next_order_id(),
@@ -167,6 +180,7 @@ class Command(BaseCommand):
                     payment_status='paid',
                     status=random.choice(ORDER_STATUSES),
                 )
+                order_obj._staggered_time = order_time   # store separately, applied after insert via .update()
                 batch.append(order_obj)
 
                 if len(batch) >= BATCH_SIZE:

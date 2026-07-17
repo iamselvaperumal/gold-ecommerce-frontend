@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
-import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import logo from '../assets/logo.png'
 
 import goldCoin from '../assets/gold-coin-transparent.png'
@@ -692,8 +692,7 @@ function createAdminPopup(a, i, anchorEl, dark, subtext, text) {
 }
 
 
-// ─── ORDER TREND CHART ──────────────────────────────────────────────────
-// ─── ORDER TREND CHART — Style 52 (Volume bars + price line) ───────────
+// ─── ORDER TREND CHART — clean area chart, peak marker, no duplicate axis ──
 function OrderTrendChart({ dark }) {
   const [period, setPeriod] = useState('today')
   const [data, setData] = useState([])
@@ -753,6 +752,15 @@ function OrderTrendChart({ dark }) {
   const trendPercent = firstAvg > 0 ? (((secondAvg - firstAvg) / firstAvg) * 100).toFixed(1) : (secondAvg > 0 ? 100 : 0)
   const isUp = trendPercent >= 0
 
+  // ── Peak point index — used to show a highlighted dot on the busiest bucket ──
+  const peakIndex = data.length
+    ? data.reduce((maxIdx, d, i, arr) => (d.count > arr[maxIdx].count ? i : maxIdx), 0)
+    : -1
+
+  // ── Only label buckets that actually have orders (skip empty stretches) ──
+  const activeLabels = data.filter(d => d.count > 0).map(d => d.label)
+  const tickFormatter = (label) => (activeLabels.includes(label) ? label : '')
+
   const CustomTooltip = ({ active, payload }) => {
     if (!active || !payload?.length) return null
     const p = payload[0].payload
@@ -768,6 +776,15 @@ function OrderTrendChart({ dark }) {
         </div>
         <div style={{ color: '#fff', fontWeight: 800, fontSize: 20 }}>{p.count} orders</div>
       </div>
+    )
+  }
+
+  // ── Custom dot: only render a visible marker on the peak bucket ──
+  const PeakDot = (props) => {
+    const { cx, cy, index } = props
+    if (index !== peakIndex || cx == null || cy == null) return null
+    return (
+      <circle cx={cx} cy={cy} r={5} fill="#38bdf8" stroke="#0a1628" strokeWidth={2} />
     )
   }
 
@@ -812,25 +829,46 @@ function OrderTrendChart({ dark }) {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', fontSize: 13 }}>No orders in this period</div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <AreaChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="orderGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#38bdf8" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                 <XAxis
                   dataKey="label"
                   stroke="rgba(148,163,184,0.6)"
-                  fontSize={9}
+                  fontSize={10}
                   tickLine={false}
                   axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
-                  minTickGap={40}
+                  tickFormatter={tickFormatter}
                   interval="preserveStartEnd"
+                  minTickGap={30}
                 />
-                <YAxis stroke="rgba(148,163,184,0.6)" fontSize={9} tickLine={false} axisLine={false} allowDecimals={false} />
+                <YAxis
+                  stroke="rgba(148,163,184,0.6)"
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                  tickCount={5}
+                />
                 <Tooltip
                   content={<CustomTooltip />}
-                  cursor={{ fill: 'rgba(56,189,248,0.06)' }}
+                  cursor={{ stroke: '#38bdf8', strokeWidth: 1, strokeDasharray: '4 4' }}
                 />
-                <Bar dataKey="count" fill="rgba(56,189,248,0.25)" radius={[2, 2, 0, 0]} barSize={14} />
-                <Line type="monotone" dataKey="count" stroke="#38bdf8" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#38bdf8', stroke: '#0a1628', strokeWidth: 2 }} />
-              </ComposedChart>
+                <Area
+                  type="monotone"
+                  dataKey="count"
+                  stroke="#38bdf8"
+                  strokeWidth={2}
+                  fill="url(#orderGrad)"
+                  dot={<PeakDot />}
+                  activeDot={{ r: 5, fill: '#38bdf8', stroke: '#0a1628', strokeWidth: 2 }}
+                />
+              </AreaChart>
             </ResponsiveContainer>
           )}
         </div>
