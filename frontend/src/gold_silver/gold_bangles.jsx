@@ -203,7 +203,7 @@ alt="Chain Banner"
 
 
         {/* ── Bangle Cards — 6 cards, 3 columns ── */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', padding: '0 40px', gap:'20px' }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', padding: '0 40px', gap:'20px' }}>
           {loading ? (
   <div style={{ gridColumn:'span 3', textAlign:'center', color:subtext, padding:'60px 0' }}>
     ⏳ Loading products...

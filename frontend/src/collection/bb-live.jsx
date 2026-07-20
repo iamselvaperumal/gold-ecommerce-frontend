@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import CustomerNavbar from './CustomerNavbar'
 import CustomerFooter from './CustomerFooter'
 
+const TEAM369_SHOWCASE_URL = 'https://gold-showcase.vercel.app/'
+
 function getDistance(lat1, lng1, lat2, lng2) {
   const R = 6371
   const dLat = ((lat2 - lat1) * Math.PI) / 180
@@ -198,6 +200,85 @@ export default function BBLive() {
   ]
 
   // ── Fetch from OpenStreetMap Overpass API (FREE) ──
+  return (
+    <div style={{ minHeight: '100vh', background: '#f8f6f1', fontFamily: '"Montserrat", Inter, system-ui, sans-serif' }}>
+      <CustomerNavbar />
+
+      <main style={{ padding: '28px clamp(16px, 3vw, 40px) 44px' }}>
+        <section style={{
+          maxWidth: 1540,
+          margin: '0 auto',
+          border: '1px solid rgba(7,59,63,0.16)',
+          borderRadius: 18,
+          overflow: 'hidden',
+          background: '#fff',
+          boxShadow: '0 22px 60px rgba(7,59,63,0.12)',
+        }}>
+          <div style={{
+            minHeight: 64,
+            padding: '14px 18px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+            borderBottom: '1px solid rgba(7,59,63,0.12)',
+            background: 'linear-gradient(90deg,#073B3F,#0b5257)',
+            color: '#fff',
+            flexWrap: 'wrap',
+          }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, textTransform: 'uppercase', opacity: .78 }}>
+                Team369 Live
+              </div>
+              <h1 style={{
+                margin: '4px 0 0',
+                fontFamily: '"Playfair Display", Georgia, serif',
+                fontSize: 'clamp(22px, 2vw, 32px)',
+                lineHeight: 1.1,
+              }}>
+                Gold Showcase
+              </h1>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => window.open(TEAM369_SHOWCASE_URL, '_blank', 'noopener,noreferrer')}
+              style={{
+                minHeight: 38,
+                padding: '0 16px',
+                border: '1px solid rgba(255,255,255,.42)',
+                borderRadius: 999,
+                background: 'rgba(255,255,255,.12)',
+                color: '#fff',
+                fontWeight: 900,
+                cursor: 'pointer',
+              }}
+            >
+              Open Full Website
+            </button>
+          </div>
+
+          <iframe
+            title="Team369 Gold Showcase"
+            src={TEAM369_SHOWCASE_URL}
+            style={{
+              display: 'block',
+              width: '100%',
+              height: 'calc(100vh - 265px)',
+              minHeight: 620,
+              border: 0,
+              background: '#fff',
+            }}
+            loading="eager"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        </section>
+      </main>
+
+      <CustomerFooter />
+    </div>
+  )
+
   const fetchShopsOSM = async (lat, lng, type = 'jewelry') => {
     setShopsLoading(true)
     setShopsError('')

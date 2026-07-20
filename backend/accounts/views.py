@@ -850,6 +850,14 @@ class JewelryProductView(APIView):
         if category:
             qs = qs.filter(category=category)
 
+        new = request.query_params.get('new')
+        if new == 'true':
+            qs = qs.filter(tag__icontains='New')
+
+        bestseller = request.query_params.get('bestseller')
+        if bestseller == 'true':
+            qs = qs.filter(tag__icontains='Bestseller')
+
         metal = request.query_params.get('metal')
         if metal:
             qs = qs.filter(metal__iexact=metal)
@@ -906,6 +914,7 @@ class JewelryProductView(APIView):
                     Q(wedding_category__icontains=search)
                 )
 
+        qs = qs.order_by('-created_at')
         serializer = JewelryProductSerializer(qs, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -925,7 +934,9 @@ class JewelryProductDetailView(APIView):
 
         for field in ['category', 'metal', 'grade', 'name', 'description',
                       'cross_weight', 'stone_weight', 'net_weight',
-                      'making_charge', 'stone_value', 'price', 'original_price', 'tag', 'is_active']:
+                      'making_charge', 'wastage_charge', 'stone_value', 'tax_percent',
+                      'price', 'original_price', 'tag', 'occasion', 'wedding_category',
+                      'gender', 'is_active']:
             if field in request.data:
                 setattr(product, field, request.data[field])
         product.save()

@@ -143,7 +143,7 @@ return (
 </div>
 
       <div style={{ position: 'relative', zIndex: 10, padding: '0 40px', maxWidth: '100%', margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '18px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '18px' }}>
           {loading ? (
   <div style={{ gridColumn:'span 3', textAlign:'center', color:subtext, padding:'60px 0' }}>⏳ Loading...</div>
 ) : goldChains.length === 0 ? (

@@ -117,7 +117,7 @@ export default function DiamondBracelets() {
 </div>
 
       <div style={{ padding: '0px 40px', maxWidth: '100%', margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '20px' }}>
           {loading ? (
             <div style={{ gridColumn: 'span 3', textAlign: 'center', color: '#64748b', padding: '60px 0' }}>⏳ Loading products...</div>
           ) : filteredProducts.length === 0 ? (

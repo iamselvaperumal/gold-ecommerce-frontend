@@ -497,6 +497,14 @@ class JewelryProduct(models.Model):
         ('bracelets', 'Bracelets'),
         ('earrings', 'Earrings'),
         ('chains', 'Chains'),
+        ('pendants', 'Pendants'),
+        ('mangalsutra', 'Mangalsutra'),
+        ('anklets', 'Anklets'),
+        ('nosepin', 'Nose Pin'),
+        ('toerings', 'Toe Rings'),
+        ('cufflinks', 'Cufflinks'),
+        ('brooches', 'Brooches'),
+        ('tiepins', 'Tie Pins'),
         ('coins', 'Coins'),
     ]
     METAL_CHOICES = [
@@ -511,6 +519,35 @@ class JewelryProduct(models.Model):
         ('999', '999'),
         ('18k', '18K'),
         ('92', '92'),
+        ('', 'N/A'),
+    ]
+    TAG_CHOICES = [
+        ('Bestseller', 'Bestseller'),
+        ('Bridal', 'Bridal'),
+        ('Premium', 'Premium'),
+        ('Statement', 'Statement'),
+        ('Stackable', 'Stackable'),
+        ('New', 'New'),
+        ('Limited', 'Limited'),
+        ('', 'N/A'),
+    ]
+    OCCASION_CHOICES = [
+        ('Wedding', 'Wedding'),
+        ('Birthday', 'Birthday'),
+        ('Anniversary', 'Anniversary'),
+        ('Auspicious', 'Auspicious'),
+        ('Office Wear', 'Office Wear'),
+        ('Modern Wear', 'Modern Wear'),
+        ('Casual Wear', 'Casual Wear'),
+        ('Traditional Wear', 'Traditional Wear'),
+        ('', 'N/A'),
+    ]
+    WEDDING_CATEGORY_CHOICES = [
+        ('Wedding Ring', 'Wedding Ring'),
+        ('Wedding Necklaces', 'Wedding Necklaces'),
+        ('Wedding Chain', 'Wedding Chain'),
+        ('Wedding Bangles', 'Wedding Bangles'),
+        ('Wedding Earring', 'Wedding Earring'),
         ('', 'N/A'),
     ]
 
@@ -528,9 +565,9 @@ class JewelryProduct(models.Model):
     tax_percent   = models.DecimalField(max_digits=5, decimal_places=2, default=3.00)
     price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     original_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
-    tag = models.CharField(max_length=50, blank=True)
-    occasion = models.CharField(max_length=50, blank=True)
-    wedding_category = models.CharField(max_length=50, blank=True)
+    tag = models.CharField(max_length=50, choices=TAG_CHOICES, blank=True)
+    occasion = models.CharField(max_length=50, choices=OCCASION_CHOICES, blank=True)
+    wedding_category = models.CharField(max_length=50, choices=WEDDING_CATEGORY_CHOICES, blank=True)
     gender = models.CharField(
     max_length=10,
     choices=[('men', 'Men'), ('women', 'Women'), ('kids', 'Kids'), ('all', 'All')],
@@ -689,6 +726,7 @@ class JewelryOrder(models.Model):
 
     def __str__(self):
         return f"{self.order_id} - {self.product_name}"
+<<<<<<< Updated upstream
 
 
 # ── COIN REQUEST SYSTEM (Promotor <-> SubDealer coin flow) ──
@@ -731,3 +769,6 @@ class CoinStock(models.Model):
     def __str__(self):
         return f"{self.user} — {self.metal_type} {self.weight_label}: {self.qty}"
         
+=======
+        
+>>>>>>> Stashed changes

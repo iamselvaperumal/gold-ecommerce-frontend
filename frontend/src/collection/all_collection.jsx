@@ -1,467 +1,1133 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import logo from '../assets/logo.png'
+import api from '../api'
 import CustomerNavbar from './CustomerNavbar'
-import CustomerFooter from '../collection/CustomerFooter'
+import CustomerFooter from './CustomerFooter'
+
+const API_ORIGIN = (api.defaults.baseURL || '').replace(/\/api\/?$/, '')
+
+const categoryTiles = [
+  { label: 'Necklaces', category: 'necklaces', count: '478+', image: '/diamond_necklas.jpg' },
+  { label: 'Earrings', category: 'earrings', count: '965+', image: '/diamond Earings.jpg' },
+  { label: 'Rings', category: 'rings', count: '678+', image: '/diamond_ring.jpg' },
+  { label: 'Bracelets', category: 'bracelets', count: '412+', image: '/wedding_bracelet.jpg' },
+  { label: 'Pendants', category: 'pendants', count: '329+', image: '/platinum_necklas.jpg' },
+  { label: 'Chains', category: 'chains', count: '286+', image: '/wedding_chain.jpg' },
+  { label: 'Mangalsutra', category: 'mangalsutra', count: '193+', image: '/black_necklaces.png' },
+  { label: 'Bangles', category: 'bangles', count: '551+', image: '/wedding_bangesh.jpg' },
+  { label: 'Necklace Set', category: 'necklaces', count: '241+', image: '/wedding_necklaces.jpg' },
+  { label: 'Nose Pin', category: 'nosepin', count: '156+', image: '/diamond Earings.jpg' },
+]
+
+const goldRail = [
+  { label: 'Necklaces', category: 'necklaces', image: '/gold-women.png' },
+  { label: 'Earrings', category: 'earrings', image: '/diamond Earings.jpg' },
+  { label: 'Rings', category: 'rings', image: '/diamond_ring.jpg' },
+  { label: 'Bangles', category: 'bangles', image: '/wedding_bangesh.jpg' },
+  { label: 'Chains', category: 'chains', image: '/wedding_chain.jpg' },
+  { label: 'Pendants', category: 'pendants', image: '/wedding_necklaces.jpg' },
+  { label: 'Mangalsutra', category: 'mangalsutra', image: '/black_necklaces.png' },
+  { label: 'Gold Coins', route: '/collection/coins?metal=gold', image: '/gold-coin.jpg.jpeg' },
+]
+
+const filterCategories = [
+  ['All Jewellery', '/collection/all'],
+  ['Necklaces', '/collection/all?category=necklaces'],
+  ['Earrings', '/collection/all?category=earrings'],
+  ['Rings', '/collection/all?category=rings'],
+  ['Bracelets', '/collection/all?category=bracelets'],
+  ['Pendants', '/collection/all?category=pendants'],
+  ['Chains', '/collection/all?category=chains'],
+  ['Mangalsutra', '/collection/all?category=mangalsutra'],
+  ['Bangles', '/collection/all?category=bangles'],
+  ['Necklace Set', '/collection/all?category=necklaces'],
+  ['Nose Pin', '/collection/all?category=nosepin'],
+  ['Anklets', '/collection/all?category=anklets'],
+  ['Coin & Bars', '/collection/coins'],
+]
+
+const goldFilterCategories = [
+  ['All Gold Jewellery', '/collection/all?metal=gold'],
+  ['Gold Necklaces', '/collection/all?metal=gold&category=necklaces'],
+  ['Gold Earrings', '/collection/all?metal=gold&category=earrings'],
+  ['Gold Rings', '/collection/all?metal=gold&category=rings'],
+  ['Gold Bangles', '/collection/all?metal=gold&category=bangles'],
+  ['Gold Chains', '/collection/all?metal=gold&category=chains'],
+  ['Gold Pendants', '/collection/all?metal=gold&category=pendants'],
+  ['Mangalsutra', '/collection/all?metal=gold&category=mangalsutra'],
+  ['Gold Nose Pin', '/collection/all?metal=gold&category=nosepin'],
+  ['Gold Anklets', '/collection/all?metal=gold&category=anklets'],
+  ['Coin & Bars', '/collection/coins?metal=gold'],
+]
+
+const promos = [
+  { title: 'Daily Wear', text: 'Elegant designs for everyday beauty.', route: '/collection/all?dailywear=true', image: '/dailywera.png' },
+  { title: 'Wedding Collection', text: 'Make your big day even more special.', route: '/collection/all?wedding=true', image: '/wedding_necklaces.jpg' },
+  { title: 'Diamond Collection', text: 'Brilliance that lasts forever.', route: '/collection/all?metal=diamond', image: '/diamond_ring.jpg' },
+  { title: 'Silver Collection', text: 'Pure. Elegant. Timeless.', route: '/collection/all?metal=silver', image: '/silver-coin.jpg.jpeg' },
+]
+
+const trustItems = [
+  ['100% BIS Hallmarked', 'hallmark'],
+  ['Lifetime Exchange', 'exchange'],
+  ['Secure Payments', 'lock'],
+  ['Free Shipping Above Rs.4,999', 'truck'],
+]
 
 
-function ProductCard({ p, navigate, liveRates = {} }) {
-  const images = p.images?.map(img => getImageUrl(img)).filter(Boolean) || []
-  const [imgIndex, setImgIndex] = useState(0)
-  const [hovered, setHovered] = useState(false)
-
-  const getRate = () => {
-    const metal = p.metal?.toLowerCase()
-    const grade = p.grade?.toLowerCase()
-    if (metal === 'gold') return grade === '24k' ? (liveRates.gold_24k || 0) : (liveRates.gold_22k || 0)
-    if (metal === 'silver') return liveRates.silver_999 || 0
-    if (metal === 'diamond') return grade === '18k' ? (liveRates.diamond_18k || 0) : (liveRates.diamond_22k || 0)
-    if (metal === 'platinum') return liveRates.platinum_92 || 0
-    return 0
-  }
-  const rate = getRate()
-  const netWt = parseFloat(p.net_weight) || 0
-  const makingPct = parseFloat(p.making_charge) || 0
-  const discountPct = parseFloat(p.wastage_charge) || 0
-  const stoneVal = parseFloat(p.stone_value) || 0
-  const making = rate * (makingPct / 100)
-  const rateWithMaking = rate + making
-  const disc = rateWithMaking * (discountPct / 100)
-  const price = (rate && netWt) ? Math.round(((netWt * (rateWithMaking - disc)) + stoneVal) * 1.03) : parseFloat(p.price) || 0
-  const originalAmt = (rate && netWt) ? Math.round(((netWt * (rate + making)) + stoneVal) * 1.03) : parseFloat(p.original_price) || 0
-  const hasDiscount = discountPct > 0 && originalAmt > price && price > 0
-  const displayIndex = hovered && images.length > 1 ? 1 : imgIndex
-
-  return (
-<div
-  onClick={() => navigate(`/product-display?category=${p.category}&metal=${p.metal}&id=${p.id}`)}
-  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'; setHovered(true) }}
-  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; setHovered(false) }}
-  style={{ background: '#fff', border: '1px solid #e8e8e8', borderRadius: 10, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s ease', marginBottom: '75px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
->
-      <div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden' }}>
-
-        {p.tag && (
-          <div style={{ position: 'absolute', top: 12, left: 0, background: '#2ecc71', color: '#fff', padding: '5px 12px 5px 10px', fontSize: 11, fontWeight: 700, clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)', zIndex: 2 }}>
-            {p.tag}
-          </div>
-        )}
-
-        <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 10, right: 10, fontSize: 20, cursor: 'pointer', zIndex: 2 }}>🤍</div>
-
-{images.length > 0
-  ? 
-  <img 
-  key={displayIndex}
-  src={images[displayIndex]}
-  alt={p.name} 
-  style={{ width: '100%', height: '100%', objectFit: 'cover', animation: 'fadeImg 0.5s ease' }} 
-  onError={e => e.currentTarget.style.display = 'none'} 
-/>
-  : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>💍</div>
+const metalCopy = {
+  gold: {
+    title: 'Gold Jewellery',
+    crumb: 'Gold',
+    subtitle: 'Timeless gold jewellery crafted with purity and perfection.',
+    accent: '#a36b18',
+    bannerTitle: 'Shine in Every Moment',
+    bannerText: 'Explore our exclusive gold collections designed to celebrate you.',
+    bannerImage: '/wedding_necklaces.jpg',
+    sideImage: '/gold_Woman.jpg',
+    sideTitle: 'Heritage. Purity. Timeless Gold.',
+  },
+  diamond: {
+    title: 'Diamond Jewellery',
+    crumb: 'Diamond',
+    subtitle: 'Radiant pieces designed for brilliance, elegance and everyday luxury.',
+    accent: '#65758a',
+    bannerTitle: 'Brilliance for Every Occasion',
+    bannerText: 'Discover rings, earrings and necklaces with lasting sparkle.',
+    bannerImage: '/diamond_woman.jpg',
+    sideImage: '/diamond-women.png',
+    sideTitle: 'Brilliance Crafted. Forever Loved.',
+  },
+  silver: {
+    title: 'Silver Jewellery',
+    crumb: 'Silver',
+    subtitle: 'Pure silver designs for gifting, daily style and classic moments.',
+    accent: '#6b7280',
+    bannerTitle: 'Pure. Elegant. Everyday.',
+    bannerText: 'Explore silver jewellery and coins with trusted purity.',
+    bannerImage: '/silver-coin.jpg.jpeg',
+    sideImage: '/dailywear_woman.jpg',
+    sideTitle: 'Silver Grace. Everyday Shine.',
+  },
+  platinum: {
+    title: 'Platinum Jewellery',
+    crumb: 'Platinum',
+    subtitle: 'Modern platinum pieces with a refined premium finish.',
+    accent: '#788392',
+    bannerTitle: 'Minimal Luxury in Platinum',
+    bannerText: 'Premium designs for moments that deserve quiet elegance.',
+    bannerImage: '/platinum_ring.jpg',
+    sideImage: '/platinum_necklas.jpg',
+    sideTitle: 'Modern. Rare. Refined.',
+  },
 }
 
-        {/* {images.length > 1 && (
-          <button onClick={e => { e.stopPropagation(); setImgIndex(i => (i - 1 + images.length) % images.length) }}
-            style={{ position: 'absolute', left: 2, top: '50%', transform: 'translateY(-50%)', border: 'none', borderRadius: '50%', width: 48, height: 48, fontSize: 38, cursor: 'pointer', zIndex: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            ‹
-          </button>
-        )}
+function Icon({ type, size = 22 }) {
+  const common = {
+    width: size,
+    height: size,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.7,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    'aria-hidden': true,
+  }
 
-        {images.length > 1 && (
-          <button onClick={e => { e.stopPropagation(); setImgIndex(i => (i + 1) % images.length) }}
-            style={{ position: 'absolute', right: 2, top: '50%', transform: 'translateY(-50%)', border: 'none', borderRadius: '50%', width: 48, height: 48, fontSize: 38, cursor: 'pointer', zIndex: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            ›
-          </button>
-        )} */}
+  if (type === 'truck') return <svg {...common}><path d="M3 7h11v9H3z" /><path d="M14 10h4l3 3v3h-7z" /><circle cx="8" cy="18" r="2" /><circle cx="18" cy="18" r="2" /></svg>
+  if (type === 'lock') return <svg {...common}><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /><path d="M12 15v3" /></svg>
+  if (type === 'exchange') return <svg {...common}><path d="M20 7v5h-5" /><path d="M4 17v-5h5" /><path d="M18.5 10A7 7 0 0 0 6.2 7.8" /><path d="M5.5 14A7 7 0 0 0 17.8 16.2" /></svg>
+  if (type === 'grid') return <svg {...common}><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>
+  if (type === 'list') return <svg {...common}><path d="M8 6h13" /><path d="M8 12h13" /><path d="M8 18h13" /><path d="M3 6h.01" /><path d="M3 12h.01" /><path d="M3 18h.01" /></svg>
+  if (type === 'arrow') return <svg {...common}><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+  return <svg {...common}><path d="M12 3 20 7v5c0 4.8-3.2 7.8-8 9-4.8-1.2-8-4.2-8-9V7l8-4Z" /><path d="M12 8v7" /><path d="M9.5 12h5" /></svg>
+}
 
-        <div style={{ position: 'absolute', bottom: 10, right: 10, fontSize: 16, color: '#999', zIndex: 2 }}>🔗</div>
+function getImageUrl(img) {
+  if (!img) return null
+  const path = typeof img === 'object' ? (img.image || img.url || '') : img
+  if (!path) return null
+  if (path.startsWith('http://') || path.startsWith('https://')) return path
+  return `${API_ORIGIN}/${path.replace(/^\/+/, '')}`
+}
+
+function money(value) {
+  const n = Number(value)
+  if (!Number.isFinite(n) || n <= 0) return 'Rs. 0'
+  return `Rs. ${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+}
+
+function productPrice(product, rates) {
+  const metal = product.metal?.toLowerCase()
+  const grade = product.grade?.toLowerCase()
+  const rate = metal === 'gold'
+    ? grade === '24k' ? rates.gold_24k : rates.gold_22k
+    : metal === 'silver'
+      ? rates.silver_999
+      : metal === 'diamond'
+        ? grade === '18k' ? rates.diamond_18k : rates.diamond_22k
+        : metal === 'platinum'
+          ? rates.platinum_92
+          : 0
+
+  const weight = Number(product.net_weight) || 0
+  const making = Number(product.making_charge) || 0
+  const discount = Number(product.wastage_charge) || 0
+  const stone = Number(product.stone_value) || 0
+
+  if (!rate || !weight) return Number(product.price) || 0
+  const rateWithMaking = rate + (rate * making / 100)
+  return Math.round(((weight * (rateWithMaking - (rateWithMaking * discount / 100))) + stone) * 1.03)
+}
+
+function normalizeProductList(data) {
+  if (Array.isArray(data)) return data
+  if (Array.isArray(data?.results)) return data.results
+  if (Array.isArray(data?.data)) return data.data
+  if (Array.isArray(data?.items)) return data.items
+  if (Array.isArray(data?.products)) return data.products
+  return []
+}
+
+function CategoryTile({ item, navigate }) {
+  const route = item.route || `/collection/all?category=${item.category}`
+  return (
+    <button className="an-category-card" type="button" onClick={() => navigate(route)}>
+      <img src={item.image} alt={item.label} />
+      <div>
+        <strong>{item.label}</strong>
+        <span>{item.count || 'Explore'} Designs</span>
       </div>
-
-<div style={{ padding: '12px 14px' }}>
-  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-    <span style={{ fontSize: 16, fontWeight: 800, color: '#1a1a1a' }}>
-      {price > 0 ? `₹${price.toLocaleString('en-IN')}` : '—'}
-    </span>
-    {hasDiscount && (
-      <span style={{ fontSize: 15, color: '#999', textDecoration: 'line-through' }}>
-        ₹{originalAmt.toLocaleString('en-IN')}
-      </span>
-    )}
-  </div>
-  {hasDiscount && (
-    <div style={{ fontSize: 13, color: '#2ecc71', fontWeight: 700, marginBottom: 6 }}>
-      {discountPct}% Off
-    </div>
-  )}
-  <div style={{ fontSize: 18, color: '#1a1a1a', fontWeight: 600,
-    fontFamily: '"Cormorant Garamond", Georgia, serif' }}>{p.name}
-  </div>
-</div>
-    </div>
+      <span className="an-round-arrow"><Icon type="arrow" size={16} /></span>
+    </button>
   )
 }
 
-const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
+function ProductCard({ product, rates, navigate }) {
+  const image = getImageUrl(product.images?.[0]) || '/logo.png'
+  const price = productPrice(product, rates)
+  const reviews = 71 + ((product.id || 1) * 11) % 58
+  const goProduct = () => navigate(`/product-display?category=${product.category}&metal=${product.metal}&id=${product.id}`)
 
-const getImageUrl = img => {
-  if (!img) return null
-  let p = typeof img === 'object' ? (img.image || img.url || '') : img
-  if (!p) return null
-  if (p.startsWith('http://') || p.startsWith('https://')) return p
-  return `${API_BASE}/${p.replace(/^\/+/, '')}`
+  const addCart = async event => {
+    event.stopPropagation()
+    try {
+      await api.post('/cart/', { product: product.id, qty: 1 })
+      window.dispatchEvent(new Event('bb_cart_update'))
+    } catch {}
+  }
+
+  return (
+    <article className="an-product-card" onClick={goProduct}>
+      <div className="an-product-image">
+        <img src={image} alt={product.name} />
+        <button className="an-heart" type="button" onClick={event => event.stopPropagation()} aria-label="Wishlist">♡</button>
+      </div>
+      <div className="an-product-body">
+        <h3>{product.name}</h3>
+        <p>{(product.grade || product.metal || 'Jewellery').toUpperCase()} {product.metal || 'Jewellery'} · {Number(product.net_weight || 0).toFixed(2)} g</p>
+        <strong>{money(price)}</strong>
+        <div className="an-rating">
+          <span>★★★★★</span>
+          <small>({reviews})</small>
+          <button type="button" onClick={addCart} aria-label="Add to cart"><Icon type="lock" size={15} /></button>
+        </div>
+      </div>
+    </article>
+  )
 }
 
-const CATEGORY_ICONS = {
-  rings: '💍', earrings: '✨', bangles: '⭕',
-  chains: '⛓️', necklaces: '📿', coins: '🪙'
+function FilterPanel({ activeRoute, navigate, metalFilter }) {
+  const categories = metalFilter === 'gold' ? goldFilterCategories : filterCategories
+  const collapses = metalFilter === 'gold'
+    ? ['Price Range', 'Occasion', 'Gender', 'Purity', 'Collection']
+    : ['Price', 'Occasion', 'Gender', 'Metal Type', 'Collection']
+
+  return (
+    <aside className="an-filter">
+      <h2>{metalFilter === 'gold' ? 'FILTERS' : 'Shop By'}</h2>
+      <div className="an-filter-section">
+        <div className="an-filter-title">Category <span>{metalFilter === 'gold' ? '^' : '-'}</span></div>
+        {categories.map(([label, route]) => (
+          <button
+            className={activeRoute === route ? 'active' : ''}
+            type="button"
+            key={label}
+            onClick={() => navigate(route)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {collapses.map(label => (
+        <div className="an-filter-collapse" key={label}>
+          <strong>{label}</strong>
+          <span>+</span>
+        </div>
+      ))}
+      <button className="an-clear" type="button" onClick={() => navigate('/collection/all')}>Clear All Filters</button>
+    </aside>
+  )
 }
 
-const PRICE_LABELS = {
-  'below25k': '< ₹25K',
-  '25k-50k': '₹25K – ₹50K',
-  '50k-1L': '₹50K – ₹1L',
-  'above1L': '₹1L & Above',
+function RightRail({ copy }) {
+  return (
+    <aside className="an-right-rail">
+      <div className="an-trust-box">
+        {trustItems.map(([label, icon]) => (
+          <div className="an-trust-item" key={label}>
+            <Icon type={icon} size={29} />
+            <strong>{label}</strong>
+          </div>
+        ))}
+      </div>
+      <div className="an-side-promo">
+        <img src={copy.sideImage} alt="" />
+        <div>
+          <h3>{copy.sideTitle}</h3>
+          <button type="button">Explore Now</button>
+        </div>
+      </div>
+    </aside>
+  )
 }
 
 export default function AllCollection() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const priceFilter = searchParams.get('price')
   const metalFilter = searchParams.get('metal')
+  const categoryFilter = searchParams.get('category')
   const genderFilter = searchParams.get('gender')
   const occasionFilter = searchParams.get('occasion')
-  const searchFilter = searchParams.get('search') 
-  const weddingCategoryFilter = searchParams.get('wedding_category')
+  const priceFilter = searchParams.get('price')
+  const searchFilter = searchParams.get('search')
   const isWedding = searchParams.get('wedding') === 'true'
   const isDailywear = searchParams.get('dailywear') === 'true'
-
   const [products, setProducts] = useState([])
+  const [rates, setRates] = useState({})
+  const [sortBy, setSortBy] = useState('popular')
   const [loading, setLoading] = useState(true)
-  const [weddingTab, setWeddingTab] = useState('all')
-  const [liveRates, setLiveRates] = useState({})
 
-  // Diamond la coins vendam — filter out
-const displayProducts = (() => {
-  let list = isWedding && weddingTab !== 'all'
-    ? products.filter(p => p.wedding_category === weddingTab)
-    : products
-
-  // Diamond click panna coins hide pannu
-  if (metalFilter === 'diamond') {
-    list = list.filter(p => p.category !== 'coins')
-  }
-
-  // Dailywear la coins vendam
-  if (isDailywear) {
-    list = list.filter(p => p.category !== 'coins')
-  }
-
-  return list
-})()
-
-
-useEffect(() => {
-  import('../api').then(({ default: api }) => {
-    api.get('/metal-rates/').then(res => {
-      const d = res.data
-      setLiveRates({
-        gold_22k: parseFloat(d.gold_22k) || 0,
-        gold_24k: parseFloat(d.gold_24k) || 0,
-        silver_999: parseFloat(d.silver_999) || 0,
-        diamond_18k: parseFloat(d.diamond_18k) || 0,
-        diamond_22k: parseFloat(d.diamond_22k) || 0,
-        platinum_92: parseFloat(d.platinum_92) || 0,
+  useEffect(() => {
+    api.get('/metal-rates/')
+      .then(res => {
+        const data = Array.isArray(res.data) ? res.data[0] : res.data
+        setRates({
+          gold_22k: Number(data?.gold_22k) || 0,
+          gold_24k: Number(data?.gold_24k) || 0,
+          silver_999: Number(data?.silver_999) || 0,
+          diamond_18k: Number(data?.diamond_18k) || 0,
+          diamond_22k: Number(data?.diamond_22k) || 0,
+          platinum_92: Number(data?.platinum_92) || 0,
+        })
       })
-    }).catch(() => {})
-  })
-}, [])
+      .catch(() => {})
+  }, [])
 
-useEffect(() => {
-  setWeddingTab('all')
-  const fetchAll = async () => {
-    setLoading(true)
-    try {
-
-      // ── DAILYWEAR: Office Wear + Modern Wear + Casual Wear ──
-      if (isDailywear) {
-        const dailywearOccasions = ['Office Wear', 'Modern Wear', 'Casual Wear']
-        const results = await Promise.all(
-          dailywearOccasions.map(occ =>
-            fetch(`${API_BASE}/api/jewelry-products/?occasion=${encodeURIComponent(occ)}`)
-              .then(r => r.json())
-              .catch(() => [])
-          )
-        )
-        const merged = []
-        const seen = new Set()
-        results.flat().forEach(p => {
-          if (!seen.has(p.id)) { seen.add(p.id); merged.push(p) }
-        })
-        setProducts(merged)
+  useEffect(() => {
+    const loadProducts = async () => {
+      setLoading(true)
+      try {
+        const params = new URLSearchParams()
+        if (metalFilter) params.set('metal', metalFilter)
+        if (categoryFilter) params.set('category', categoryFilter)
+        if (genderFilter) params.set('gender', genderFilter)
+        if (occasionFilter) params.set('occasion', occasionFilter)
+        if (priceFilter) params.set('price', priceFilter)
+        if (searchFilter) params.set('search', searchFilter)
+        if (isWedding) params.set('occasion', 'Wedding')
+        if (isDailywear) params.set('occasion', 'Casual Wear')
+        const res = await api.get(`/jewelry-products/${params.toString() ? `?${params.toString()}` : ''}`)
+        setProducts(normalizeProductList(res.data))
+      } catch {
+        setProducts([])
+      } finally {
         setLoading(false)
-        return
       }
-
-      // ── WEDDING: wedding_category base panni fetch ──
-      if (isWedding) {
-        const weddingCats = [
-          'Wedding Ring', 'Wedding Necklaces', 'Wedding Chain',
-          'Wedding Bangles', 'Wedding Earring'
-        ]
-        const results = await Promise.all(
-          weddingCats.map(cat =>
-            fetch(`${API_BASE}/api/jewelry-products/?wedding_category=${encodeURIComponent(cat)}`)
-              .then(r => r.json())
-              .catch(() => [])
-          )
-        )
-        const merged = []
-        const seen = new Set()
-        results.flat().forEach(p => {
-          if (!seen.has(p.id)) { seen.add(p.id); merged.push(p) }
-        })
-        setProducts(merged)
-        setLoading(false)
-        return
-      }
-
-      // ── NORMAL fetch for all other filters ──
-      let url = `${API_BASE}/api/jewelry-products/`
-      const params = []
-      if (metalFilter) params.push(`metal=${metalFilter}`)
-      if (genderFilter) params.push(`gender=${genderFilter}`)
-      if (occasionFilter) params.push(`occasion=${occasionFilter}`)
-      if (weddingCategoryFilter) params.push(`wedding_category=${encodeURIComponent(weddingCategoryFilter)}`)
-      if (searchFilter) params.push(`search=${encodeURIComponent(searchFilter)}`)
-      if (params.length) url += `?${params.join('&')}`
-
-      const res = await fetch(url)
-      const data = await res.json()
-      let list = Array.isArray(data) ? data : []
-
-      if (metalFilter) {
-        list = list.filter(p => p.metal?.toLowerCase() === metalFilter.toLowerCase())
-      }
-
-      if (priceFilter) {
-        list = list.filter(p => {
-          const price = parseFloat(p.price) || 0
-          if (priceFilter === 'below25k')  return price > 0 && price < 25000
-          if (priceFilter === '25k-50k')   return price >= 25000 && price < 50000
-          if (priceFilter === '50k-1L')    return price >= 50000 && price < 100000
-          if (priceFilter === 'above1L')   return price >= 100000
-          return true
-        })
-      }
-
-      setProducts(list)
-    } catch {
-      setProducts([])
     }
-    setLoading(false)
+
+    loadProducts()
+  }, [metalFilter, categoryFilter, genderFilter, occasionFilter, priceFilter, searchFilter, isWedding, isDailywear])
+
+  const visibleProducts = useMemo(() => {
+    const list = [...products]
+    if (sortBy === 'price-low') list.sort((a, b) => productPrice(a, rates) - productPrice(b, rates))
+    if (sortBy === 'price-high') list.sort((a, b) => productPrice(b, rates) - productPrice(a, rates))
+    if (sortBy === 'newest') list.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+    return list
+  }, [products, rates, sortBy])
+
+  const copy = metalCopy[metalFilter] || {
+    title: categoryFilter
+      ? `${categoryFilter.charAt(0).toUpperCase()}${categoryFilter.slice(1)}`
+      : searchFilter
+        ? `Search: ${searchFilter}`
+        : isWedding
+          ? 'Wedding Collection'
+          : isDailywear
+            ? 'Daily Wear'
+            : 'All Jewellery',
+    crumb: 'All Jewellery',
+    subtitle: 'Explore our wide range of timeless designs crafted for every you.',
+    accent: '#073B3F',
+    bannerTitle: 'Heritage Crafted For Generations',
+    bannerText: 'Explore jewellery collections made for every occasion.',
+    bannerImage: '/black_necklaces.png',
+    sideImage: '/gold_Woman.jpg',
+    sideTitle: 'Heritage Crafted. For Generations.',
   }
-  fetchAll()
-}, [priceFilter, metalFilter, genderFilter, occasionFilter, weddingCategoryFilter, isWedding, isDailywear, searchFilter])
 
-  return (
-    <div style={{ minHeight: '100vh', background: '#FDF5EE', fontFamily: '"Montserrat", sans-serif' }}>
-      <style>{`
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@400;500;600;700&display=swap');
-  @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes fadeImg{from{opacity:0;transform:scale(1.03)}to{opacity:1;transform:scale(1)}}
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #FDF5EE; }
-::-webkit-scrollbar-thumb { background: #edd3a3; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #f3d54f; }
-`}</style>
+  const activeRoute = metalFilter === 'gold'
+    ? categoryFilter ? `/collection/all?metal=gold&category=${categoryFilter}` : '/collection/all?metal=gold'
+    : categoryFilter ? `/collection/all?category=${categoryFilter}` : '/collection/all'
 
-<CustomerNavbar />
-
-      {/* HEADER */}
-<div style={{ textAlign: 'center', padding: '40px 16px 24px' }}>
-  <div style={{ fontSize: 13, fontWeight: 700, color: '#8B1A1A', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>
-    {isWedding ? 'WEDDING COLLECTION' : isDailywear ? 'DAILYWEAR COLLECTION' : searchFilter ? `SEARCH RESULTS` : metalFilter ? `${metalFilter.toUpperCase()} JEWELLERY` : occasionFilter ? `${occasionFilter.toUpperCase()} COLLECTION` : 'ALL JEWELLERY'}
-  </div>
-<div style={{ fontSize: 28, fontWeight: 800, color: '#1a0a0a', marginBottom: 6, fontFamily: '"Playfair Display", Georgia, serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-  {isWedding ? (
-    <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#b8860b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 27s-11-7-11-14a7 7 0 0111-5.7A7 7 0 0127 13c0 7-11 14-11 14z"/>
-    </svg>
-  ) : isDailywear ? (
-    <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#b8860b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 4l-5 6h20l-5-6"/><rect x="6" y="10" width="20" height="18" rx="2"/>
-      <path d="M16 10v18"/>
-    </svg>
-  ) : metalFilter === 'diamond' ? (
-    <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#b8860b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 4l10 8-10 16L6 12z"/><path d="M6 12h20"/>
-      <path d="M11 12l5 16"/><path d="M21 12l-5 16"/>
-      <path d="M6 12l5-8"/><path d="M26 12l-5-8"/>
-    </svg>
-  ) : metalFilter === 'gold' ? (
-    <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#b8860b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="16,4 19.5,12.5 28,13.5 22,19.5 23.5,28 16,24 8.5,28 10,19.5 4,13.5 12.5,12.5"/>
-    </svg>
-  ) : metalFilter === 'silver' ? (
-    <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#b8860b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="16" cy="16" r="11"/><circle cx="16" cy="16" r="7"/>
-      <path d="M16 9v2"/><path d="M16 21v2"/>
-      <path d="M9 16h2"/><path d="M21 16h2"/>
-    </svg>
-  ) : occasionFilter ? (
-    <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#b8860b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 4l10 8-10 16L6 12z"/><path d="M6 12h20"/>
-    </svg>
-  ) : priceFilter ? (
-    <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#b8860b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="16" cy="16" r="11"/><path d="M16 9v14"/><path d="M11 12h7a3 3 0 010 6h-7"/>
-    </svg>
+  const productResults = loading ? (
+    <section className="an-loading">Loading products...</section>
+  ) : visibleProducts.length ? (
+    <section className="an-products">
+      {visibleProducts.map(product => (
+        <ProductCard key={product.id} product={product} rates={rates} navigate={navigate} />
+      ))}
+    </section>
   ) : (
-    <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#b8860b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6 12l10-6 10 6v10l-10 6-10-6z"/>
-      <path d="M6 12l10 6 10-6"/><line x1="16" y1="18" x2="16" y2="28"/>
-    </svg>
-  )}
-  {isWedding ? 'Wedding Jewellery'
-    : isDailywear ? 'Dailywear Collection'
-    : metalFilter === 'diamond' ? 'Diamond Jewellery'
-    : metalFilter === 'gold' ? 'Gold Jewellery'
-    : metalFilter === 'silver' ? 'Silver Jewellery'
-    : occasionFilter ? `${occasionFilter.replace('+', ' ')} Collection`
-    : priceFilter ? PRICE_LABELS[priceFilter]
-    : 'All Products'}
-</div>
-  <div style={{ fontSize: 14, color: '#7c5c4a' }}>
-    {loading ? 'Loading...' : `${displayProducts.length} products found`}
-  </div>
-
-        {/* Filter badges */}
-        <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
-          {priceFilter && (
-  <span style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#fce8e8', color: '#8B1A1A', border: '1px solid #f3a0a0', borderRadius: 20, padding: '4px 14px', fontSize: 12, fontWeight: 700 }}>
-  <svg width="12" height="12" viewBox="0 0 32 32" fill="none" stroke="#8B1A1A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="16" cy="16" r="11"/><path d="M16 9v14"/><path d="M11 12h7a3 3 0 010 6h-7"/>
-  </svg>
-  {PRICE_LABELS[priceFilter]}
-</span>
-          )}
-
-          {genderFilter && (
-<span style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(139,26,26,0.1)', color: '#8B1A1A', border: '1px solid #8B1A1A', borderRadius: 20, padding: '4px 14px', fontSize: 12, fontWeight: 700 }}>
-  <svg width="12" height="12" viewBox="0 0 32 32" fill="none" stroke="#8B1A1A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="16" cy="10" r="5"/><path d="M4 28c0-6.6 5.4-12 12-12s12 5.4 12 12"/>
-  </svg>
-  {genderFilter.charAt(0).toUpperCase() + genderFilter.slice(1)}
-</span>
-)}
-          {metalFilter && (
-<span style={{ display: 'flex', alignItems: 'center', gap: 5, background: metalFilter === 'gold' ? 'rgba(251,191,36,0.15)' : 'rgba(192,192,192,0.15)', color: metalFilter === 'gold' ? '#b8860b' : '#9ca3af', border: `1px solid ${metalFilter === 'gold' ? '#fbbf24' : '#c0c0c0'}`, borderRadius: 20, padding: '4px 14px', fontSize: 12, fontWeight: 700 }}>
-  <svg width="12" height="12" viewBox="0 0 32 32" fill="none" stroke={metalFilter === 'gold' ? '#b8860b' : '#9ca3af'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    {metalFilter === 'gold'
-      ? <polygon points="16,4 19.5,12.5 28,13.5 22,19.5 23.5,28 16,24 8.5,28 10,19.5 4,13.5 12.5,12.5"/>
-      : <><circle cx="16" cy="16" r="11"/><circle cx="16" cy="16" r="7"/></>
-    }
-  </svg>
-  {metalFilter.toUpperCase()}
-</span>
-          )}
-          <button onClick={() => navigate('/collection/all')}
-            style={{ background: 'transparent', color: '#8B1A1A', border: '1px solid #8B1A1A', borderRadius: 20, padding: '4px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-            ✕ Clear filters
-          </button>
-        </div>
-      </div>
-
- {/* ── WEDDING TABS — only show when occasion=Wedding ── */}
-{isWedding && !loading && (
-  <div style={{
-    background: '#fff',
-    borderBottom: '1px solid #e8ddd5',
-    padding: '14px 24px',
-    display: 'flex', gap: 10,
-    overflowX: 'auto', alignItems: 'center',
-    justifyContent: 'center', flexWrap: 'wrap'
-  }}>
-    {[
-  { key: 'all', label: 'All Wedding', svg: <svg width="14" height="14" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 27s-11-7-11-14a7 7 0 0111-5.7A7 7 0 0127 13c0 7-11 14-11 14z"/></svg> },
-  { key: 'Wedding Ring', label: 'Wedding Ring', svg: <svg width="14" height="14" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="19" r="8"/><circle cx="16" cy="19" r="4.5"/><path d="M13 11l-2-4h10l-2 4"/></svg> },
-  { key: 'Wedding Necklaces', label: 'Wedding Necklaces', svg: <svg width="14" height="14" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 6c0 10 4 16 10 18 6-2 10-8 10-18"/><circle cx="16" cy="26" r="2.5"/></svg> },
-  { key: 'Wedding Chain', label: 'Wedding Chain', svg: <svg width="14" height="14" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="11" y="2" width="10" height="7" rx="3.5"/><rect x="11" y="12" width="10" height="7" rx="3.5"/><rect x="11" y="22" width="10" height="7" rx="3.5"/><line x1="16" y1="9" x2="16" y2="12"/><line x1="16" y1="19" x2="16" y2="22"/></svg> },
-  { key: 'Wedding Bangles', label: 'Wedding Bangles', svg: <svg width="14" height="14" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="16" r="10"/><circle cx="16" cy="16" r="6.5"/></svg> },
-  { key: 'Wedding Earring', label: 'Wedding Earring', svg: <svg width="14" height="14" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="7" r="2.5"/><path d="M11 9.5v4"/><path d="M8.5 13.5h5l-1.2 6-1.3 3-1.3-3-1.2-6z"/><circle cx="21" cy="7" r="2.5"/><path d="M21 9.5v4"/><path d="M18.5 13.5h5l-1.2 6-1.3 3-1.3-3-1.2-6z"/></svg> },
-].map(tab => {
-      const count = tab.key === 'all'
-        ? products.length
-        : products.filter(p => p.wedding_category === tab.key).length
-      return (
-        <button key={tab.key}
-          onClick={() => setWeddingTab(tab.key)}
-          style={{
-            padding: '9px 18px', borderRadius: 20, border: 'none',
-            cursor: 'pointer', fontWeight: 700, fontSize: 13,
-            whiteSpace: 'nowrap',
-            background: weddingTab === tab.key
-              ? 'linear-gradient(90deg,#8B1A1A,#b91c1c)'
-              : '#f5f0e8',
-            color: weddingTab === tab.key ? '#fff' : '#7c5c4a',
-            transition: 'all 0.2s',
-            boxShadow: weddingTab === tab.key ? '0 4px 12px rgba(139,26,26,0.3)' : 'none'
-          }}
-        >
-          <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-  {tab.svg} {tab.label}
-</span>
-          <span style={{
-            marginLeft: 6, fontSize: 10, fontWeight: 800,
-            background: weddingTab === tab.key ? 'rgba(255,255,255,0.25)' : 'rgba(139,26,26,0.1)',
-            color: weddingTab === tab.key ? '#fff' : '#8B1A1A',
-            borderRadius: 20, padding: '1px 7px'
-          }}>{count}</span>
-        </button>
-      )
-    })}
-  </div>
-)}
-
-{/* PRODUCTS GRID */}
-<div style={{ maxWidth: '100%', margin: '0 auto', padding: '0 16px 60px' }}>
-
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '80px 0' }}>
-            <div style={{ width: 40, height: 40, border: '3px solid #f3d5d5', borderTop: '3px solid #8B1A1A', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
-            <div style={{ color: '#7c5c4a', fontSize: 15 }}>Loading products...</div>
-          </div>
-        ) : products.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '80px 0' }}>
-            <div style={{ marginBottom: 16 }}>
-  <svg width="52" height="52" viewBox="0 0 32 32" fill="none" stroke="#8B1A1A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.3">
-    <circle cx="14" cy="14" r="9"/><path d="M21 21l7 7"/>
-  </svg>
-</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#1a0a0a', marginBottom: 8 }}>No products found</div>
-            <div style={{ fontSize: 14, color: '#7c5c4a', marginBottom: 24 }}>
-              {priceFilter ? `${PRICE_LABELS[priceFilter]} range la products illai` : 'No products available'}
-            </div>
-            <button onClick={() => navigate('/customer')}
-              style={{ padding: '12px 28px', background: '#8B1A1A', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, cursor: 'pointer' }}>
-              ← Go Back
-            </button>
-          </div>
-        ) : (
-<div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 20, animation: 'fadeIn 0.4s ease' }}>
-{displayProducts.map(p => (
-  <ProductCard key={p.id} p={p} navigate={navigate} liveRates={liveRates} />
-))}
-</div>
-         
-        )}
-      </div>
-
-        {/* ── FOOTER ── */}
-        <CustomerFooter />
-    </div>
+    <section className="an-empty">No products found. Try another collection.</section>
   )
 
+  return (
+    <div className="an-page">
+      <style>{`
+        .an-page {
+          min-height: 100vh;
+          background: #fff;
+          color: #071f22;
+          font-family: Inter, "Montserrat", system-ui, sans-serif;
+        }
 
+        .an-shell {
+          width: min(100% - 76px, 1810px);
+          margin: 0 auto;
+        }
+
+        .an-layout {
+          display: grid;
+          grid-template-columns: 260px minmax(0, 1fr);
+          gap: 24px;
+          align-items: start;
+          padding: 30px 0 20px;
+        }
+
+        .an-content {
+          min-width: 0;
+        }
+
+        .an-filter,
+        .an-trust-box,
+        .an-side-promo,
+        .an-newsletter {
+          border: 1px solid #e7e1d9;
+          box-shadow: 0 12px 36px rgba(7,31,34,0.06);
+        }
+
+        .an-filter {
+          position: sticky;
+          top: 194px;
+          border-radius: 10px;
+          overflow: hidden;
+          background: linear-gradient(180deg,#fdfaf7,#f8f4ef);
+        }
+
+        .an-filter h2 {
+          padding: 20px 20px 16px;
+          font-size: 16px;
+          font-weight: 900;
+          border-bottom: 1px solid #e7e1d9;
+        }
+
+        .an-filter-section {
+          padding: 14px 18px 16px;
+          border-bottom: 1px solid #e7e1d9;
+        }
+
+        .an-filter-title,
+        .an-filter-collapse {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          color: #111;
+          font-size: 15px;
+          font-weight: 900;
+          margin-bottom: 12px;
+        }
+
+        .an-filter-section button {
+          width: 100%;
+          border: 0;
+          border-radius: 6px;
+          background: transparent;
+          color: #111;
+          display: block;
+          padding: 9px 12px;
+          text-align: left;
+          cursor: pointer;
+          font-weight: 600;
+        }
+
+        .an-filter-section button.active,
+        .an-filter-section button:hover {
+          background: #eaf1f0;
+          color: #073B3F;
+        }
+
+        .an-filter-collapse {
+          padding: 14px 18px;
+          margin: 0;
+          border-bottom: 1px solid #e7e1d9;
+        }
+
+        .an-clear {
+          width: calc(100% - 36px);
+          min-height: 42px;
+          margin: 16px 18px 24px;
+          border: 1px solid #cfc6ba;
+          border-radius: 6px;
+          background: #fff;
+          color: #073B3F;
+          font-weight: 900;
+          cursor: pointer;
+        }
+
+        .an-main-head {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 18px;
+          align-items: start;
+          margin: 6px 0 18px;
+        }
+
+        .an-breadcrumb {
+          color: #446266;
+          font-size: 13px;
+          margin-bottom: 12px;
+        }
+
+        .an-title h1 {
+          margin: 0;
+          color: ${copy.accent};
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: clamp(32px, 3vw, 42px);
+          line-height: 1;
+          font-weight: 600;
+        }
+
+        .an-title-mark {
+          width: 226px;
+          height: 16px;
+          margin: 10px 0 8px;
+          background: linear-gradient(90deg, ${copy.accent}, transparent 44%, ${copy.accent});
+          mask: linear-gradient(#000,#000) center/100% 1px no-repeat;
+          opacity: .8;
+        }
+
+        .an-title p {
+          margin: 0;
+          font-size: 16px;
+          color: #111;
+        }
+
+        .an-toolbar {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          flex-wrap: wrap;
+          gap: 12px;
+          color: #111;
+          font-weight: 800;
+          min-width: 0;
+        }
+
+        .an-toolbar select {
+          min-width: min(100%, 178px);
+          height: 46px;
+          border: 1px solid #ded8d1;
+          border-radius: 12px;
+          background: #fff;
+          padding: 0 16px;
+          font-weight: 800;
+          outline: none;
+        }
+
+        .an-view-btn {
+          width: 46px;
+          height: 46px;
+          border: 1px solid #ded8d1;
+          border-radius: 12px;
+          background: #fff;
+          color: #073B3F;
+          display: grid;
+          place-items: center;
+        }
+
+        .an-view-btn.active {
+          background: #eaf4f2;
+        }
+
+        .an-category-grid {
+          display: none;
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+          gap: 20px;
+        }
+
+        .an-category-card {
+          min-height: 220px;
+          border: 0;
+          border-radius: 10px;
+          background: linear-gradient(145deg,#fbf6ef,#fff);
+          box-shadow: 0 12px 34px rgba(92,66,41,.07);
+          padding: 18px 16px;
+          position: relative;
+          cursor: pointer;
+          overflow: hidden;
+          text-align: center;
+          transition: transform .22s ease, box-shadow .22s ease;
+        }
+
+        .an-category-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 20px 44px rgba(92,66,41,.12);
+        }
+
+        .an-category-card img {
+          width: 128px;
+          height: 118px;
+          object-fit: contain;
+          margin: 0 auto 14px;
+          display: block;
+          transition: transform .28s ease;
+        }
+
+        .an-category-card:hover img {
+          transform: scale(1.06);
+        }
+
+        .an-category-card strong {
+          display: block;
+          color: #111;
+          font-size: 16px;
+          margin-bottom: 8px;
+        }
+
+        .an-category-card span {
+          color: #111;
+          font-size: 13px;
+        }
+
+        .an-round-arrow {
+          position: absolute;
+          right: 16px;
+          bottom: 20px;
+          width: 30px;
+          height: 30px;
+          border: 1px solid #cfd8d6;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          color: #073B3F;
+          background: #fff;
+        }
+
+        .an-promo-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+          gap: 18px;
+          margin-top: 28px;
+        }
+
+        .an-promo {
+          min-height: 220px;
+          border: 0;
+          border-radius: 10px;
+          overflow: hidden;
+          background: #f6f1eb;
+          position: relative;
+          text-align: left;
+          padding: 24px;
+          cursor: pointer;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          align-items: flex-start;
+          isolation: isolate;
+        }
+
+        .an-promo::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          z-index: -1;
+          background: linear-gradient(90deg, rgba(253,244,229,0.96) 0%, rgba(253,244,229,0.82) 42%, rgba(253,244,229,0.18) 100%);
+        }
+
+        .an-promo img {
+          position: absolute;
+          inset: 0;
+          z-index: -2;
+          width: 100%;
+          height: 100%;
+          min-height: 0;
+          object-fit: cover;
+          opacity: .88;
+        }
+
+        .an-promo h3 {
+          position: relative;
+          z-index: 1;
+          max-width: 72%;
+          margin: 0;
+          font-family: Georgia, serif;
+          font-size: clamp(20px, 1.35vw, 26px);
+          font-weight: 500;
+          line-height: 1.12;
+          color: #073B3F;
+        }
+
+        .an-promo p,
+        .an-promo span {
+          position: relative;
+          z-index: 1;
+          max-width: 70%;
+          color: #111;
+          font-weight: 800;
+          line-height: 1.35;
+          overflow-wrap: normal;
+        }
+
+        .an-promo p {
+          margin: 12px 0 0;
+          font-size: 14px;
+        }
+
+        .an-promo span {
+          display: inline-flex;
+          margin-top: 14px;
+          color: #073B3F;
+          text-transform: uppercase;
+          font-size: 12px;
+          font-weight: 900;
+        }
+
+        .an-metal-banner {
+          min-height: 176px;
+          border-radius: 10px;
+          padding: 28px 34px;
+          margin-bottom: 24px;
+          background:
+            linear-gradient(90deg, rgba(253,244,229,.98), rgba(253,244,229,.82) 46%, rgba(253,244,229,.2)),
+            url('${copy.bannerImage}');
+          background-size: cover;
+          background-position: right center;
+          display: grid;
+          grid-template-columns: minmax(240px, .65fr) 1fr;
+          align-items: center;
+          overflow: hidden;
+        }
+
+        .an-metal-banner h2 {
+          margin: 0 0 8px;
+          font-family: Georgia, serif;
+          font-size: 27px;
+          font-weight: 500;
+        }
+
+        .an-metal-banner p {
+          margin: 0 0 18px;
+          max-width: 360px;
+          line-height: 1.55;
+        }
+
+        .an-primary-btn {
+          border: 0;
+          border-radius: 6px;
+          background: #073B3F;
+          color: #fff;
+          min-height: 38px;
+          padding: 0 18px;
+          font-weight: 900;
+          text-transform: uppercase;
+          cursor: pointer;
+        }
+
+        .an-banner-badges {
+          display: flex;
+          gap: clamp(28px, 5vw, 70px);
+          align-items: center;
+          justify-content: center;
+        }
+
+        .an-banner-badges div {
+          text-align: center;
+          color: #6b4b27;
+          font-weight: 800;
+          font-size: 13px;
+        }
+
+        .an-cat-rail {
+          display: grid;
+          grid-template-columns: repeat(9, minmax(0, 1fr));
+          gap: 16px;
+          margin-bottom: 24px;
+          align-items: start;
+        }
+
+        .an-cat-rail button {
+          border: 0;
+          background: transparent;
+          cursor: pointer;
+          text-align: center;
+          font-weight: 800;
+        }
+
+        .an-cat-rail img {
+          width: 78px;
+          height: 78px;
+          border-radius: 50%;
+          object-fit: cover;
+          background: #f7f1ea;
+          margin: 0 auto 9px;
+          box-shadow: 0 10px 28px rgba(92,66,41,.08);
+        }
+
+        .an-cat-rail .view-all {
+          width: 78px;
+          height: 78px;
+          border-radius: 50%;
+          border: 1px solid #f0d8b8;
+          display: grid;
+          place-items: center;
+          margin: 0 auto 9px;
+          color: #a36b18;
+          font-size: 24px;
+          background: #fff5e7;
+        }
+
+        .an-products {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+          gap: clamp(22px, 2.2vw, 34px);
+          margin-top: 30px;
+          align-items: start;
+        }
+
+        .an-product-card {
+          min-width: 0;
+          border: 1px solid #eadfd3;
+          border-radius: 10px;
+          overflow: hidden;
+          background: #fff;
+          cursor: pointer;
+          box-shadow: 0 10px 24px rgba(92,66,41,.07);
+          transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        .an-product-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 18px 38px rgba(92,66,41,.12);
+        }
+
+        .an-product-image {
+          position: relative;
+          aspect-ratio: 1 / 1;
+          min-height: clamp(210px, 21vw, 300px);
+          background: #fbf4eb;
+          overflow: hidden;
+        }
+
+        .an-product-image img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform .35s ease;
+        }
+
+        .an-product-card:hover img {
+          transform: scale(1.05);
+        }
+
+        .an-heart {
+          position: absolute;
+          right: 12px;
+          top: 12px;
+          width: 30px;
+          height: 30px;
+          border: 0;
+          background: transparent;
+          font-size: 23px;
+          cursor: pointer;
+        }
+
+        .an-product-body {
+          padding: 13px 14px 15px;
+        }
+
+        .an-product-body h3 {
+          margin: 0 0 7px;
+          font-size: 14px;
+          color: #111;
+        }
+
+        .an-product-body p {
+          margin: 0 0 8px;
+          font-size: 12px;
+          color: #5e5e5e;
+        }
+
+        .an-product-body strong {
+          color: #111;
+          font-size: 17px;
+        }
+
+        .an-rating {
+          margin-top: 8px;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          color: #d18414;
+          font-size: 12px;
+        }
+
+        .an-rating button {
+          margin-left: auto;
+          width: 30px;
+          height: 30px;
+          border: 0;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          background: #073B3F;
+          color: #fff;
+          cursor: pointer;
+        }
+
+        .an-right-rail {
+          display: none;
+        }
+
+        .an-trust-box {
+          border-radius: 10px;
+          background: #edf6f4;
+          padding: 26px 26px 14px;
+        }
+
+        .an-trust-item {
+          min-height: 72px;
+          border-bottom: 1px dashed #c7d6d4;
+          display: grid;
+          place-items: center;
+          text-align: center;
+          color: #073B3F;
+        }
+
+        .an-trust-item:last-child {
+          border-bottom: 0;
+        }
+
+        .an-trust-item strong {
+          max-width: 150px;
+          line-height: 1.25;
+          font-size: 14px;
+        }
+
+        .an-side-promo {
+          position: relative;
+          min-height: 384px;
+          overflow: hidden;
+          border-radius: 10px;
+          color: #fff;
+          background: #a36b18;
+        }
+
+        .an-side-promo img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          position: absolute;
+          inset: 0;
+        }
+
+        .an-side-promo::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(180deg, transparent 35%, rgba(77,41,12,.76));
+        }
+
+        .an-side-promo div {
+          position: absolute;
+          left: 24px;
+          right: 24px;
+          bottom: 26px;
+          z-index: 1;
+        }
+
+        .an-side-promo h3 {
+          font-family: Georgia, serif;
+          font-size: 25px;
+          line-height: 1.15;
+          margin: 0 0 20px;
+          font-weight: 500;
+        }
+
+        .an-side-promo button {
+          border: 0;
+          border-radius: 6px;
+          min-height: 38px;
+          padding: 0 26px;
+          background: #fff;
+          color: #8b551e;
+          text-transform: uppercase;
+          font-weight: 900;
+        }
+
+
+        .an-loading,
+        .an-empty {
+          min-height: 280px;
+          border-radius: 12px;
+          border: 1px solid #eadfd3;
+          display: grid;
+          place-items: center;
+          background: #fff;
+          font-weight: 900;
+        }
+
+        @media (max-width: 1440px) {
+          .an-shell { width: min(100% - 48px, 1810px); }
+          .an-layout { grid-template-columns: 250px minmax(0, 1fr); gap: 20px; }
+          .an-category-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+          .an-products { grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)); }
+        }
+
+        @media (max-width: 1120px) {
+          .an-layout { grid-template-columns: 230px minmax(0, 1fr); }
+          .an-category-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+          .an-promo-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+          .an-cat-rail { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+          .an-products { grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+        }
+
+        @media (max-width: 820px) {
+          .an-shell { width: min(100% - 28px, 1810px); }
+          .an-layout { grid-template-columns: 1fr; padding-top: 18px; }
+          .an-filter { position: static; }
+          .an-main-head { grid-template-columns: 1fr; }
+          .an-category-grid,
+          .an-products { grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+          .an-metal-banner { grid-template-columns: 1fr; }
+          .an-banner-badges { display: none; }
+        }
+
+        @media (max-width: 520px) {
+          .an-category-grid,
+          .an-promo-grid,
+          .an-products { grid-template-columns: 1fr; }
+          .an-promo { min-height: 190px; padding: 18px; }
+          .an-products { gap: 18px; margin-top: 22px; }
+          .an-product-image { min-height: 0; }
+          .an-promo h3, .an-promo p, .an-promo span { max-width: 82%; }
+          .an-cat-rail { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+        }
+      `}</style>
+
+      <CustomerNavbar />
+
+      <main className="an-shell">
+        <section className="an-layout">
+          <FilterPanel activeRoute={activeRoute} navigate={navigate} metalFilter={metalFilter} />
+
+          <div className="an-content">
+            <div className="an-main-head">
+              <div className="an-title">
+                <div className="an-breadcrumb">Home &gt; {copy.crumb}</div>
+                <h1>{copy.title}</h1>
+                <div className="an-title-mark" />
+                <p>{copy.subtitle}</p>
+              </div>
+              <div className="an-toolbar">
+                <span>Sort By :</span>
+                <select value={sortBy} onChange={event => setSortBy(event.target.value)}>
+                  <option value="popular">Popularity</option>
+                  <option value="newest">Newest</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                </select>
+                <button className="an-view-btn active" type="button"><Icon type="grid" /></button>
+                <button className="an-view-btn" type="button"><Icon type="list" /></button>
+              </div>
+            </div>
+
+            {metalFilter ? (
+              <>
+                <section className="an-metal-banner">
+                  <div>
+                    <h2>{copy.bannerTitle}</h2>
+                    <p>{copy.bannerText}</p>
+                    <button className="an-primary-btn" type="button" onClick={() => navigate('/collection/all')}>Explore Collections</button>
+                  </div>
+                  <div className="an-banner-badges">
+                    <div><Icon type="hallmark" /><br />22K & 18K<br />Certified Gold</div>
+                    <div><Icon type="hallmark" /><br />BIS<br />Hallmarked</div>
+                    <div><Icon type="exchange" /><br />Lifetime<br />Exchange</div>
+                  </div>
+                </section>
+
+                <section className="an-cat-rail">
+                  {goldRail.map(item => (
+                    <button type="button" key={item.label} onClick={() => navigate(item.route || `/collection/all?metal=${metalFilter}&category=${item.category}`)}>
+                      <img src={item.image} alt={item.label} />
+                      <span>{item.label}</span>
+                    </button>
+                  ))}
+                  <button type="button" onClick={() => navigate('/collection/all')}>
+                    <span className="view-all">→</span>
+                    <span>View All</span>
+                  </button>
+                </section>
+
+                {productResults}
+              </>
+            ) : (
+              <>
+                <section className="an-category-grid">
+                  {categoryTiles.map(item => (
+                    <CategoryTile key={item.label} item={item} navigate={navigate} />
+                  ))}
+                </section>
+
+                <section className="an-promo-grid">
+                  {promos.map(item => (
+                    <button className="an-promo" type="button" key={item.title} onClick={() => navigate(item.route)}>
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                      <span>Explore Now -&gt;</span>
+                      <img src={item.image} alt="" />
+                    </button>
+                  ))}
+                </section>
+
+                {productResults}
+              </>
+            )}
+          </div>
+
+          <RightRail copy={copy} />
+        </section>
+
+
+      </main>
+
+      <CustomerFooter />
+    </div>
+  )
 }
+

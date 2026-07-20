@@ -18,11 +18,12 @@ const PARTICLES = Array.from({ length: 14 }, (_, i) => ({
 
 const CATEGORY_LABELS = {
   rings: 'Rings', bangles: 'Bangles', earrings: 'Earrings',
-  chains: 'Chains', necklaces: 'Necklaces',
+  chains: 'Chains', necklaces: 'Necklaces', bracelets: 'Bracelets',
+  pendants: 'Pendants', coins: 'Coins', mangalsutra: 'Mangalsutra',
 }
 
 const METAL_LABELS = {
-  gold: 'Gold', silver: 'Silver',
+  gold: 'Gold', silver: 'Silver', diamond: 'Diamond', platinum: 'Platinum',
 }
 
 const PURITY_LABELS = {
@@ -47,7 +48,7 @@ function MoreFromCollection({ currentProductId, category, metal, gender, occasio
   const navigate = useNavigate()
   const [products, setProducts] = useState([])
 
-  const calcLivePrice = (p) => {
+  const calcLivePrice = p => {
     if (!liveRate) return parseFloat(p.price) || null
     const netWt = parseFloat(p.net_weight) || 0
     const makingChargePct = parseFloat(p.making_charge) || 0
@@ -62,11 +63,10 @@ function MoreFromCollection({ currentProductId, category, metal, gender, occasio
     const makingPerGram = todayRate * (makingChargePct / 100)
     const rateWithMaking = todayRate + makingPerGram
     const discountPerGram = rateWithMaking * (discountPct / 100)
-    const effectiveRate = rateWithMaking - discountPerGram
-    return Math.round(((netWt * effectiveRate) + stoneVal) * 1.03)
+    return Math.round(((netWt * (rateWithMaking - discountPerGram)) + stoneVal) * 1.03)
   }
 
-  const calcOriginalPrice = (p) => {
+  const calcOriginalPrice = p => {
     if (!liveRate) return parseFloat(p.original_price) || null
     const netWt = parseFloat(p.net_weight) || 0
     const makingChargePct = parseFloat(p.making_charge) || 0
@@ -78,8 +78,7 @@ function MoreFromCollection({ currentProductId, category, metal, gender, occasio
     else if (p.metal === 'platinum') todayRate = liveRate.platinum_92
     if (!todayRate || !netWt) return parseFloat(p.original_price) || null
     const makingPerGram = todayRate * (makingChargePct / 100)
-    const rateWithMaking = todayRate + makingPerGram
-    return Math.round(((netWt * rateWithMaking) + stoneVal) * 1.03)
+    return Math.round(((netWt * (todayRate + makingPerGram)) + stoneVal) * 1.03)
   }
 
   useEffect(() => {
@@ -87,152 +86,132 @@ function MoreFromCollection({ currentProductId, category, metal, gender, occasio
       api.get(`/jewelry-products/?category=${category}&metal=${metal}`)
         .then(res => {
           const list = Array.isArray(res.data) ? res.data : []
-          const filtered = list.filter(p => String(p.id) !== String(currentProductId))
-          setProducts(filtered.slice(0, 4))
+          setProducts(list.filter(p => String(p.id) !== String(currentProductId)).slice(0, 4))
         })
         .catch(() => {})
     })
-  }, [category, metal, currentProductId, liveRate])
+  }, [category, metal, currentProductId])
 
   if (products.length === 0) return null
 
   const getImageUrl = img => {
     if (!img) return null
-    let p = typeof img === 'object' ? (img.image || img.url || '') : img
+    const p = typeof img === 'object' ? (img.image || img.url || '') : img
     if (!p) return null
     if (p.startsWith('http://') || p.startsWith('https://')) return p
     return `https://bitbyte-backend-f66f.onrender.com/${p.replace(/^\/+/, '')}`
   }
 
+  const collectionRoute = `/collection/all?category=${category}&metal=${metal}${gender && gender !== 'all' ? `&gender=${gender}` : ''}${occasion ? `&occasion=${occasion}` : ''}`
+
   return (
-    <div style={{ position: 'relative', zIndex: 5, padding: '0 40px 80px', maxWidth: 1600, margin: '0 auto' }}>
-      {/* ── section header ── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
-        <div>
-          <p style={{ margin: '0 0 4px', fontSize: 11, fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: '#b8860b' }}>✦ You May Also Like</p>
-          <h2 style={{ margin: 0, fontSize: 28, fontWeight: 600, color: '#1c1410', fontFamily: '"Playfair Display", Georgia, serif', letterSpacing: '-0.3px' }}>
-            More from this Collection
-          </h2>
+    <section className="more-collection-section">
+      <style>{`
+        .more-collection-section { position: relative; z-index: 5; width: 100%; padding: 70px clamp(18px,4vw,54px) 90px; background: radial-gradient(circle at 85% 12%, rgba(209,223,222,0.58), transparent 26%), linear-gradient(180deg,#FDFDFC 0%,#F3F3F0 100%); }
+        .more-collection-inner { width: 100%; max-width: 1500px; margin: 0 auto; }
+        .more-collection-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+        .more-kicker { display: inline-flex; align-items: center; gap: 10px; margin: 0 0 10px; color: #9F6130; font-size: 12px; font-weight: 900; letter-spacing: 2.8px; text-transform: uppercase; }
+        .more-kicker::before { content: ""; width: 9px; height: 9px; border: 2px solid #BB8958; background: #F3E8DE; transform: rotate(45deg); }
+        .more-collection-head h2 { margin: 0; color: #073B3F; font-family: "Playfair Display", Georgia, serif; font-size: clamp(34px,4vw,54px); line-height: 0.98; letter-spacing: 0; }
+        .more-subcopy { margin: 12px 0 0; color: #52625f; font-size: 14px; line-height: 1.7; max-width: 560px; }
+        .more-view-btn { border: 1px solid rgba(12,64,68,0.28); border-radius: 999px; background: #FDFDFC; color: #073B3F; padding: 14px 22px; font-size: 12px; font-weight: 900; letter-spacing: 1.2px; text-transform: uppercase; cursor: pointer; white-space: nowrap; box-shadow: 0 14px 30px rgba(12,64,68,0.08); transition: transform 0.22s ease, background 0.22s ease, color 0.22s ease; }
+        .more-view-btn:hover { transform: translateY(-3px); background: #073B3F; color: #FDFDFC; }
+        .more-products-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: clamp(22px,2.2vw,34px); }
+        .more-product-card { position: relative; overflow: hidden; border: 1px solid rgba(189,207,206,0.86); border-radius: 24px; background: rgba(253,253,252,0.95); box-shadow: 0 18px 44px rgba(12,64,68,0.08); cursor: pointer; transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease; }
+        .more-product-card:hover { transform: translateY(-8px); border-color: rgba(187,137,88,0.58); box-shadow: 0 30px 70px rgba(12,64,68,0.16); }
+        .more-product-image { position: relative; aspect-ratio: 1.08 / 1; min-height: 320px; overflow: hidden; background: radial-gradient(circle at 50% 38%, rgba(255,255,255,0.92), rgba(243,232,222,0.44) 42%, rgba(231,237,236,0.82)); }
+        .more-product-image img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.55s cubic-bezier(0.22,1,0.36,1), filter 0.35s ease; }
+        .more-product-card:hover .more-product-image img { transform: scale(1.08); filter: saturate(1.05); }
+        .more-ribbon { position: absolute; top: 14px; left: 0; z-index: 2; background: #073B3F; color: #FDFDFC; padding: 7px 18px 7px 14px; font-size: 11px; font-weight: 900; letter-spacing: 1.2px; text-transform: uppercase; clip-path: polygon(0 0,90% 0,100% 50%,90% 100%,0 100%); }
+        .more-hover-cta { position: absolute; left: 16px; right: 16px; bottom: 16px; transform: translateY(14px); opacity: 0; border-radius: 999px; background: rgba(253,253,252,0.94); color: #073B3F; border: 1px solid rgba(12,64,68,0.18); padding: 11px 14px; font-size: 12px; font-weight: 900; letter-spacing: 1px; text-align: center; text-transform: uppercase; transition: transform 0.24s ease, opacity 0.24s ease; box-shadow: 0 16px 30px rgba(17,24,23,0.16); }
+        .more-product-card:hover .more-hover-cta { transform: translateY(0); opacity: 1; }
+        .more-product-body { padding: 18px 18px 20px; }
+        .more-product-name { margin: 0; color: #073B3F; font-family: "Cormorant Garamond", Georgia, serif; font-size: 25px; font-weight: 700; line-height: 1.08; min-height: 54px; }
+        .more-price-row { display: flex; align-items: flex-end; gap: 9px; margin-top: 16px; padding-top: 15px; border-top: 1px solid rgba(189,207,206,0.68); flex-wrap: wrap; }
+        .more-price { color: #073B3F; font-size: 21px; font-weight: 900; }
+        .more-old-price { color: #9F6130; font-size: 13px; font-weight: 700; text-decoration: line-through; opacity: 0.72; }
+        .more-offer { margin-left: auto; border-radius: 999px; background: rgba(12,64,68,0.1); border: 1px solid rgba(12,64,68,0.15); color: #0C4044; padding: 6px 9px; font-size: 11px; font-weight: 900; white-space: nowrap; }
+        @media (max-width: 1180px) { .more-products-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+        @media (max-width: 860px) { .more-collection-head { align-items: flex-start; flex-direction: column; } .more-products-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+        @media (max-width: 560px) { .more-collection-section { padding: 48px 12px 68px; } .more-products-grid { grid-template-columns: 1fr; } .more-product-name { min-height: 0; } }
+      `}</style>
+      <div className="more-collection-inner">
+        <div className="more-collection-head">
+          <div>
+            <p className="more-kicker">You May Also Like</p>
+            <h2>More from this Collection</h2>
+            <p className="more-subcopy">Selected pieces from the same {CATEGORY_LABELS[category] || category} family, matched with the current metal and backend pricing logic.</p>
+          </div>
+          <button className="more-view-btn" type="button" onClick={() => navigate(collectionRoute)}>View All</button>
         </div>
-        <button
-          onClick={() => navigate(`/collection/all?metal=${metal}${gender && gender !== 'all' ? `&gender=${gender}` : ''}${occasion ? `&occasion=${occasion}` : ''}`)}
-          style={{
-            padding: '10px 24px', borderRadius: 2,
-            border: '1.5px solid #1c1410', background: 'transparent',
-            color: '#1c1410', fontWeight: 600, fontSize: 12,
-            cursor: 'pointer', letterSpacing: '1.5px', textTransform: 'uppercase',
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#1c1410'; e.currentTarget.style.color = '#fff' }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1c1410' }}
-        >
-          View All
-        </button>
-      </div>
 
-      {/* 4 Products Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
-        {products.map(p => {
-          const firstImg = p.images?.[0] ? getImageUrl(p.images[0]) : null
-          const price = calcLivePrice(p) || 0
-          const originalPrice = calcOriginalPrice(p) || 0
-          const discountPct = parseFloat(p.wastage_charge) || 0
-          const hasDiscount = discountPct > 0 && originalPrice > price && price > 0
-
-          return (
-            <div key={p.id}
-              onClick={() => {
-                window.scrollTo({ top: 0, behavior: 'smooth' })
-                navigate(`/product-display?category=${p.category}&metal=${p.metal}&id=${p.id}`)
-              }}
-              style={{
-                background: '#fff', borderRadius: 4, overflow: 'hidden',
-                cursor: 'pointer', transition: 'transform 0.25s, box-shadow 0.25s',
-                border: '1px solid #ede9e3',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 16px 40px rgba(0,0,0,0.10)' }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
-            >
-              <div style={{ height: 220, background: '#f7f4f0', overflow: 'hidden' }}
-                onMouseEnter={e => {
-                  const secondImg = p.images?.[1] ? getImageUrl(p.images[1]) : null
-                  if (secondImg) e.currentTarget.querySelector('img').src = secondImg
-                }}
-                onMouseLeave={e => {
-                  if (firstImg) e.currentTarget.querySelector('img').src = firstImg
+        <div className="more-products-grid">
+          {products.map(p => {
+            const firstImg = p.images?.[0] ? getImageUrl(p.images[0]) : null
+            const price = calcLivePrice(p) || 0
+            const originalPrice = calcOriginalPrice(p) || 0
+            const discountPct = parseFloat(p.wastage_charge) || 0
+            const hasDiscount = discountPct > 0 && originalPrice > price && price > 0
+            return (
+              <article
+                className="more-product-card"
+                key={p.id}
+                onClick={() => {
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                  navigate(`/product-display?category=${p.category}&metal=${p.metal}&id=${p.id}`)
                 }}
               >
-                {firstImg
-                  ? <img src={firstImg} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }} />
-                  : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>💍</div>
-                }
-              </div>
-              <div style={{ padding: '14px 16px' }}>
-                {/* metal badge */}
-                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: '#b8860b', background: 'rgba(184,134,11,0.08)', border: '1px solid rgba(184,134,11,0.2)', borderRadius: 2, padding: '2px 8px', display: 'inline-block', marginBottom: 6 }}>
-                  {p.metal?.toUpperCase()} {p.grade?.toUpperCase()}
-                </span>
-                <div style={{ fontSize: 15, fontWeight: 600, color: '#1c1410', marginBottom: 8, fontFamily: '"Cormorant Garamond", Georgia, serif', letterSpacing: '0.2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {p.name}
+                <div className="more-product-image">
+                  <span className="more-ribbon">{p.metal?.toUpperCase()} {p.grade?.toUpperCase()}</span>
+                  {firstImg ? <img src={firstImg} alt={p.name} /> : <div style={{ height: '100%', display: 'grid', placeItems: 'center', color: '#073B3F', fontWeight: 900 }}>Team 369</div>}
+                  <div className="more-hover-cta">View Details</div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid #f0ebe4', paddingTop: 8 }}>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: '#1c1410' }}>
-                    {price > 0 ? `₹${price.toLocaleString('en-IN')}` : '—'}
-                  </span>
-                  {hasDiscount && (
-                    <>
-                      <span style={{ fontSize: 12, color: '#bbb', textDecoration: 'line-through' }}>₹{originalPrice.toLocaleString('en-IN')}</span>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: '#2ecc71', marginLeft: 'auto' }}>{discountPct}% Off</span>
-                    </>
-                  )}
+                <div className="more-product-body">
+                  <h3 className="more-product-name">{p.name}</h3>
+                  <div className="more-price-row">
+                    <span className="more-price">{price > 0 ? `Rs. ${price.toLocaleString('en-IN')}` : 'Contact'}</span>
+                    {hasDiscount && <span className="more-old-price">Rs. {originalPrice.toLocaleString('en-IN')}</span>}
+                    {hasDiscount && <span className="more-offer">{discountPct}% Off</span>}
+                  </div>
                 </div>
-              </div>
-            </div>
-          )
-        })}
+              </article>
+            )
+          })}
+        </div>
       </div>
-    </div>
+    </section>
   )
 }
-
-
 function ProductInfoAndBreakup({ product, metal }) {
   const [liveRate, setLiveRate] = useState(null)
 
   useEffect(() => {
     import('../api').then(({ default: api }) => {
-      api.get('/metal-rates/').then(res => {
-        const d = res.data
-        setLiveRate({
-          gold_22k: parseFloat(d.gold_22k) || 0,
-          gold_24k: parseFloat(d.gold_24k) || 0,
-          silver_999: parseFloat(d.silver_999) || 0,
-          diamond_18k: parseFloat(d.diamond_18k) || 0,
-          diamond_22k: parseFloat(d.diamond_22k) || 0,
-          platinum_92: parseFloat(d.platinum_92) || 0,
+      api.get('/metal-rates/')
+        .then(res => {
+          const d = res.data
+          setLiveRate({
+            gold_22k: parseFloat(d.gold_22k) || 0,
+            gold_24k: parseFloat(d.gold_24k) || 0,
+            silver_999: parseFloat(d.silver_999) || 0,
+            diamond_18k: parseFloat(d.diamond_18k) || 0,
+            diamond_22k: parseFloat(d.diamond_22k) || 0,
+            platinum_92: parseFloat(d.platinum_92) || 0,
+          })
         })
-      }).catch(() => { })
+        .catch(() => {})
     })
   }, [])
 
   if (!product) return null
 
-  const PURITY_LABELS = {
-    gold: { '22k': '91.6', '24k': '999' },
-    silver: { '999': '999' },
-    diamond: { '18k': '750', '22k': '916' },
-    platinum: { '92': '920' },
-  }
-
-  const purityLabel = PURITY_LABELS[metal]?.[product.grade] || product.grade?.toUpperCase() || '—'
-  const metalLabel = { gold: 'Gold', silver: 'Silver', diamond: 'Diamond', platinum: 'Platinum' }[metal] || metal
-
+  const purityLabel = PURITY_LABELS[metal]?.[product.grade] || product.grade?.toUpperCase() || '-'
+  const metalLabel = METAL_LABELS[metal] || metal
   const netWt = parseFloat(product.net_weight) || 0
   const crossWt = parseFloat(product.cross_weight) || 0
   const stoneWt = parseFloat(product.stone_weight) || 0
   const stoneVal = parseFloat(product.stone_value) || 0
-  const makingChargePct = parseFloat(product.making_charge) || 0
-  const discountPct = parseFloat(product.wastage_charge) || 0
+  const productDesc = product?.desc || product?.description || product?.short_description || 'A carefully finished jewellery piece selected for premium everyday wear, gifting, and celebrations.'
 
   let todayRate = 0
   if (liveRate) {
@@ -242,153 +221,111 @@ function ProductInfoAndBreakup({ product, metal }) {
     else if (metal === 'platinum') todayRate = liveRate.platinum_92
   }
 
-  const makingPerGram = todayRate * (makingChargePct / 100)
-  const rateWithMaking = todayRate + makingPerGram
-  const discountPerGram = rateWithMaking * (discountPct / 100)
-  const effectiveRate = rateWithMaking - discountPerGram
+  const inr = n => n !== null && n !== undefined ? `Rs. ${Math.round(n).toLocaleString('en-IN')}` : '-'
+  const displayWeight = netWt > 0 ? `${netWt} g net` : crossWt > 0 ? `${crossWt} g gross` : '-'
 
-  const goldValue = netWt ? Math.round(todayRate * netWt) : null
-  const makingValue = netWt ? Math.round(makingPerGram * netWt) : null
-  const discountOnMaking = netWt ? Math.round(discountPerGram * netWt) : 0
-  const makingFinal = makingValue !== null ? makingValue - discountOnMaking : null
-
-  const subtotalValue = (goldValue || 0) + stoneVal + (makingValue || 0)
-  const subtotalDiscount = discountOnMaking || 0
-  const subtotalFinal = (goldValue || 0) + stoneVal + (makingFinal || 0)
-  const gstValue = Math.round(subtotalValue * 0.03)
-  const gstFinal = Math.round(subtotalFinal * 0.03)
-  const grandValue = subtotalValue + gstValue
-  const grandFinal = subtotalFinal + gstFinal
-
-  const inr = n => n !== null && n !== undefined ? `₹${Math.round(n).toLocaleString('en-IN')}` : '—'
+  const infoHighlights = [
+    { label: 'Metal & Purity', value: `${metalLabel} ${purityLabel}`, note: 'Purity mapped from product grade' },
+    { label: 'Weight', value: displayWeight, note: crossWt > 0 && netWt > 0 ? `${crossWt} g gross weight` : 'Measured product weight' },
+    { label: 'Stone Value', value: stoneVal > 0 ? inr(stoneVal) : 'Included', note: stoneWt > 0 ? `${stoneWt} stone weight` : 'As per product record' },
+    { label: 'Today Rate', value: todayRate ? `${inr(todayRate)} / g` : 'Live rate pending', note: 'Fetched from backend rate logic' },
+  ]
 
   return (
-    <div style={{ maxWidth: 1600, margin: '0 auto', padding: '60px 40px 80px', position: 'relative', zIndex: 5 }}>
+    <section className="product-info-premium">
+      <style>{`
+        .product-info-premium { position: relative; z-index: 5; padding: 66px clamp(18px,4vw,72px) 78px; background: linear-gradient(180deg,#FDFDFC 0%,#F3F3F0 100%); }
+        .pi-inner { width: 100%; max-width: 1500px; margin: 0 auto; }
+        .pi-head { display: grid; grid-template-columns: minmax(0,0.9fr) minmax(300px,0.55fr); gap: 28px; align-items: end; margin-bottom: 26px; border-top: 1px solid rgba(189,207,206,0.86); padding-top: 52px; }
+        .pi-kicker { display: inline-flex; align-items: center; gap: 10px; margin: 0 0 12px; color: #9F6130; font-size: 12px; font-weight: 900; letter-spacing: 2.4px; text-transform: uppercase; }
+        .pi-kicker::before { content: ""; width: 26px; height: 1px; background: #BB8958; }
+        .pi-head h2 { margin: 0; color: #073B3F; font-family: "Playfair Display", Georgia, serif; font-size: clamp(36px,4.8vw,62px); line-height: 0.98; letter-spacing: 0; }
+        .pi-head p { margin: 0; color: #52625f; font-size: 14px; line-height: 1.8; font-weight: 600; }
+        .pi-panel { position: relative; overflow: hidden; border-radius: 8px; border: 1px solid rgba(189,207,206,0.78); background: linear-gradient(120deg, rgba(253,253,252,0.96) 0%, rgba(231,237,236,0.84) 54%, rgba(243,232,222,0.88) 100%); box-shadow: 0 28px 76px rgba(12,64,68,0.11); }
+        .pi-panel::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, rgba(253,253,252,0.52) 48%, transparent 100%), repeating-linear-gradient(135deg, rgba(12,64,68,0.035) 0 1px, transparent 1px 18px); pointer-events: none; }
+        .pi-grid { position: relative; display: grid; grid-template-columns: minmax(0,1fr) minmax(320px,0.44fr); gap: 22px; padding: clamp(22px,3.5vw,42px); }
+        .pi-spec-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+        .pi-spec-card, .pi-story, .pi-assurance { border: 1px solid rgba(12,64,68,0.13); background: rgba(253,253,252,0.90); border-radius: 8px; box-shadow: 0 18px 44px rgba(12,64,68,0.07); }
+        .pi-spec-card { min-height: 138px; padding: 20px; transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
+        .pi-spec-card:hover { transform: translateY(-4px); border-color: rgba(187,137,88,0.52); box-shadow: 0 26px 56px rgba(12,64,68,0.12); }
+        .pi-spec-card span, .pi-story span, .pi-assurance span { display: block; color: #7A8987; font-size: 11px; font-weight: 900; letter-spacing: 1.4px; text-transform: uppercase; margin-bottom: 10px; }
+        .pi-spec-card strong { display: block; color: #073B3F; font-size: clamp(20px,2.2vw,30px); line-height: 1.05; font-family: "Playfair Display", Georgia, serif; margin-bottom: 10px; }
+        .pi-spec-card small { color: #52625f; line-height: 1.55; font-size: 12px; font-weight: 700; }
+        .pi-story { margin-top: 14px; padding: 24px; min-height: 184px; }
+        .pi-story h3, .pi-assurance h3 { margin: 0 0 12px; color: #111817; font-family: "Playfair Display", Georgia, serif; font-size: 28px; line-height: 1.05; }
+        .pi-story p {
+          margin: 0;
+          color: #52625f;
+          font-size: 14px;
+          line-height: 1.85;
+          max-height: 112px;
+          overflow-y: auto;
+          padding-right: 12px;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(12,64,68,0.34) rgba(231,237,236,0.72);
+        }
+        .pi-story p::-webkit-scrollbar { width: 5px; }
+        .pi-story p::-webkit-scrollbar-track { background: rgba(231,237,236,0.72); border-radius: 999px; }
+        .pi-story p::-webkit-scrollbar-thumb { background: rgba(12,64,68,0.34); border-radius: 999px; }
+        .pi-assurance { height: 100%; padding: 24px; background: #073B3F; color: #FDFDFC; display: flex; flex-direction: column; justify-content: space-between; gap: 24px; }
+        .pi-assurance span { color: #CCA881; }
+        .pi-assurance h3 { color: #FDFDFC; font-size: 34px; }
+        .pi-assurance p { margin: 0; color: rgba(253,253,252,0.72); font-size: 14px; line-height: 1.8; }
+        .pi-assurance-list { display: grid; gap: 10px; }
+        .pi-assurance-list div { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid rgba(253,253,252,0.16); background: rgba(253,253,252,0.08); border-radius: 999px; padding: 11px 14px; color: #FDFDFC; font-size: 12px; font-weight: 900; }
+        .pi-assurance-list b { color: #D1DFDE; font-weight: 900; }
+        .pi-assurance-list em { font-style: normal; color: rgba(253,253,252,0.82); text-align: right; }
+        @media (max-width: 980px) { .pi-head, .pi-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 640px) { .pi-spec-grid { grid-template-columns: 1fr; } }
+      `}</style>
 
-      {/* ── Product Information ── */}
-      <div style={{ borderTop: '2px solid #ede9e3', paddingTop: 48, marginBottom: 48 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 32 }}>
-          <div style={{ width: 3, height: 36, background: 'linear-gradient(180deg,#b8860b,#e0c97a)' }} />
-          <h2 style={{ margin: 0, fontSize: 28, fontWeight: 600, color: '#1c1410', fontFamily: '"Playfair Display", Georgia, serif', letterSpacing: '-0.3px' }}>
-            Product Information
-          </h2>
+      <div className="pi-inner">
+        <div className="pi-head">
+          <div>
+            <p className="pi-kicker">Product Information</p>
+            <h2>Details That Matter Before You Buy</h2>
+          </div>
+          <p>Every key value is connected to the backend product record and live rate logic, so customers can understand purity, weight, value, and assurance without guessing.</p>
         </div>
 
-        <div style={{
-          background: 'linear-gradient(135deg, #fef3c7 0%, #fde8c8 60%, #fef9f0 100%)',
-          borderRadius: 8,
-          padding: '36px 48px',
-        }}>
-          <div style={{
-            background: '#fff',
-            borderRadius: 6,
-            padding: '36px 80px',
-            display: 'inline-block',
-            minWidth: 600,
-            boxShadow: '0 1px 8px rgba(0,0,0,0.07)',
-            border: '1px solid rgba(184,134,11,0.12)',
-          }}>
-            <div style={{ color: '#7c2d12', fontWeight: 700, fontSize: 18, marginBottom: 4, fontFamily: '"Playfair Display", Georgia, serif' }}>Metal and Purity</div>
-            <div style={{ color: '#92400e', fontSize: 16, marginBottom: 20, fontFamily: '"Montserrat", sans-serif' }}>{metalLabel} {purityLabel}</div>
-            <div style={{ color: '#7c2d12', fontWeight: 700, fontSize: 18, marginBottom: 4, fontFamily: '"Playfair Display", Georgia, serif' }}>Weight</div>
-            <div style={{ color: '#92400e', fontSize: 16, marginBottom: 20, fontFamily: '"Montserrat", sans-serif' }}>{netWt > 0 ? `${netWt}gms` : crossWt > 0 ? `${crossWt}gms` : '—'}</div>
-            <div style={{ color: '#7c2d12', fontWeight: 700, fontSize: 18, marginBottom: 4, fontFamily: '"Playfair Display", Georgia, serif' }}>Product Description</div>
-            <div style={{ color: '#92400e', fontSize: 16, lineHeight: 1.8, fontFamily: '"Montserrat", sans-serif' }}>
-              {product?.desc || product?.description || product?.short_description || 'No description available.'}
+        <div className="pi-panel">
+          <div className="pi-grid">
+            <div>
+              <div className="pi-spec-grid">
+                {infoHighlights.map(item => (
+                  <article className="pi-spec-card" key={item.label}>
+                    <span>{item.label}</span>
+                    <strong>{item.value}</strong>
+                    <small>{item.note}</small>
+                  </article>
+                ))}
+              </div>
+              <article className="pi-story">
+                <span>Product Description</span>
+                <h3>{product?.name || `${metalLabel} Jewellery`}</h3>
+                <p>{productDesc}</p>
+              </article>
             </div>
+            <aside className="pi-assurance">
+              <div>
+                <span>Purchase Confidence</span>
+                <h3>Clear, Certified, Carefully Priced.</h3>
+                <p>Use this section to verify the product essentials before moving to cart.</p>
+              </div>
+              <div className="pi-assurance-list">
+                <div><b>BIS</b><em>Hallmark assurance</em></div>
+                <div><b>GST</b><em>Included at checkout</em></div>
+                <div><b>Ship</b><em>Free insured delivery</em></div>
+                <div><b>Return</b><em>15 day easy returns</em></div>
+              </div>
+            </aside>
           </div>
         </div>
-      </div>
 
-      {/* ── Price Breakup ── */}
-      <div style={{ borderTop: '1px solid #ede9e3', paddingTop: 48 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 32 }}>
-          <div style={{ width: 3, height: 36, background: 'linear-gradient(180deg,#b8860b,#e0c97a)' }} />
-          <h2 style={{ margin: 0, fontSize: 28, fontWeight: 600, color: '#1c1410', fontFamily: '"Playfair Display", Georgia, serif', letterSpacing: '-0.3px' }}>
-            Price Breakup
-          </h2>
-          {!liveRate && <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 400 }}>Loading rates...</span>}
-        </div>
-
-        <div style={{ background: '#fff', borderRadius: 8, padding: '0', border: '1px solid #ede9e3', overflow: 'hidden', boxShadow: '0 2px 16px rgba(0,0,0,0.05)' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 15, fontFamily: '"Montserrat", sans-serif' }}>
-            <thead>
-              <tr style={{ background: '#fef9f0', borderBottom: '2px solid rgba(184,134,11,0.2)' }}>
-                {['Component', 'Rate', 'Weight', 'Value', 'Discount', 'Final Value'].map((h, i) => (
-                  <th key={h} style={{ textAlign: 'left', padding: '16px 20px', color: '#78350f', fontWeight: 700, fontSize: 13, minWidth: i === 0 ? 200 : 110, letterSpacing: '0.8px', textTransform: 'uppercase' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td colSpan={6} style={{ padding: '20px 20px 8px', color: '#92400e', fontWeight: 700, fontSize: 13, letterSpacing: '1px', textTransform: 'uppercase', background: 'rgba(184,134,11,0.04)' }}>
-                  {metalLabel}
-                </td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid #f5efe8' }}>
-                <td style={{ padding: '14px 20px', color: '#78350f' }}>{purityLabel} {metalLabel}</td>
-                <td style={{ padding: '14px 20px', color: '#78350f' }}>{todayRate ? todayRate.toLocaleString('en-IN') : '—'}</td>
-                <td style={{ padding: '14px 20px', color: '#78350f' }}>{netWt || '—'}</td>
-                <td style={{ padding: '14px 20px', color: '#78350f' }}>{inr(goldValue)}</td>
-                <td style={{ padding: '14px 20px', color: '#78350f' }}>₹0</td>
-                <td style={{ padding: '14px 20px', color: '#78350f', fontWeight: 600 }}>{inr(goldValue)}</td>
-              </tr>
-              {stoneVal > 0 && <>
-                <tr>
-                  <td colSpan={6} style={{ padding: '16px 20px 8px', color: '#92400e', fontWeight: 700, fontSize: 13, letterSpacing: '1px', textTransform: 'uppercase', background: 'rgba(184,134,11,0.04)' }}>Stone Details</td>
-                </tr>
-                <tr style={{ borderBottom: '1px solid #f5efe8' }}>
-                  <td style={{ padding: '14px 20px', color: '#78350f' }}>Stone</td>
-                  <td style={{ padding: '14px 20px', color: '#78350f' }}>—</td>
-                  <td style={{ padding: '14px 20px', color: '#78350f' }}>{stoneWt > 0 ? stoneWt : '—'}</td>
-                  <td style={{ padding: '14px 20px', color: '#78350f' }}>{inr(stoneVal)}</td>
-                  <td style={{ padding: '14px 20px', color: '#78350f' }}>-</td>
-                  <td style={{ padding: '14px 20px', color: '#78350f', fontWeight: 600 }}>{inr(stoneVal)}</td>
-                </tr>
-                <tr style={{ borderBottom: '1px solid #f5efe8' }}>
-                  <td style={{ padding: '14px 20px', color: '#78350f' }}>Total Stone Value</td>
-                  <td /><td />
-                  <td style={{ padding: '14px 20px', color: '#78350f' }}>{inr(stoneVal)}</td>
-                  <td style={{ padding: '14px 20px', color: '#78350f' }}>-</td>
-                  <td style={{ padding: '14px 20px', color: '#78350f', fontWeight: 600 }}>{inr(stoneVal)}</td>
-                </tr>
-              </>}
-              <tr style={{ borderBottom: '2px solid rgba(184,134,11,0.15)', background: 'rgba(184,134,11,0.03)' }}>
-                <td style={{ padding: '16px 20px', color: '#7c2d12', fontWeight: 700 }}>Making Charges</td>
-                <td /><td />
-                <td style={{ padding: '14px 20px', color: '#78350f' }}>{inr(makingValue)}</td>
-                <td style={{ padding: '14px 20px', color: '#78350f' }}>{discountOnMaking ? inr(discountOnMaking) : '₹0'}</td>
-                <td style={{ padding: '14px 20px', color: '#78350f', fontWeight: 600 }}>{inr(makingFinal)}</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid #f5efe8', background: '#fef9f0' }}>
-                <td style={{ padding: '16px 20px', color: '#7c2d12', fontWeight: 700, fontSize: 14 }}>Total</td>
-                <td /><td />
-                <td style={{ padding: '14px 20px', color: '#7c2d12', fontWeight: 700 }}>{inr(subtotalValue)}</td>
-                <td style={{ padding: '14px 20px', color: '#7c2d12', fontWeight: 700 }}>{subtotalDiscount ? inr(subtotalDiscount) : '₹0'}</td>
-                <td style={{ padding: '14px 20px', color: '#7c2d12', fontWeight: 700 }}>{inr(subtotalFinal)}</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid #f5efe8' }}>
-                <td style={{ padding: '16px 20px', color: '#78350f' }}>GST (3%)</td>
-                <td /><td />
-                <td style={{ padding: '14px 20px', color: '#78350f' }}>{inr(gstValue)}</td>
-                <td />
-                <td style={{ padding: '14px 20px', color: '#78350f' }}>{inr(gstFinal)}</td>
-              </tr>
-              <tr style={{ background: 'linear-gradient(135deg,#fef3c7,#fde8c8)' }}>
-                <td style={{ padding: '20px 20px', color: '#7c2d12', fontWeight: 800, fontSize: 16 }}>Grand Total</td>
-                <td /><td />
-                <td style={{ padding: '18px 20px', color: '#7c2d12', fontWeight: 800, fontSize: 15 }}>{inr(grandValue)}</td>
-                <td />
-                <td style={{ padding: '18px 20px', color: '#7c2d12', fontWeight: 800, fontSize: 15 }}>{inr(grandFinal)}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
       </div>
-    </div>
+    </section>
   )
 }
-
 export default function ProductDisplay() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -404,12 +341,13 @@ export default function ProductDisplay() {
   const [qty, setQty] = useState(1)
   const [mainImage, setMainImage] = useState(null)
   const [showAdded, setShowAdded] = useState(false)
-  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 })
   const [showZoom, setShowZoom] = useState(false)
   const [zoomPixel, setZoomPixel] = useState({ x: 0, y: 0 })
+  const [zoomLensStyle, setZoomLensStyle] = useState({})
   const [wishlisted, setWishlisted] = useState(false)
   const [liveRate, setLiveRate] = useState(null)
   const imageRef = useRef(null)
+  const mainImageRef = useRef(null)
 
   const isGold = metal === 'gold'
   const accentColor = isGold ? '#fbbf24' : '#c0c0c0'
@@ -622,11 +560,23 @@ const displayOriginalPrice = calcOriginalPriceMain()
   const tagStyle = TAG_COLORS[productTag] || { bg: 'rgba(255,255,255,0.1)', border: 'rgba(255,255,255,0.2)', color: text }
 
   const handleMouseMove = (e) => {
-    const rect = imageRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const px = e.clientX - rect.left; const py = e.clientY - rect.top
-    setZoomPos({ x: Math.max(0, Math.min(100, (px / rect.width) * 100)), y: Math.max(0, Math.min(100, (py / rect.height) * 100)) })
-    setZoomPixel({ x: px, y: py })
+    const frameRect = imageRef.current?.getBoundingClientRect()
+    const imgRect = mainImageRef.current?.getBoundingClientRect()
+    if (!frameRect || !imgRect || !mainImage) return
+
+    const lensSize = 172
+    const zoomScale = 2.65
+    const frameX = e.clientX - frameRect.left
+    const frameY = e.clientY - frameRect.top
+    const imgX = Math.max(0, Math.min(imgRect.width, e.clientX - imgRect.left))
+    const imgY = Math.max(0, Math.min(imgRect.height, e.clientY - imgRect.top))
+
+    setZoomPixel({ x: frameX, y: frameY })
+    setZoomLensStyle({
+      backgroundImage: `url(${mainImage})`,
+      backgroundSize: `${imgRect.width * zoomScale}px ${imgRect.height * zoomScale}px`,
+      backgroundPosition: `${(lensSize / 2) - (imgX * zoomScale)}px ${(lensSize / 2) - (imgY * zoomScale)}px`,
+    })
   }
 
   const handleAddToCart = async () => {
@@ -663,7 +613,7 @@ const displayOriginalPrice = calcOriginalPriceMain()
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: bg, color: text, fontFamily: '"Inter",system-ui,sans-serif', position: 'relative', overflow: 'hidden', transition: 'background 0.8s ease, color 0.4s ease' }}>
+    <div style={{ minHeight: '100vh', background: '#FDFDFC', color: '#111817', fontFamily: '"Inter",system-ui,sans-serif', position: 'relative', overflow: 'hidden', transition: 'background 0.8s ease, color 0.4s ease' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@400;500;600;700&display=swap');
         @keyframes float-orb { 0%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-50px) scale(1.1)} 66%{transform:translate(-20px,20px) scale(0.9)} 100%{transform:translate(0,0) scale(1)} }
@@ -672,7 +622,7 @@ const displayOriginalPrice = calcOriginalPriceMain()
         @keyframes shine { 0%{left:-80%} 100%{left:120%} }
         @keyframes pulseGlow { 0%,100%{box-shadow:0 0 20px ${accentGlow}} 50%{box-shadow:0 0 45px ${accentGlow}} }
         .pd-main { animation:fadeInUp 0.55s ease both; }
-        .pd-image-card:hover .pd-main-img { transform:scale(1.06) rotate(1deg); }
+        .pd-image-card:hover .pd-main-img { transform:scale(1.01); }
         .pd-shine { position:absolute;top:0;left:-80%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);transform:skewX(-20deg);opacity:0; }
         .pd-image-card:hover .pd-shine { opacity:1;animation:shine 0.7s ease; }
         .thumb:hover { transform:translateY(-4px) scale(1.03); }
@@ -783,22 +733,268 @@ const displayOriginalPrice = calcOriginalPriceMain()
         .pd-trust-item:last-child { border-right: none; }
         .pd-trust-item:hover { background: #fef9f0; }
 
+        .pd-page-shell {
+          position: relative;
+          z-index: 5;
+          width: 100%;
+          padding: clamp(34px, 4vw, 58px) clamp(18px, 4.5vw, 72px) 72px;
+          background:
+            radial-gradient(circle at 13% 22%, rgba(209,223,222,0.7), transparent 27%),
+            linear-gradient(135deg, #FDFDFC 0%, #F3E8DE 48%, #E7EDEC 100%);
+        }
+
+        .pd-breadcrumb {
+          width: 100%;
+          max-width: 1500px;
+          margin: 0 auto 28px !important;
+          padding: 0 4px;
+        }
+
+        .pd-showcase {
+          width: 100%;
+          max-width: 1500px;
+          margin: 0 auto;
+          display: grid !important;
+          grid-template-columns: minmax(520px, 1.02fr) minmax(430px, 0.9fr) !important;
+          gap: clamp(28px, 4vw, 62px) !important;
+          align-items: start !important;
+        }
+
+        .pd-image-card {
+          align-self: start;
+          background: linear-gradient(145deg, rgba(255,255,255,0.92), rgba(243,232,222,0.78)) !important;
+          border: 1px solid rgba(189,207,206,0.85);
+          border-radius: 30px;
+          padding: clamp(18px, 2.2vw, 30px);
+          box-shadow: 0 28px 80px rgba(12,64,68,0.12), 0 1px 0 rgba(255,255,255,0.8) inset;
+          overflow: hidden;
+        }
+
+        .pd-image-card::before {
+          content: "";
+          position: absolute;
+          inset: 18px;
+          border: 1px solid rgba(204,168,129,0.28);
+          border-radius: 24px;
+          pointer-events: none;
+        }
+
+        .pd-img-frame {
+          min-height: clamp(520px, 56vw, 650px) !important;
+          height: auto !important;
+          border: 0 !important;
+          border-radius: 26px !important;
+          background:
+            radial-gradient(circle at 50% 48%, rgba(255,255,255,0.96), rgba(243,232,222,0.34) 48%, rgba(231,237,236,0.72) 100%) !important;
+          box-shadow: inset 0 0 0 1px rgba(218,194,169,0.55), inset 0 -45px 90px rgba(12,64,68,0.06);
+          padding: clamp(22px, 3vw, 46px) !important;
+        }
+
+        .pd-main-img {
+          width: 100% !important;
+          height: 100% !important;
+          max-width: 100% !important;
+          max-height: clamp(470px, 50vw, 590px) !important;
+          object-fit: contain !important;
+          filter: drop-shadow(0 32px 48px rgba(7,59,63,0.18)) !important;
+        }
+
+        .pd-zoom-lens {
+          position: absolute;
+          width: 172px;
+          height: 172px;
+          border-radius: 50%;
+          border: 2px solid #CCA881;
+          box-shadow: 0 0 0 6px rgba(253,253,252,0.72), 0 18px 42px rgba(12,64,68,0.22);
+          background-repeat: no-repeat;
+          pointer-events: none;
+          z-index: 5;
+          transform: translateZ(0);
+        }
+
+        .pd-thumb {
+          width: 86px !important;
+          height: 86px !important;
+          border-radius: 16px !important;
+          border: 1px solid rgba(189,207,206,0.9) !important;
+          background: rgba(253,253,252,0.9) !important;
+          box-shadow: 0 10px 24px rgba(12,64,68,0.08);
+        }
+
+        .pd-thumb.active {
+          border-color: #BB8958 !important;
+          box-shadow: 0 0 0 4px rgba(204,168,129,0.22), 0 16px 32px rgba(12,64,68,0.13) !important;
+        }
+
+        .pd-detail-card {
+          position: sticky;
+          top: 178px;
+          align-self: start;
+          background: rgba(253,253,252,0.9);
+          border: 1px solid rgba(189,207,206,0.85);
+          border-radius: 30px;
+          padding: clamp(26px, 3vw, 42px) !important;
+          box-shadow: 0 30px 90px rgba(12,64,68,0.12);
+          backdrop-filter: blur(18px);
+        }
+
+        .pd-title {
+          color: #073B3F !important;
+          font-size: clamp(40px, 4vw, 62px) !important;
+          line-height: 0.98 !important;
+          letter-spacing: 0 !important;
+          max-width: 660px;
+        }
+
+        .pd-product-copy {
+          margin: 0 0 24px;
+          color: #4c5a58;
+          font-size: 15px;
+          line-height: 1.8;
+          max-width: 620px;
+          max-height: 118px;
+          overflow-y: auto;
+          padding-right: 12px;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(12,64,68,0.34) rgba(231,237,236,0.72);
+        }
+
+        .pd-product-copy::-webkit-scrollbar {
+          width: 5px;
+        }
+
+        .pd-product-copy::-webkit-scrollbar-track {
+          background: rgba(231,237,236,0.72);
+          border-radius: 999px;
+        }
+
+        .pd-product-copy::-webkit-scrollbar-thumb {
+          background: rgba(12,64,68,0.34);
+          border-radius: 999px;
+        }
+
+        .pd-rating-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin: 0 0 22px;
+          flex-wrap: wrap;
+        }
+
+        .pd-rating-stars {
+          color: #E5A018;
+          font-size: 15px;
+          letter-spacing: 2px;
+        }
+
+        .pd-rate-chip {
+          border: 1px solid rgba(12,64,68,0.16);
+          background: rgba(231,237,236,0.85);
+          color: #073B3F;
+          border-radius: 999px;
+          padding: 9px 13px;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.7px;
+          text-transform: uppercase;
+        }
+
+        .pd-spec {
+          background: rgba(255,255,255,0.82) !important;
+          border: 1px solid rgba(189,207,206,0.9) !important;
+          border-radius: 18px !important;
+          padding: 18px 20px !important;
+          box-shadow: 0 12px 30px rgba(12,64,68,0.07);
+        }
+
+        .pd-price-box {
+          background: linear-gradient(135deg, rgba(243,232,222,0.96), rgba(231,237,236,0.86)) !important;
+          border: 1px solid rgba(204,168,129,0.52) !important;
+          border-radius: 24px !important;
+          padding: 24px 28px !important;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.75), 0 20px 46px rgba(159,97,48,0.09);
+        }
+
+        .pd-qty-wrap {
+          border: 1px solid rgba(189,207,206,0.95) !important;
+          border-radius: 18px !important;
+          background: #FDFDFC !important;
+          box-shadow: 0 14px 28px rgba(12,64,68,0.07);
+        }
+
+        .pd-btn-cart,
+        .pd-btn-buy {
+          border-radius: 18px !important;
+          min-height: 58px;
+          box-shadow: 0 18px 36px rgba(12,64,68,0.13);
+          animation: none !important;
+        }
+
+        .pd-btn-cart {
+          background: linear-gradient(135deg, #073B3F, #0C4044) !important;
+          color: #FDFDFC !important;
+        }
+
+        .pd-btn-buy {
+          background: linear-gradient(135deg, #BB8958, #9F6130) !important;
+          color: #FDFDFC !important;
+        }
+
+        .pd-assurance-row {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+          margin-top: 18px;
+        }
+
+        .pd-assurance-item {
+          border: 1px solid rgba(189,207,206,0.75);
+          background: rgba(231,237,236,0.58);
+          border-radius: 16px;
+          padding: 13px 12px;
+          color: #073B3F;
+          font-size: 11px;
+          font-weight: 800;
+          line-height: 1.35;
+          text-align: center;
+        }
+
+        .pd-gallery-note {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+          margin-top: 18px;
+        }
+
+        .pd-gallery-note span {
+          border: 1px solid rgba(12,64,68,0.12);
+          background: rgba(253,253,252,0.82);
+          color: #073B3F;
+          border-radius: 999px;
+          padding: 10px 12px;
+          font-size: 11px;
+          font-weight: 800;
+          text-align: center;
+        }
+
         @media (max-width:900px) {
           .pd-grid { grid-template-columns: 1fr !important; }
+          .pd-page-shell { padding: 24px 14px 54px; }
+          .pd-detail-card { position: relative; top: auto; }
+          .pd-gallery-note, .pd-assurance-row { grid-template-columns: 1fr; }
           .pd-trust-grid { grid-template-columns: repeat(2,1fr) !important; }
+          .pd-img-frame { min-height: 440px !important; }
+          .pd-main-img { max-height: 400px !important; }
+          .pd-zoom-lens { display: none; }
         }
       `}</style>
 
-      <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, pointerEvents: 'none', zIndex: 1, opacity: 0.4 }} />
-      <div style={{ position: 'absolute', borderRadius: '50%', filter: 'blur(90px)', animation: 'float-orb 20s infinite ease-in-out', zIndex: 0, top: '5%', left: '5%', width: 420, height: 420, background: accentSoft }} />
-      <div style={{ position: 'absolute', borderRadius: '50%', filter: 'blur(90px)', animation: 'float-orb 20s infinite ease-in-out', animationDelay: '-7s', zIndex: 0, bottom: '5%', right: '5%', width: 500, height: 500, background: accentSoft }} />
-      {PARTICLES.map(p => (
-        <div key={p.id} style={{ position: 'absolute', left: `${p.x}%`, bottom: '-100px', width: p.size, height: p.size, borderRadius: '40% 60% 60% 40%/40% 40% 60% 60%', border: `1px solid ${accentColor}55`, opacity: p.opacity, animation: `antigravity ${p.duration}s ${p.delay}s infinite linear`, '--op': p.opacity, pointerEvents: 'none', zIndex: 0 }} />
-      ))}
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
 
       <CustomerNavbar />
 
-      <main style={{ position: 'relative', zIndex: 5, padding: '40px 48px 80px', maxWidth: 1300, margin: '0 auto' }}>
+      <main className="pd-page-shell">
 
         {/* ── BREADCRUMB ── */}
         <div className="pd-breadcrumb">
@@ -811,14 +1007,14 @@ const displayOriginalPrice = calcOriginalPriceMain()
           <span>{productName}</span>
         </div>
 
-        <section className="pd-grid pd-main" style={{ display: 'grid', gridTemplateColumns: '580px 1fr', gap: 48, alignItems: 'start' }}>
+        <section className="pd-grid pd-main pd-showcase">
 
           {/* ── IMAGE SIDE ── */}
           <div className="pd-image-card" style={{ position: 'relative' }}>
             <div className="pd-shine" />
 
             {/* Main image frame */}
-            <div className="pd-img-frame" ref={imageRef} onMouseMove={handleMouseMove} onMouseEnter={() => setShowZoom(true)} onMouseLeave={() => setShowZoom(false)} style={{ height: 480, display: 'grid', placeItems: 'center', cursor: 'none' }}>
+            <div className="pd-img-frame" ref={imageRef} onMouseMove={handleMouseMove} onMouseEnter={() => setShowZoom(true)} onMouseLeave={() => setShowZoom(false)} style={{ height: 480, display: 'grid', placeItems: 'center', cursor: 'zoom-in' }}>
 
               {/* Tag ribbon */}
               {productTag && (
@@ -847,12 +1043,12 @@ const displayOriginalPrice = calcOriginalPriceMain()
               </button>
 
               {mainImage && (
-                <img className="pd-main-img" src={mainImage} onError={e => { e.currentTarget.style.display = 'none' }}
+                <img ref={mainImageRef} className="pd-main-img" src={mainImage} onError={e => { e.currentTarget.style.display = 'none' }}
                   style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain', filter: 'drop-shadow(0 20px 36px rgba(0,0,0,0.14))', transition: 'transform 0.55s cubic-bezier(0.34,1.56,0.64,1)' }} />
               )}
 
               {showZoom && mainImage && (
-                <div style={{ position: 'absolute', left: zoomPixel.x - 100, top: zoomPixel.y - 100, width: 200, height: 200, borderRadius: '50%', border: `2px solid ${accentColor}`, boxShadow: `0 0 0 1px rgba(255,255,255,0.4), 0 8px 32px rgba(0,0,0,0.4)`, backgroundImage: `url(${mainImage})`, backgroundSize: '400%', backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`, backgroundRepeat: 'no-repeat', pointerEvents: 'none', zIndex: 20 }} />
+                <div className="pd-zoom-lens" style={{ left: zoomPixel.x - 86, top: zoomPixel.y - 86, borderColor: accentColor, ...zoomLensStyle }} />
               )}
             </div>
 
@@ -866,10 +1062,15 @@ const displayOriginalPrice = calcOriginalPriceMain()
                 </button>
               ))}
             </div>
+            <div className="pd-gallery-note">
+              <span>BIS checked</span>
+              <span>Insured delivery</span>
+              <span>15 day return</span>
+            </div>
           </div>
 
           {/* ── DETAIL SIDE ── */}
-          <div style={{ paddingTop: 8 }}>
+          <div className="pd-detail-card">
 
             {/* Metal + Category eyebrow */}
             <p style={{ margin: '0 0 10px', fontSize: 11, fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: '#b8860b' }}>
@@ -880,6 +1081,16 @@ const displayOriginalPrice = calcOriginalPriceMain()
             <h1 className="pd-title" style={{ margin: '0 0 20px', fontSize: 34, lineHeight: 1.1, fontWeight: 600, letterSpacing: '-0.3px', color: text, fontFamily: '"Playfair Display", Georgia, serif' }}>
               {productName}
             </h1>
+
+            <div className="pd-rating-row">
+              <div>
+                <div className="pd-rating-stars">★★★★★</div>
+                <div style={{ marginTop: 5, color: '#7A8987', fontSize: 12, fontWeight: 700 }}>Premium selected jewellery</div>
+              </div>
+              <div className="pd-rate-chip">Live rate pricing</div>
+            </div>
+
+            <p className="pd-product-copy">{productDesc}</p>
 
             {/* Thin gold divider */}
             <div style={{ width: 56, height: 2, background: 'linear-gradient(90deg,#b8860b,#e0c97a)', marginBottom: 24 }} />
@@ -900,7 +1111,7 @@ const displayOriginalPrice = calcOriginalPriceMain()
 
             {/* Price box */}
             <div className="pd-price-box">
-              <div style={{ color: '#aaa', fontSize: 10, fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 10 }}>Price</div>
+              <div style={{ color: '#7A8987', fontSize: 10, fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 12 }}>Today's Price</div>
 
               {(() => {
                 const discountPct = parseFloat(product?.wastage_charge) || 0
@@ -910,20 +1121,20 @@ const displayOriginalPrice = calcOriginalPriceMain()
                   <>
                     {hasDiscount && (
                       <div style={{ marginBottom: 8 }}>
-                        <span style={{ background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.35)', color: '#4ade80', fontSize: 11, fontWeight: 700, padding: '3px 12px', borderRadius: 2, letterSpacing: '0.5px' }}>
+                        <span style={{ background: 'rgba(12,64,68,0.1)', border: '1px solid rgba(12,64,68,0.22)', color: '#0C4044', fontSize: 11, fontWeight: 900, padding: '6px 12px', borderRadius: 999, letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                           {discountPct}% Off
                         </span>
                       </div>
                     )}
-<div style={{ color: text, fontSize: 28, fontWeight: 700, letterSpacing: '-0.01em', lineHeight: 1.1, fontFamily: '"Montserrat", sans-serif' }}>
+<div style={{ color: '#073B3F', fontSize: 36, fontWeight: 900, letterSpacing: '0', lineHeight: 1.05, fontFamily: '"Montserrat", sans-serif' }}>
   {displayPrice ? `₹${displayPrice.toLocaleString('en-IN')}` : 'Contact for Price'}
 </div>
                     {hasDiscount && (
                       <>
-                        <div style={{ color: '#e76b12', fontSize: 16, fontWeight: 400, textDecoration: 'line-through', marginTop: 4, opacity: 0.8 }}>
+                        <div style={{ color: '#9F6130', fontSize: 16, fontWeight: 700, textDecoration: 'line-through', marginTop: 8, opacity: 0.78 }}>
                           ₹{originalAmt.toLocaleString('en-IN')}
                         </div>
-                        <div style={{ color: '#4ade80', fontSize: 12, fontWeight: 700, marginTop: 4, letterSpacing: '0.3px' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', marginTop: 10, borderRadius: 999, background: 'rgba(231,237,236,0.9)', border: '1px solid rgba(12,64,68,0.14)', color: '#0C4044', fontSize: 12, fontWeight: 900, padding: '8px 12px', letterSpacing: '0.3px' }}>
                           You save ₹{(originalAmt - displayPrice).toLocaleString('en-IN')}
                         </div>
                       </>
@@ -941,7 +1152,7 @@ const displayOriginalPrice = calcOriginalPriceMain()
 
             {/* Quantity */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${border}`, borderRadius: 2, overflow: 'hidden', background: inputBg }}>
+              <div className="pd-qty-wrap" style={{ display: 'flex', alignItems: 'center', border: `1px solid ${border}`, borderRadius: 2, overflow: 'hidden', background: inputBg }}>
                 <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ width: 44, height: 44, border: 'none', background: 'transparent', color: text, fontSize: 20, fontWeight: 700, cursor: 'pointer' }}>-</button>
                 <input type="number" min="1" value={qty} onChange={e => setQty(Math.max(1, Number(e.target.value) || 1))} style={{ width: 55, height: 44, border: 'none', outline: 'none', textAlign: 'center', background: 'transparent', color: text, fontWeight: 700, fontSize: 16 }} />
                 <button onClick={() => setQty(q => q + 1)} style={{ width: 44, height: 44, border: 'none', background: 'transparent', color: text, fontSize: 20, fontWeight: 700, cursor: 'pointer' }}>+</button>
@@ -960,10 +1171,14 @@ const displayOriginalPrice = calcOriginalPriceMain()
                 💳 Buy Now
               </button>
             </div>
+            <div className="pd-assurance-row">
+              <div className="pd-assurance-item">Secure payment</div>
+              <div className="pd-assurance-item">Easy exchange</div>
+              <div className="pd-assurance-item">Certified purity</div>
+            </div>
           </div>
         </section>
       </main>
-
       {/* ── TRUST BADGES ── */}
       <div className="pd-trust-grid">
         {[
@@ -1032,13 +1247,6 @@ const displayOriginalPrice = calcOriginalPriceMain()
       <MoreFromCollection currentProductId={productId} category={category} metal={metal} gender={product?.gender} occasion={product?.occasion} liveRate={liveRate} />
 
       {/* ── ZOOM PANEL ── */}
-      {showZoom && mainImage && (
-        <div style={{ position: 'fixed', top: '50%', right: 160, transform: 'translateY(-50%)', width: 470, height: 470, borderRadius: 8, border: `1px solid ${accentColor}55`, background: glass, backdropFilter: 'blur(18px)', overflow: 'hidden', boxShadow: `0 24px 80px ${accentGlow}, 0 0 0 1px ${border}`, zIndex: 100, pointerEvents: 'none' }}>
-          <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 2, background: accentSoft, border: `1px solid ${accentColor}44`, borderRadius: 2, padding: '4px 12px', color: accentColor, fontSize: 10, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>🔍 Zoom View</div>
-          <div style={{ width: '100%', height: '100%', backgroundImage: `url(${mainImage})`, backgroundSize: '300%', backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`, backgroundRepeat: 'no-repeat', transition: 'background-position 0.05s ease' }} />
-        </div>
-      )}
-
       <CustomerFooter />
     </div>
   )

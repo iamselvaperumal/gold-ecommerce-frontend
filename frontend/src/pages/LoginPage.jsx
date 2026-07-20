@@ -217,7 +217,7 @@ localStorage.removeItem('email')
 >
   <img
     src={logo}
-    alt="Team 369"
+    alt="LUXIVA"
     style={{
       width: '100%',
       height: '100%',
@@ -226,8 +226,8 @@ localStorage.removeItem('email')
   />
 </div>
 
-          <h2 style={{ fontSize:'1.6rem', fontWeight:900, color: dark ? '#a5f3fc' : accent, margin:'0 0 6px' }}>Team 369</h2>
-          <p style={{ color: subtext, fontSize:'13px', margin:0 }}>Access Portal</p>
+          <h2 style={{ fontSize:'1.6rem', fontWeight:900, color: dark ? '#a5f3fc' : accent, margin:'0 0 6px' }}>LUXIVA</h2>
+          <p style={{ color: subtext, fontSize:'13px', margin:0 }}>E-commerce Portal</p>
         </div>
 
         {error && (

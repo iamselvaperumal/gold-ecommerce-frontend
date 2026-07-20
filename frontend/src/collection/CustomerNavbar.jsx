@@ -1,914 +1,2568 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import api from '../api'
-import { getCartCountDB } from '../collection/card_section'
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../api";
+import { getCartCountDB } from "../collection/card_section";
 
+const API_ORIGIN = (api.defaults.baseURL || "").replace(/\/api\/?$/, "");
 
+function Icon({ name, size = 20, filled = false }) {
+  const common = {
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: filled ? "currentColor" : "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+  };
 
-function TodayRateDropdown() {
-  const [show, setShow] = useState(false)
-  const [rates, setRates] = useState(null)
+  const paths = {
+    truck: (
+      <>
+        <path d="M3 7h11v10H3z" />
+        <path d="M14 11h4l3 3v3h-7z" />
+        <circle cx="7" cy="18" r="1.7" />
+        <circle cx="17" cy="18" r="1.7" />
+      </>
+    ),
+    hallmark: (
+      <path d="M12 3 20 6v5c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6l8-3Z" />
+    ),
+    refresh: (
+      <>
+        <path d="M20 6v5h-5" />
+        <path d="M4 18v-5h5" />
+        <path d="M18.2 9A7 7 0 0 0 6 7.8" />
+        <path d="M5.8 15A7 7 0 0 0 18 16.2" />
+      </>
+    ),
+    search: (
+      <>
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-3.8-3.8" />
+      </>
+    ),
+    calendar: (
+      <>
+        <rect x="4" y="5" width="16" height="15" rx="2" />
+        <path d="M8 3v4" />
+        <path d="M16 3v4" />
+        <path d="M4 10h16" />
+      </>
+    ),
+    star: (
+      <path d="m12 3 2.7 5.5 6 .9-4.3 4.2 1 6-5.4-2.9-5.4 2.9 1-6-4.3-4.2 6-.9L12 3Z" />
+    ),
+    heart: (
+      <path d="M20.8 5.6a5.1 5.1 0 0 0-7.2 0L12 7.2l-1.6-1.6a5.1 5.1 0 0 0-7.2 7.2L12 21l8.8-8.2a5.1 5.1 0 0 0 0-7.2Z" />
+    ),
+    user: (
+      <>
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21c1.6-4.2 4.3-6 8-6s6.4 1.8 8 6" />
+      </>
+    ),
+    cart: (
+      <>
+        <path d="M4 4h2l2.4 11.5h9.8L21 7H7" />
+        <circle cx="10" cy="20" r="1.6" />
+        <circle cx="18" cy="20" r="1.6" />
+      </>
+    ),
+    logout: (
+      <>
+        <path d="M10 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v2" />
+        <path d="M15 7l5 5-5 5" />
+        <path d="M20 12H8" />
+      </>
+    ),
+    close: (
+      <>
+        <path d="M18 6 6 18" />
+        <path d="m6 6 12 12" />
+      </>
+    ),
+    menu: (
+      <>
+        <path d="M4 7h16" />
+        <path d="M4 12h16" />
+        <path d="M4 17h16" />
+      </>
+    ),
+    mic: (
+      <>
+        <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3Z" />
+        <path d="M19 11a7 7 0 0 1-14 0" />
+        <path d="M12 18v3" />
+        <path d="M8 21h8" />
+      </>
+    ),
+  };
 
-useEffect(() => {
-  const token = localStorage.getItem('token')
-  fetch('https://bitbyte-backend-f66f.onrender.com/api/metal-rates/', {
-    headers: token ? { Authorization: `Bearer ${token}` } : {}
-  })
-    .then(r => r.json())
-    .then(d => {
-      const rateData = Array.isArray(d) ? d[0] : d
-      if (rateData && rateData.gold_22k) setRates(rateData)
-    })
-    .catch(() => {})
-}, [])
-
-  return (
-    <div style={{ position: 'relative' }}
-      onMouseEnter={() => setShow(true)}
-      onMouseLeave={() => setShow(false)}
-    >
-<button style={{
-  background: 'linear-gradient(90deg,#b8860b,#d4a017)', color: '#fff',
-  border: 'none', borderRadius: 22, padding: '10px 20px',
-  fontSize: 11, fontWeight: 700, cursor: 'pointer',
-  display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap',
-  boxShadow: '0 2px 8px rgba(184,134,11,0.3)',
-  fontFamily: '"Montserrat", sans-serif', letterSpacing: '0.3px',
-}}>
-  <svg width="16" height="16" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="4" y="6" width="24" height="22" rx="2"/>
-    <path d="M4 12h24"/><path d="M10 4v4"/><path d="M22 4v4"/>
-    <path d="M10 18h4"/><path d="M10 23h8"/>
-  </svg>
-  Today's Gold Rate 22K —{' '}
-  {rates?.gold_22k ? `Rs. ${parseFloat(rates.gold_22k).toFixed(0)}/-` : '...'} ▾
-</button>
-
-      {show && (
-        <div style={{
-          position: 'absolute', top: '110%', right: 0,
-          background: '#fff', borderRadius: 12,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-          border: '1px solid #f0e8e0',
-          minWidth: 260, zIndex: 999,
-          overflow: 'hidden',
-        }}>
-          {[
-{ icon: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#b8860b" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="16" r="11"/><circle cx="16" cy="16" r="7"/><path d="M16 9v2"/><path d="M16 21v2"/><path d="M9 16h2"/><path d="M21 16h2"/><polygon points="16,11 17.5,14.5 21,15 18.5,17.5 19,21 16,19.5 13,21 13.5,17.5 11,15 14.5,14.5" strokeWidth="1.2"/></svg>, label: 'Gold 24K ', value: rates?.gold_24k },
-{ icon: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#9ca3af" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="16" r="11"/><circle cx="16" cy="16" r="7"/><path d="M16 9v2"/><path d="M16 21v2"/><path d="M9 16h2"/><path d="M21 16h2"/></svg>, label: 'Silver', value: rates?.silver_999 },
-{ icon: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#60a5fa" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4l10 8-10 16L6 12z"/><path d="M6 12h20"/><path d="M11 12l5 16"/><path d="M21 12l-5 16"/><path d="M6 12l5-8"/><path d="M26 12l-5-8"/></svg>, label: 'Diamond 18K', value: rates?.diamond_18k },
-{ icon: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#93c5fd" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4l10 8-10 16L6 12z"/><path d="M6 12h20"/><path d="M11 12l5 16"/><path d="M21 12l-5 16"/><path d="M6 12l5-8"/><path d="M26 12l-5-8"/></svg>, label: 'Diamond 22K', value: rates?.diamond_22k },
-{ icon: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#94a3b8" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="16" r="10"/><circle cx="16" cy="16" r="6"/><circle cx="16" cy="16" r="2"/><line x1="16" y1="6" x2="16" y2="4"/><line x1="16" y1="28" x2="16" y2="26"/><line x1="6" y1="16" x2="4" y2="16"/><line x1="28" y1="16" x2="26" y2="16"/></svg>, label: 'Platinum', value: rates?.platinum_92 },
-          ].map((item, i, arr) => (
-            <div key={i} style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              padding: '13px 18px',
-              borderBottom: i < arr.length - 1 ? '1px solid #f5f0e8' : 'none',
-              background: '#fff', transition: 'background 0.15s',
-            }}
-              onMouseEnter={e => e.currentTarget.style.background = '#fdf8f4'}
-              onMouseLeave={e => e.currentTarget.style.background = '#fff'}
-            >
-              <div style={{ flexShrink: 0 }}>{item.icon}</div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', flex: 1 }}>
-                <span style={{ color: '#4b3a2a', fontSize: 13, fontFamily: '"Montserrat", sans-serif', fontWeight: 500, letterSpacing: '0.3px' }}>{item.label}</span>
-                <span style={{ color: item.value ? '#b8860b' : '#9ca3af', fontWeight: 700, fontSize: 14 }}>
-                  {item.value ? `Rs. ${parseFloat(item.value).toFixed(0)}/-` : 'Not set'}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
+  return <svg {...common}>{paths[name]}</svg>;
 }
 
+function productImage(product) {
+  const image = product?.images?.[0]?.image;
+  if (!image) return null;
+  if (image.startsWith("http://") || image.startsWith("https://")) return image;
+  return `${API_ORIGIN}/${image.replace(/^\/+/, "")}`;
+}
+
+function money(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return "...";
+  return `Rs. ${n.toLocaleString("en-IN", { maximumFractionDigits: 0 })}/-`;
+}
+
+const menuItems = [
+  { label: "All Jewellery", route: "/collection/all" },
+  { label: "Gold", route: "/collection/all?metal=gold" },
+  { label: "Diamond", route: "/collection/all?metal=diamond" },
+  { label: "Platinum", route: "/collection/all?metal=platinum" },
+  { label: "Silver", route: "/collection/all?metal=silver" },
+  { label: "Coins", route: "/collection/coins" },
+  { label: "Offers", route: "/collection/offers" },
+  { label: "Team369-Live", route: "/bj-live" },
+  { label: "Wedding", route: "/collection/all?wedding=true" },
+  { label: "Gifting", route: "/collection/gifting" },
+  { label: "New Arrivals", route: "/collection/new-arrivals" },
+];
+
+const allJewelleryMega = [
+  {
+    title: "Gold Jewellery",
+    icon: "◌",
+    viewAll: ["View All Gold", "/collection/all?metal=gold"],
+    links: [
+      ["Gold Rings", "/collection/all?metal=gold&category=rings"],
+      ["Gold Earrings", "/collection/all?metal=gold&category=earrings"],
+      ["Gold Necklaces", "/collection/all?metal=gold&category=necklaces"],
+      ["Gold Pendants", "/collection/all?metal=gold&category=pendants"],
+      ["Gold Bangles", "/collection/all?metal=gold&category=bangles"],
+      ["Gold Chains", "/collection/all?metal=gold&category=chains"],
+      ["Gold Mangalsutra", "/collection/all?metal=gold&category=mangalsutra"],
+      ["Gold Anklets", "/collection/all?metal=gold&category=anklets"],
+    ],
+  },
+  {
+    title: "Diamond Jewellery",
+    icon: "◇",
+    viewAll: ["View All Diamonds", "/collection/all?metal=diamond"],
+    links: [
+      ["Diamond Rings", "/collection/all?metal=diamond&category=rings"],
+      ["Diamond Earrings", "/collection/all?metal=diamond&category=earrings"],
+      ["Diamond Necklaces", "/collection/all?metal=diamond&category=necklaces"],
+      ["Diamond Pendants", "/collection/all?metal=diamond&category=pendants"],
+      ["Diamond Bracelets", "/collection/all?metal=diamond&category=bracelets"],
+      ["Diamond Bangles", "/collection/all?metal=diamond&category=bangles"],
+      [
+        "Diamond Mangalsutra",
+        "/collection/all?metal=diamond&category=mangalsutra",
+      ],
+      [
+        "Solitaire Collection",
+        "/collection/all?metal=diamond&search=solitaire",
+      ],
+    ],
+  },
+  {
+    title: "Platinum Jewellery",
+    icon: "P",
+    viewAll: ["View All Platinum", "/collection/all?metal=platinum"],
+    links: [
+      ["Platinum Rings", "/collection/all?metal=platinum&category=rings"],
+      ["Platinum Earrings", "/collection/all?metal=platinum&category=earrings"],
+      [
+        "Platinum Necklaces",
+        "/collection/all?metal=platinum&category=necklaces",
+      ],
+      ["Platinum Pendants", "/collection/all?metal=platinum&category=pendants"],
+      [
+        "Platinum Bracelets",
+        "/collection/all?metal=platinum&category=bracelets",
+      ],
+      ["Platinum Chains", "/collection/all?metal=platinum&category=chains"],
+      [
+        "Platinum Mangalsutra",
+        "/collection/all?metal=platinum&category=mangalsutra",
+      ],
+      ["Men's Platinum", "/collection/all?metal=platinum&gender=men"],
+    ],
+  },
+  {
+    title: "Silver Jewellery",
+    icon: "◒",
+    viewAll: ["View All Silver", "/collection/all?metal=silver"],
+    links: [
+      ["Silver Rings", "/collection/all?metal=silver&category=rings"],
+      ["Silver Earrings", "/collection/all?metal=silver&category=earrings"],
+      ["Silver Necklaces", "/collection/all?metal=silver&category=necklaces"],
+      ["Silver Pendants", "/collection/all?metal=silver&category=pendants"],
+      ["Silver Bracelets", "/collection/all?metal=silver&category=bracelets"],
+      ["Silver Bangles", "/collection/all?metal=silver&category=bangles"],
+      ["Silver Anklets", "/collection/all?metal=silver&category=anklets"],
+      ["Silver Coins & Items", "/collection/coins?metal=silver"],
+    ],
+  },
+  {
+    title: "Coins & Bars",
+    icon: "◎",
+    viewAll: ["View All Coins", "/collection/coins"],
+    links: [
+      ["Gold Coins", "/collection/coins?metal=gold"],
+      ["Silver Coins", "/collection/coins?metal=silver"],
+      ["Gold Bars", "/collection/coins?metal=gold"],
+      ["Silver Bars", "/collection/coins?metal=silver"],
+      ["Collectible Coins", "/collection/coins"],
+      ["Gift Coins", "/collection/gifting"],
+      ["Temple Coins", "/collection/coins?search=temple"],
+    ],
+  },
+  {
+    title: "Wedding Jewellery",
+    icon: "◡",
+    viewAll: ["View All Wedding", "/collection/all?wedding=true"],
+    links: [
+      ["Bridal Sets", "/collection/all?wedding=true&search=bridal"],
+      ["Temple Jewellery", "/collection/all?wedding=true&search=temple"],
+      ["Kundan Jewellery", "/collection/all?wedding=true&search=kundan"],
+      ["Polki Jewellery", "/collection/all?wedding=true&search=polki"],
+      ["Antique Jewellery", "/collection/all?wedding=true&search=antique"],
+      ["Wedding Bangles", "/collection/all?wedding=true&category=bangles"],
+    ],
+  },
+  {
+    title: "Daily Wear",
+    icon: "✣",
+    viewAll: ["View All Daily Wear", "/collection/all?dailywear=true"],
+    links: [
+      ["Daily Wear Rings", "/collection/all?dailywear=true&category=rings"],
+      [
+        "Daily Wear Earrings",
+        "/collection/all?dailywear=true&category=earrings",
+      ],
+      [
+        "Daily Wear Pendants",
+        "/collection/all?dailywear=true&category=pendants",
+      ],
+      ["Daily Wear Chains", "/collection/all?dailywear=true&category=chains"],
+      ["Light Weight Jewellery", "/collection/all?dailywear=true&search=light"],
+      ["Minimal Collection", "/collection/all?dailywear=true&search=minimal"],
+    ],
+  },
+  {
+    title: "Gifting Collection",
+    icon: "□",
+    viewAll: ["View All Gifting", "/collection/gifting"],
+    links: [
+      ["Gift For Her", "/collection/gifting?gender=women"],
+      ["Gift For Him", "/collection/gifting?gender=men"],
+      ["Kids Jewellery", "/collection/all?gender=kids"],
+      ["Corporate Gifts", "/collection/gifting?search=corporate"],
+      ["Anniversary Gifts", "/collection/gifting?occasion=Anniversary"],
+      ["Birthday Gifts", "/collection/gifting?occasion=Birthday"],
+    ],
+  },
+  {
+    title: "Mangalsutra",
+    icon: "♧",
+    viewAll: ["View All Mangalsutra", "/collection/all?category=mangalsutra"],
+    links: [
+      [
+        "Traditional Mangalsutra",
+        "/collection/all?category=mangalsutra&search=traditional",
+      ],
+      [
+        "Diamond Mangalsutra",
+        "/collection/all?category=mangalsutra&metal=diamond",
+      ],
+      [
+        "Beaded Mangalsutra",
+        "/collection/all?category=mangalsutra&search=beaded",
+      ],
+      [
+        "Short Mangalsutra",
+        "/collection/all?category=mangalsutra&search=short",
+      ],
+      ["Gold Mangalsutra", "/collection/all?category=mangalsutra&metal=gold"],
+      [
+        "Black Bead Mangalsutra",
+        "/collection/all?category=mangalsutra&search=black",
+      ],
+    ],
+  },
+  {
+    title: "Other Jewellery",
+    icon: "☆",
+    viewAll: ["View All Others", "/collection/all"],
+    links: [
+      ["Nose Pins", "/collection/all?category=nosepin"],
+      ["Anklets", "/collection/all?category=anklets"],
+      ["Toe Rings", "/collection/all?search=toe"],
+      ["Cufflinks", "/collection/all?search=cufflinks"],
+      ["Brooches", "/collection/all?search=brooch"],
+      ["Tie Pins", "/collection/all?search=tie"],
+    ],
+  },
+];
+
+const metalMega = {
+  Gold: [
+    [
+      "Gold Rings",
+      "◌",
+      "/collection/all?metal=gold&category=rings",
+      [
+        "Plain Gold Rings",
+        "Diamond Gold Rings",
+        "Gemstone Gold Rings",
+        "Engagement Rings",
+        "Couple Rings",
+        "Kids Rings",
+      ],
+    ],
+    [
+      "Gold Earrings",
+      "♢",
+      "/collection/all?metal=gold&category=earrings",
+      [
+        "Stud Earrings",
+        "Jhumka Earrings",
+        "Hoop Earrings",
+        "Drop Earrings",
+        "Sui Dhaga Earrings",
+        "Kids Earrings",
+      ],
+    ],
+    [
+      "Gold Necklaces",
+      "♧",
+      "/collection/all?metal=gold&category=necklaces",
+      [
+        "Plain Gold Necklaces",
+        "Traditional Necklaces",
+        "Temple Necklaces",
+        "Chain Necklaces",
+        "Diamond Necklaces",
+        "Mangalsutra Necklaces",
+      ],
+    ],
+    [
+      "Gold Pendants",
+      "♤",
+      "/collection/all?metal=gold&category=pendants",
+      [
+        "Religious Pendants",
+        "Diamond Pendants",
+        "Initial Pendants",
+        "Gemstone Pendants",
+        "Kids Pendants",
+      ],
+    ],
+    [
+      "Gold Bangles",
+      "◯",
+      "/collection/all?metal=gold&category=bangles",
+      [
+        "Plain Gold Bangles",
+        "Diamond Bangles",
+        "Traditional Bangles",
+        "Kada Bangles",
+        "Kids Bangles",
+      ],
+    ],
+    [
+      "Gold Chains",
+      "⌁",
+      "/collection/all?metal=gold&category=chains",
+      [
+        "Plain Gold Chains",
+        "Rope Chains",
+        "Box Chains",
+        "Figaro Chains",
+        "Beaded Chains",
+      ],
+    ],
+    [
+      "Gold Mangalsutra",
+      "♧",
+      "/collection/all?metal=gold&category=mangalsutra",
+      [
+        "Traditional Mangalsutra",
+        "Diamond Mangalsutra",
+        "Beaded Mangalsutra",
+        "Short Mangalsutra",
+        "Gold Mangalsutra Set",
+      ],
+    ],
+    [
+      "Gold Coins & Bars",
+      "◎",
+      "/collection/coins?metal=gold",
+      [
+        "Gold Coins",
+        "Gold Bars",
+        "Gift Coins",
+        "Religious Coins",
+        "Collectible Coins",
+      ],
+    ],
+  ],
+  Diamond: [
+    [
+      "Diamond Rings",
+      "◇",
+      "/collection/all?metal=diamond&category=rings",
+      [
+        "Solitaire Rings",
+        "Engagement Rings",
+        "Wedding Rings",
+        "Cocktail Rings",
+        "Fashion Rings",
+        "Cluster Rings",
+        "Men's Diamond Rings",
+        "Kids Diamond Rings",
+      ],
+    ],
+    [
+      "Diamond Earrings",
+      "♢",
+      "/collection/all?metal=diamond&category=earrings",
+      [
+        "Stud Earrings",
+        "Drop Earrings",
+        "Hoop Earrings",
+        "Jhumka Earrings",
+        "Sui Dhaga Earrings",
+        "Chandbali Earrings",
+        "Party Wear Earrings",
+        "Kids Diamond Earrings",
+      ],
+    ],
+    [
+      "Diamond Pendants",
+      "♤",
+      "/collection/all?metal=diamond&category=pendants",
+      [
+        "Solitaire Pendants",
+        "Halo Pendants",
+        "Religious Pendants",
+        "Initial Pendants",
+        "Heart Pendants",
+        "Shape Pendants",
+        "Fancy Pendants",
+        "Kids Diamond Pendants",
+      ],
+    ],
+    [
+      "Diamond Necklaces",
+      "♧",
+      "/collection/all?metal=diamond&category=necklaces",
+      [
+        "Solitaire Necklaces",
+        "Tennis Necklaces",
+        "Cluster Necklaces",
+        "Bridal Necklaces",
+        "Choker Necklaces",
+        "Long Necklaces",
+        "Mang tikka / Neck Sets",
+        "Contemporary Necklaces",
+      ],
+    ],
+    [
+      "Diamond Bracelets",
+      "◌",
+      "/collection/all?metal=diamond&category=bracelets",
+      [
+        "Tennis Bracelets",
+        "Chain Bracelets",
+        "Bangle Bracelets",
+        "Charm Bracelets",
+        "Cuff Bracelets",
+        "ID Bracelets",
+        "Men's Bracelets",
+      ],
+    ],
+    [
+      "Diamond Bangles",
+      "◇",
+      "/collection/all?metal=diamond&category=bangles",
+      [
+        "Line Bangles",
+        "Bracelet Bangles",
+        "Openable Bangles",
+        "Kada Bangles",
+        "Designer Bangles",
+        "Party Wear Bangles",
+      ],
+    ],
+    [
+      "Diamond Mangalsutra",
+      "♧",
+      "/collection/all?metal=diamond&category=mangalsutra",
+      [
+        "Single Line Mangalsutra",
+        "Tanmaniya Mangalsutra",
+        "Pendant Mangalsutra",
+        "Beaded Mangalsutra",
+        "Diamond Mangalsutra Set",
+        "Contemporary Mangalsutra",
+      ],
+    ],
+    [
+      "Diamond By Shape",
+      "◇",
+      "/collection/all?metal=diamond",
+      [
+        "Round Diamond",
+        "Princess Cut",
+        "Oval Diamond",
+        "Pear Shape",
+        "Emerald Cut",
+        "Cushion Cut",
+        "Marquise Cut",
+      ],
+    ],
+  ],
+  Platinum: [
+    [
+      "Platinum Rings",
+      "◌",
+      "/collection/all?metal=platinum&category=rings",
+      [
+        "Men's Platinum Rings",
+        "Women's Platinum Rings",
+        "Couple Platinum Rings",
+        "Engagement Platinum Rings",
+        "Wedding Platinum Rings",
+        "Fashion Platinum Rings",
+        "Kids Platinum Rings",
+      ],
+    ],
+    [
+      "Platinum Earrings",
+      "♢",
+      "/collection/all?metal=platinum&category=earrings",
+      [
+        "Stud Earrings",
+        "Drop Earrings",
+        "Hoop Earrings",
+        "Jhumka Earrings",
+        "Sui Dhaga Earrings",
+        "Chandbali Earrings",
+        "Ear Cuffs",
+      ],
+    ],
+    [
+      "Platinum Pendants",
+      "♤",
+      "/collection/all?metal=platinum&category=pendants",
+      [
+        "Initial Pendants",
+        "Religious Pendants",
+        "Heart Pendants",
+        "Solitaire Pendants",
+        "Shape Pendants",
+        "Fancy Pendants",
+        "Kids Pendants",
+      ],
+    ],
+    [
+      "Platinum Necklaces",
+      "♧",
+      "/collection/all?metal=platinum&category=necklaces",
+      [
+        "Chains",
+        "Solitaire Necklaces",
+        "Layered Necklaces",
+        "Symbol Necklaces",
+        "Choker Necklaces",
+        "Long Necklaces",
+        "Mangalsutra Necklaces",
+      ],
+    ],
+    [
+      "Platinum Bracelets",
+      "◌",
+      "/collection/all?metal=platinum&category=bracelets",
+      [
+        "Chain Bracelets",
+        "Tennis Bracelets",
+        "Bangle Bracelets",
+        "Cuff Bracelets",
+        "ID Bracelets",
+        "Charm Bracelets",
+        "Men's Bracelets",
+      ],
+    ],
+    [
+      "Platinum Bangles",
+      "◯",
+      "/collection/all?metal=platinum&category=bangles",
+      [
+        "Plain Bangles",
+        "Diamond Bangles",
+        "Openable Bangles",
+        "Designer Bangles",
+        "Kada Bangles",
+        "Slim Bangles",
+        "Stackable Bangles",
+      ],
+    ],
+    [
+      "Platinum Chains",
+      "⌁",
+      "/collection/all?metal=platinum&category=chains",
+      [
+        "Men's Chains",
+        "Women's Chains",
+        "Rope Chains",
+        "Box Chains",
+        "Figaro Chains",
+        "Snake Chains",
+        "Bead Chains",
+      ],
+    ],
+    [
+      "Platinum Collection",
+      "◇",
+      "/collection/all?metal=platinum",
+      [
+        "Love Collection",
+        "Infinity Collection",
+        "Minimal Collection",
+        "Men's Collection",
+        "Wedding Collection",
+        "Kids Collection",
+        "Office Wear Collection",
+      ],
+    ],
+  ],
+  Silver: [
+    [
+      "Silver Rings",
+      "◌",
+      "/collection/all?metal=silver&category=rings",
+      [
+        "Plain Silver Rings",
+        "Oxidised Silver Rings",
+        "Adjustable Silver Rings",
+        "Designer Silver Rings",
+        "Couple Silver Rings",
+        "Stone Silver Rings",
+        "Kids Silver Rings",
+        "Men's Silver Rings",
+      ],
+    ],
+    [
+      "Silver Earrings",
+      "♢",
+      "/collection/all?metal=silver&category=earrings",
+      [
+        "Stud Earrings",
+        "Drop Earrings",
+        "Jhumka Earrings",
+        "Hoop Earrings",
+        "Oxidised Earrings",
+        "Chandbali Earrings",
+        "Ear Cuffs",
+        "Kids Silver Earrings",
+      ],
+    ],
+    [
+      "Silver Pendants",
+      "♤",
+      "/collection/all?metal=silver&category=pendants",
+      [
+        "Religious Pendants",
+        "Initial Pendants",
+        "Heart Pendants",
+        "Kids Pendants",
+        "Motif Pendants",
+        "Oxidised Pendants",
+        "Stone Pendants",
+        "Personalised Pendants",
+      ],
+    ],
+    [
+      "Silver Necklaces",
+      "♧",
+      "/collection/all?metal=silver&category=necklaces",
+      [
+        "Chains",
+        "Pendant Necklaces",
+        "Choker Necklaces",
+        "Oxidised Necklaces",
+        "Layered Necklaces",
+        "Beaded Necklaces",
+        "Statement Necklaces",
+        "Mangalsutra Necklaces",
+      ],
+    ],
+    [
+      "Silver Bracelets",
+      "◌",
+      "/collection/all?metal=silver&category=bracelets",
+      [
+        "Chain Bracelets",
+        "Charms Bracelets",
+        "Cuff Bracelets",
+        "ID Bracelets",
+        "Beaded Bracelets",
+        "Mangalsutra Bracelets",
+        "Kids Bracelets",
+        "Men's Bracelets",
+      ],
+    ],
+    [
+      "Silver Bangles",
+      "◯",
+      "/collection/all?metal=silver&category=bangles",
+      [
+        "Plain Silver Bangles",
+        "Oxidised Bangles",
+        "Designer Bangles",
+        "Kada Bangles",
+        "Stone Bangles",
+        "Beaded Bangles",
+        "Adjustable Bangles",
+        "Kids Bangles",
+      ],
+    ],
+    [
+      "Silver Anklets",
+      "⌁",
+      "/collection/all?metal=silver&category=anklets",
+      [
+        "Plain Silver Anklets",
+        "Oxidised Anklets",
+        "Beaded Anklets",
+        "Charm Anklets",
+        "Designer Anklets",
+        "Pair Anklets",
+        "Kids Anklets",
+        "Temple Anklets",
+      ],
+    ],
+    [
+      "Silver Articles",
+      "♙",
+      "/collection/all?metal=silver",
+      [
+        "Pooja Articles",
+        "Silver Utensils",
+        "Home Decor",
+        "Gift Articles",
+        "Return Gifts",
+        "Corporate Gifts",
+        "Kids Articles",
+      ],
+    ],
+  ],
+};
+
+const specialMega = {
+  Coins: [
+    [
+      "Gold Coins",
+      "◎",
+      "/collection/coins?metal=gold",
+      [
+        "24K Gold Coins",
+        "22K Gold Coins",
+        "18K Gold Coins",
+        "10g Gold Coins",
+        "20g Gold Coins",
+        "1/2 Sovereign Coins",
+        "1 Sovereign Coins",
+        "2 Sovereign Coins",
+      ],
+    ],
+    [
+      "Gold Bars",
+      "▣",
+      "/collection/coins?metal=gold",
+      [
+        "1g Gold Bars",
+        "2g Gold Bars",
+        "5g Gold Bars",
+        "10g Gold Bars",
+        "20g Gold Bars",
+        "50g Gold Bars",
+        "100g Gold Bars",
+        "500g Gold Bars",
+      ],
+    ],
+    [
+      "Silver Coins",
+      "◎",
+      "/collection/coins?metal=silver",
+      [
+        "999 Silver Coins",
+        "925 Silver Coins",
+        "10g Silver Coins",
+        "20g Silver Coins",
+        "50g Silver Coins",
+        "100g Silver Coins",
+        "250g Silver Coins",
+        "500g Silver Coins",
+      ],
+    ],
+    [
+      "Silver Bars",
+      "▣",
+      "/collection/coins?metal=silver",
+      [
+        "10g Silver Bars",
+        "20g Silver Bars",
+        "50g Silver Bars",
+        "100g Silver Bars",
+        "250g Silver Bars",
+        "500g Silver Bars",
+        "1kg Silver Bars",
+        "5kg Silver Bars",
+      ],
+    ],
+    [
+      "Collectible Coins",
+      "◎",
+      "/collection/coins",
+      [
+        "Lakshmi Coins",
+        "Ganesha Coins",
+        "Krishna Coins",
+        "Rama Coins",
+        "Hanuman Coins",
+        "Swami Coins",
+        "Religious Coins",
+        "Limited Edition Coins",
+      ],
+    ],
+    [
+      "Festival Coins",
+      "◉",
+      "/collection/coins?occasion=Festival",
+      [
+        "Diwali Coins",
+        "Dhanteras Coins",
+        "Akshaya Tritiya Coins",
+        "Navratri Coins",
+        "Pongal Coins",
+        "Ganesh Chaturthi Coins",
+        "Birthday Coins",
+      ],
+    ],
+    [
+      "Gift Coins",
+      "□",
+      "/collection/gifting",
+      [
+        "Baby Gift Coins",
+        "Wedding Gift Coins",
+        "Anniversary Coins",
+        "Corporate Gift Coins",
+        "Return Gift Coins",
+        "Naming Ceremony Coins",
+        "Housewarming Coins",
+      ],
+    ],
+    [
+      "Investment Coins",
+      "↗",
+      "/collection/coins?search=investment",
+      [
+        "24K Investment Coins",
+        "22K Investment Coins",
+        "Low Premium Coins",
+        "High Resale Coins",
+        "Popular Investment Coins",
+        "Certified Investment Coins",
+      ],
+    ],
+  ],
+  Wedding: [
+    [
+      "Bridal Necklaces",
+      "♧",
+      "/collection/all?wedding=true&category=necklaces",
+      [
+        "Temple Necklaces",
+        "Kundan Necklaces",
+        "Antique Necklaces",
+        "Polki Necklaces",
+        "Traditional Necklaces",
+        "Long Haaram",
+        "Choker Necklaces",
+        "Rani Haar",
+      ],
+    ],
+    [
+      "Bridal Earrings",
+      "♢",
+      "/collection/all?wedding=true&category=earrings",
+      [
+        "Jhumka Earrings",
+        "Kundan Earrings",
+        "Temple Earrings",
+        "Chandbali Earrings",
+        "Polki Earrings",
+        "Long Earrings",
+        "Stud Earrings",
+        "Drop Earrings",
+      ],
+    ],
+    [
+      "Bridal Rings",
+      "◌",
+      "/collection/all?wedding=true&category=rings",
+      [
+        "Engagement Rings",
+        "Wedding Rings",
+        "Kundan Rings",
+        "Diamond Rings",
+        "Temple Rings",
+        "Couple Rings",
+        "Antique Rings",
+        "Polki Rings",
+      ],
+    ],
+    [
+      "Bridal Bangles",
+      "◯",
+      "/collection/all?wedding=true&category=bangles",
+      [
+        "Gold Bangles",
+        "Kundan Bangles",
+        "Antique Bangles",
+        "Polki Bangles",
+        "Kada Bangles",
+        "Temple Bangles",
+        "Designer Bangles",
+        "Bangle Sets",
+      ],
+    ],
+    [
+      "Bridal Sets",
+      "♕",
+      "/collection/all?wedding=true",
+      [
+        "Necklace Sets",
+        "Earring Sets",
+        "Bangle Sets",
+        "Complete Bridal Sets",
+        "Kundan Sets",
+        "Temple Sets",
+        "Polki Sets",
+        "Antique Sets",
+      ],
+    ],
+    [
+      "Mangalsutra",
+      "♧",
+      "/collection/all?wedding=true&category=mangalsutra",
+      [
+        "Traditional Mangalsutra",
+        "Diamond Mangalsutra",
+        "Beaded Mangalsutra",
+        "Pendant Mangalsutra",
+        "Short Mangalsutra",
+        "Gold Mangalsutra",
+        "Black Bead Mangalsutra",
+        "Mangalsutra Sets",
+      ],
+    ],
+    [
+      "Maang Tikka",
+      "♙",
+      "/collection/all?wedding=true&search=maang",
+      [
+        "Kundan Maang Tikka",
+        "Polki Maang Tikka",
+        "Temple Maang Tikka",
+        "Antique Maang Tikka",
+        "Diamond Maang Tikka",
+        "Pearl Maang Tikka",
+      ],
+    ],
+    [
+      "Groom Jewellery",
+      "♔",
+      "/collection/all?wedding=true&gender=men",
+      [
+        "Chains for Men",
+        "Bracelets for Men",
+        "Rings for Men",
+        "Pendants for Men",
+        "Cufflinks",
+        "Brooches",
+      ],
+    ],
+  ],
+  Gifting: [
+    [
+      "Gifts For Her",
+      "□",
+      "/collection/gifting?gender=women",
+      [
+        "Necklaces",
+        "Earrings",
+        "Rings",
+        "Bracelets",
+        "Pendants",
+        "Bangles",
+        "Mangalsutra",
+        "Nose Pins",
+      ],
+    ],
+    [
+      "Gifts For Him",
+      "♙",
+      "/collection/gifting?gender=men",
+      [
+        "Chains",
+        "Bracelets",
+        "Rings",
+        "Pendants",
+        "Cufflinks",
+        "Tie Pins",
+        "Men's Kada",
+        "Coins & Bars",
+      ],
+    ],
+    [
+      "Gifts For Kids",
+      "☻",
+      "/collection/all?gender=kids",
+      [
+        "Baby Jewellery",
+        "Chains",
+        "Earrings",
+        "Bracelets",
+        "Nazariya",
+        "Anklets",
+        "Pendants",
+        "ID Bracelets",
+      ],
+    ],
+    [
+      "Gifts For Couple",
+      "♡",
+      "/collection/gifting?search=couple",
+      [
+        "Couple Rings",
+        "Couple Pendants",
+        "Matching Bracelets",
+        "His & Her Sets",
+        "Engagement Gifts",
+        "Anniversary Gifts",
+        "Personalised Gifts",
+      ],
+    ],
+    [
+      "Gifts For Parents",
+      "♚",
+      "/collection/gifting?search=parents",
+      [
+        "Gold Coins",
+        "Religious Pendants",
+        "Chains",
+        "Bracelets",
+        "Rings",
+        "Pooja Articles",
+        "Silver Articles",
+        "Health Pendants",
+      ],
+    ],
+    [
+      "Occasion Gifts",
+      "▣",
+      "/collection/gifting?occasion=Birthday",
+      [
+        "Birthday Gifts",
+        "Anniversary Gifts",
+        "Wedding Gifts",
+        "Housewarming Gifts",
+        "Festive Gifts",
+        "Graduation Gifts",
+        "Promotion Gifts",
+        "Baby Shower Gifts",
+      ],
+    ],
+    [
+      "Corporate Gifts",
+      "▤",
+      "/collection/gifting?search=corporate",
+      [
+        "Gold Coins",
+        "Silver Coins",
+        "Desk Accessories",
+        "Pen Sets",
+        "Customized Coins",
+        "Mementos",
+        "Trophies",
+        "Premium Sets",
+      ],
+    ],
+    [
+      "Religious Gifts",
+      "♙",
+      "/collection/gifting?search=religious",
+      [
+        "Gold Idols",
+        "Silver Idols",
+        "Pooja Items",
+        "Religious Pendants",
+        "Yantra Pendants",
+        "Mala & Chains",
+        "Temple Jewellery",
+        "Spiritual Coins",
+      ],
+    ],
+  ],
+};
+
+const buildSections = (list) =>
+  list.map(([title, icon, route, links]) => ({
+    title,
+    icon,
+    viewAll: [
+      `View All ${title.replace(/^Gold |^Diamond |^Platinum |^Silver /, "")}`,
+      route,
+    ],
+    links: links.map((label) => [
+      label,
+      `${route}${route.includes("?") ? "&" : "?"}search=${encodeURIComponent(label)}`,
+    ]),
+  }));
+
+const megaByLabel = {
+  "All Jewellery": allJewelleryMega,
+  Gold: buildSections(metalMega.Gold),
+  Diamond: buildSections(metalMega.Diamond),
+  Platinum: buildSections(metalMega.Platinum),
+  Silver: buildSections(metalMega.Silver),
+  Coins: buildSections(specialMega.Coins),
+  Wedding: buildSections(specialMega.Wedding),
+  Gifting: buildSections(specialMega.Gifting),
+};
+
+const megaIconFor = (title) => {
+  if (title.includes("Gold")) return "G";
+  if (title.includes("Diamond")) return "D";
+  if (title.includes("Platinum")) return "P";
+  if (title.includes("Silver")) return "S";
+  if (title.includes("Coin")) return "C";
+  if (title.includes("Wedding") || title.includes("Bridal")) return "W";
+  if (title.includes("Gift")) return "G";
+  if (title.includes("Mangalsutra")) return "M";
+  return title.charAt(0);
+};
+
 export default function CustomerNavbar() {
-  const navigate = useNavigate()
-  const [cartCount, setCartCount] = useState(0)
-  const [wishlistCount, setWishlistCount] = useState(0)
-  const [showDropdown, setShowDropdown] = useState(false)
-  const [activeFilter, setActiveFilter] = useState('category')
-  const [activeCategory, setActiveCategory] = useState('all')
-    const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState([])
-  const [searchLoading, setSearchLoading] = useState(false)
-  const [showSearchDrop, setShowSearchDrop] = useState(false)
+  const navigate = useNavigate();
+  const [cartCount, setCartCount] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
+  const [rates, setRates] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [showSearchDrop, setShowSearchDrop] = useState(false);
+  const [voiceListening, setVoiceListening] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(true);
+  const [ratesOpen, setRatesOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [activeMega, setActiveMega] = useState(null);
+  const megaRefs = useRef({});
+  const recognitionRef = useRef(null);
+
+  const scrollMega = (label, dir) => {
+    const el = megaRefs.current[label];
+    if (el) el.scrollBy({ left: dir * 220, behavior: 'smooth' });
+  };
 
   useEffect(() => {
-    const updateCount = async () => {
-      const count = await getCartCountDB()
-      setCartCount(count)
-    }
-    updateCount()
-    const handler = () => updateCount()
-    window.addEventListener('bb_cart_update', handler)
-    return () => window.removeEventListener('bb_cart_update', handler)
-  }, [])
+    const updateCount = async () => setCartCount(await getCartCountDB());
+    updateCount();
+    window.addEventListener("bb_cart_update", updateCount);
+    return () => window.removeEventListener("bb_cart_update", updateCount);
+  }, []);
 
   useEffect(() => {
     const updateWishCount = async () => {
       try {
-        const res = await api.get('/wishlist/')
-        setWishlistCount(res.data.count)
-      } catch {}
+        const res = await api.get("/wishlist/");
+        setWishlistCount(res.data.count || 0);
+      } catch {
+        setWishlistCount(0);
+      }
+    };
+    updateWishCount();
+    window.addEventListener("bb_wishlist_update", updateWishCount);
+    return () =>
+      window.removeEventListener("bb_wishlist_update", updateWishCount);
+  }, []);
+
+  useEffect(() => {
+    api
+      .get("/metal-rates/")
+      .then((res) => {
+        const data = Array.isArray(res.data) ? res.data[0] : res.data;
+        setRates(data || null);
+      })
+      .catch(() => setRates(null));
+  }, []);
+
+  useEffect(() => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setVoiceSupported(false);
+      return undefined;
     }
-    updateWishCount()
-    const handler = () => updateWishCount()
-    window.addEventListener('bb_wishlist_update', handler)
-    return () => window.removeEventListener('bb_wishlist_update', handler)
-  }, [])
 
-   // 🔍 SEARCH useEffect — NEW
-useEffect(() => {
-  if (!searchQuery.trim() || searchQuery.trim().length < 2) {
-    setSearchResults([])
-    setShowSearchDrop(false)
-    return
-  }
-  const timer = setTimeout(async () => {
-      setSearchLoading(true)
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-IN";
+    recognition.interimResults = true;
+    recognition.continuous = false;
+
+    recognition.onresult = (event) => {
+      const transcript = Array.from(event.results)
+        .map((result) => result[0]?.transcript || "")
+        .join(" ")
+        .trim();
+
+      if (transcript) {
+        setSearchQuery(transcript);
+        setShowSearchDrop(true);
+      }
+    };
+
+    recognition.onerror = () => setVoiceListening(false);
+    recognition.onend = () => setVoiceListening(false);
+    recognitionRef.current = recognition;
+
+    return () => {
+      recognition.onresult = null;
+      recognition.onerror = null;
+      recognition.onend = null;
+      recognition.stop();
+      recognitionRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (query.length < 2) {
+      setSearchResults([]);
+      setShowSearchDrop(false);
+      return undefined;
+    }
+
+    const timer = setTimeout(async () => {
+      setSearchLoading(true);
       try {
-        const token = localStorage.getItem('token')
-        const res = await fetch(
-          `https://bitbyte-backend-f66f.onrender.com/api/jewelry-products/?search=${encodeURIComponent(searchQuery.trim())}`,
-          { headers: token ? { Authorization: `Bearer ${token}` } : {} }
-        )
-        const data = await res.json()
-        setSearchResults(Array.isArray(data) ? data.slice(0, 8) : [])
-        setShowSearchDrop(true)
-      } catch { setSearchResults([]) }
-      setSearchLoading(false)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [searchQuery])
+        const res = await api.get(
+          `/jewelry-products/?search=${encodeURIComponent(query)}`,
+        );
+        setSearchResults(Array.isArray(res.data) ? res.data.slice(0, 6) : []);
+        setShowSearchDrop(true);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 260);
 
-  const handleLogout = () => {
-    localStorage.clear()
-    navigate('/login')   // unga login route வேற இருந்தா மாத்திக்கோங்க
-  }
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const submitSearch = () => {
+    const query = searchQuery.trim();
+    if (!query) return;
+    setShowSearchDrop(false);
+    navigate(`/collection/all?search=${encodeURIComponent(query)}`);
+  };
+
+  const startVoiceSearch = () => {
+    const recognition = recognitionRef.current;
+    if (!recognition) {
+      setVoiceSupported(false);
+      return;
+    }
+
+    if (voiceListening) {
+      recognition.stop();
+      setVoiceListening(false);
+      return;
+    }
+
+    try {
+      setShowSearchDrop(false);
+      setVoiceListening(true);
+      recognition.start();
+    } catch {
+      setVoiceListening(false);
+    }
+  };
+
+  const logout = () => {
+    localStorage.clear();
+    navigate("/login");
+  };
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@400;500;600;700&display=swap');
-        @keyframes borderSlide {
-          from { width: 0; left: 50%; }
-          to   { width: 100%; left: 0; }
+        .exact-nav {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 9999;
+          background: var(--bb-bg);
+          color: var(--bb-ink);
+          box-shadow: 0 8px 28px rgba(7,59,63,0.08);
         }
-        .cat-item { position: relative; }
-        .cat-item::after {
+
+        .exact-nav-spacer {
+          height: 174px;
+        }
+
+        .exact-strip {
+          height: 42px;
+          background: var(--bb-soft-aqua);
+          color: var(--bb-teal-dark);
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 0.02em;
+          overflow: hidden;
+        }
+
+        .exact-strip-track {
+          display: flex;
+          align-items: center;
+          height: 100%;
+          width: max-content;
+          animation: marquee-scroll 28s linear infinite;
+        }
+
+        .exact-strip:hover .exact-strip-track {
+          animation-play-state: paused;
+        }
+
+        .exact-strip-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          white-space: nowrap;
+          padding: 0 48px;
+        }
+
+        .exact-strip-dot {
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background: var(--bb-teal-dark);
+          opacity: 0.4;
+          flex-shrink: 0;
+        }
+
+        @keyframes marquee-scroll {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+
+        .exact-inner {
+          width: 100%;
+          margin: 0;
+          padding-left: clamp(28px, 4vw, 76px);
+          padding-right: clamp(28px, 4vw, 76px);
+        }
+
+        .exact-main {
+          position: relative;
+          z-index: 4;
+          height: 86px;
+          border-bottom: 1px solid var(--bb-surface);
+          background: var(--bb-bg);
+        }
+
+        .exact-main .exact-inner {
+          height: 100%;
+          display: grid;
+          grid-template-columns: clamp(118px, 11vw, 170px) minmax(260px, 1fr) max-content max-content;
+          gap: clamp(10px, 1.2vw, 20px);
+          align-items: center;
+          justify-content: stretch;
+        }
+
+        .team-brand {
+          border: 0;
+          background: transparent;
+          display: inline-flex;
+          align-items: center;
+          gap: 14px;
+          cursor: pointer;
+          color: var(--bb-ruby);
+          min-width: 0;
+        }
+
+        .team-mark {
+          width: 160px;
+          height: 50px;
+          border-radius: 0;
+          object-fit: contain;
+          display: block;
+          background: transparent;
+          box-shadow: none;
+          flex: 0 0 auto;
+        }
+
+        .team-brand strong {
+          display: none;
+        }
+
+        .exact-search-wrap {
+          position: relative;
+          z-index: 10020;
+        }
+
+        .exact-search {
+          height: 44px;
+          border-radius: 999px;
+          border: 1.5px solid var(--bb-soft-aqua);
+          background: var(--bb-bg);
+          display: grid;
+          grid-template-columns: 42px 1fr 44px;
+          align-items: center;
+          color: var(--bb-muted);
+          box-shadow: 0 4px 16px rgba(7,59,63,0.09);
+          transition: border-color 150ms ease, box-shadow 150ms ease;
+        }
+
+        .exact-search:focus-within {
+          border-color: var(--bb-teal);
+          box-shadow: 0 4px 20px rgba(7,59,63,0.18);
+        }
+
+        .exact-search input {
+          width: 100%;
+          height: 100%;
+          border: 0;
+          outline: 0;
+          background: transparent;
+          color: var(--bb-ink);
+          font-size: 14px;
+          padding-right: 8px;
+        }
+
+        .exact-search input::placeholder {
+          color: var(--bb-muted);
+        }
+
+        .exact-search svg {
+          margin: 0 auto;
+          color: var(--bb-teal-dark);
+        }
+
+        .exact-voice-btn {
+          width: 34px;
+          height: 34px;
+          margin-right: 5px;
+          border: 0;
+          border-radius: 999px;
+          background: var(--bb-mist-aqua);
+          color: var(--bb-teal-dark);
+          display: grid;
+          place-items: center;
+          cursor: pointer;
+          transition: background 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        .exact-voice-btn:hover {
+          background: var(--bb-soft-aqua);
+          transform: translateY(-1px);
+        }
+
+        .exact-voice-btn.is-listening {
+          background: var(--bb-teal-dark);
+          color: var(--bb-bg);
+          box-shadow: 0 0 0 6px rgba(12,64,68,0.13);
+          animation: voice-pulse 900ms ease-in-out infinite alternate;
+        }
+
+        .exact-voice-btn:disabled {
+          cursor: not-allowed;
+          opacity: 0.45;
+          transform: none;
+          box-shadow: none;
+        }
+
+        @keyframes voice-pulse {
+          from { transform: scale(1); }
+          to { transform: scale(1.08); }
+        }
+
+        .exact-results {
+          position: absolute;
+          top: calc(100% + 10px);
+          left: 0;
+          right: 0;
+          z-index: 10030;
+          border-radius: 18px;
+          border: 1px solid var(--bb-soft-aqua);
+          background: rgba(253,253,252,0.99);
+          box-shadow: 0 26px 70px rgba(7,59,63,0.22);
+          padding: 8px;
+          max-height: 360px;
+          overflow: auto;
+        }
+
+        .exact-result {
+          width: 100%;
+          border: 0;
+          border-radius: 14px;
+          background: transparent;
+          display: grid;
+          grid-template-columns: 52px 1fr;
+          gap: 12px;
+          padding: 9px;
+          cursor: pointer;
+          text-align: left;
+        }
+
+        .exact-result:hover {
+          background: var(--bb-mist-aqua);
+        }
+
+        .exact-result img,
+        .exact-fallback {
+          width: 52px;
+          height: 52px;
+          border-radius: 12px;
+          object-fit: cover;
+          background: var(--bb-champagne);
+        }
+
+        .exact-result strong {
+          display: block;
+          color: var(--bb-ink);
+          font-size: 14px;
+        }
+
+        .exact-result span span {
+          display: block;
+          color: var(--bb-muted);
+          font-size: 12px;
+          margin-top: 4px;
+          font-weight: 800;
+        }
+
+        .rate-pill,
+        .summary-pill {
+          height: 42px;
+          border-radius: 999px;
+          border: 1px solid var(--bb-soft-aqua);
+          background: var(--bb-bg);
+          color: var(--bb-teal-dark);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          font-size: 12px;
+          font-weight: 900;
+          white-space: nowrap;
+          box-shadow: 0 4px 12px rgba(7,59,63,0.10);
+        }
+
+        .rate-dropdown {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-self: end;
+          min-width: 0;
+        }
+
+        .rate-dropdown-toggle {
+          height: 42px;
+          border-radius: 999px;
+          border: none;
+          background: #073B3F;
+          color: #fff;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          font-size: 12px;
+          font-weight: 900;
+          padding: 0 16px;
+          cursor: pointer;
+          white-space: nowrap;
+          box-shadow: 0 4px 12px rgba(7,59,63,0.22);
+          max-width: clamp(180px, 22vw, 292px);
+          min-width: 0;
+          overflow: hidden;
+        }
+
+        .rate-label {
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .rate-dropdown-panel {
+          position: absolute;
+          top: calc(100% + 8px);
+          right: 0;
+          width: 260px;
+          border-radius: 22px;
+          background: var(--bb-bg);
+          border: 1px solid rgba(31, 23, 18, 0.08);
+          box-shadow: 0 28px 60px rgba(31, 23, 18, 0.12);
+          z-index: 20;
+          overflow: hidden;
+        }
+
+        .rate-dropdown-panel::before {
           content: '';
           position: absolute;
-          bottom: 0; left: 50%;
-          width: 0; height: 3px;
-          background: linear-gradient(90deg, #8B1A1A, #b8860b);
-          border-radius: 2px 2px 0 0;
-          transition: width 0.3s ease, left 0.3s ease;
+          top: -6px;
+          right: 18px;
+          width: 12px;
+          height: 12px;
+          background: var(--bb-bg);
+          transform: rotate(45deg);
+          border-left: 1px solid rgba(31, 23, 18, 0.08);
+          border-top: 1px solid rgba(31, 23, 18, 0.08);
         }
-        .cat-item:hover::after,
-        .cat-item.active::after {
-          width: 100%; left: 0;
+
+        .rate-item {
+          padding: 12px 16px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          border-bottom: 1px solid rgba(31, 23, 18, 0.06);
+          transition: background 150ms ease;
         }
-        .cat-item:hover .cat-icon {
-          transform: translateY(-3px) scale(1.18);
-          filter: drop-shadow(0 4px 8px rgba(139,26,26,0.35));
+
+        .rate-item:last-child {
+          border-bottom: none;
         }
-        .cat-item:hover .cat-label {
-          color: #8B1A1A;
-          font-weight: 700;
+
+        .rate-item:hover {
+          background: rgba(204, 168, 129, 0.16);
         }
-        .cat-item.active .cat-label {
-          color: #8B1A1A;
-          font-weight: 700;
+
+        .rate-item-title {
+          color: var(--bb-ink);
+          font-weight: 800;
+          font-size: 12px;
+        }
+
+        .rate-item-value {
+          color: var(--bb-gold-deep);
+          font-weight: 900;
+          font-size: 12px;
+          white-space: nowrap;
+        }
+
+        .summary-pill {
+          border: 1px solid #073B3F;
+          padding: 0 15px;
+          cursor: pointer;
+          background: rgba(255,255,255,0.7);
+          color: #073B3F;
+          box-shadow: none;
+        }
+
+        .exact-actions {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          justify-self: end;
+          gap: clamp(8px, 0.9vw, 14px);
+          min-width: 0;
+        }
+
+        .exact-icon {
+          position: relative;
+          border: 0;
+          background: transparent;
+          color: var(--bb-ink);
+          width: 28px;
+          height: 36px;
+          display: grid;
+          place-items: center;
+          cursor: pointer;
+          transition: color 160ms ease, transform 160ms ease;
+        }
+
+        .exact-icon:hover {
+          color: var(--bb-teal);
+          transform: translateY(-2px);
+        }
+
+        .exact-badge {
+          position: absolute;
+          top: 0;
+          right: -5px;
+          min-width: 17px;
+          height: 17px;
+          padding: 0 4px;
+          border-radius: 999px;
+          background: var(--bb-ruby);
+          color: var(--bb-bg);
+          display: grid;
+          place-items: center;
+          font-size: 10px;
+          font-weight: 900;
+          line-height: 1;
+        }
+
+        .exact-menu {
+          position: relative;
+          z-index: 2;
+          height: 46px;
+          border-bottom: 1px solid var(--bb-mist-aqua);
+          background: var(--bb-bg);
+        }
+
+        .exact-menu .exact-inner {
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-around;
+          gap: clamp(12px, 1.7vw, 30px);
+          overflow-x: auto;
+          scrollbar-width: none;
+        }
+
+        .exact-menu .exact-inner::-webkit-scrollbar { display: none; }
+
+        .exact-menu-item {
+          height: 100%;
+          display: flex;
+          align-items: center;
+          position: static;
+        }
+
+        .exact-menu-button {
+          border: 0;
+          background: transparent;
+          color: var(--bb-ink);
+          height: 100%;
+          cursor: pointer;
+          font-size: clamp(12px, 0.8vw, 13px);
+          font-weight: 900;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          white-space: nowrap;
+          line-height: 1;
+          position: relative;
+        }
+
+        .exact-menu-button::after {
+          content: '';
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 2px;
+          border-radius: 999px;
+          background: var(--bb-teal);
+          transform: scaleX(0);
+          transform-origin: center;
+          transition: transform 180ms ease;
+        }
+
+        .exact-menu-button:hover::after,
+        .exact-menu-item:hover .exact-menu-button::after {
+          transform: scaleX(1);
+        }
+
+        .exact-mega {
+          position: relative;
+          top: unset;
+          left: unset;
+          right: unset;
+          z-index: 9998;
+          display: flex;
+          flex-direction: row;
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          overflow-y: hidden;
+          scroll-behavior: smooth;
+          scrollbar-width: thin;
+          scrollbar-color: #cca881 #f3ede7;
+          width: 100%;
+          min-width: 0;
+          gap: 0;
+          padding: 20px 44px 16px;
+          border: 1px solid #e6ded5;
+          border-top: 0;
+          border-radius: 0 0 12px 12px;
+          background: rgba(253,253,252,0.99);
+          box-shadow: 0 24px 60px rgba(7,59,63,0.14);
+          opacity: 0;
+          visibility: hidden;
+          transform: translateY(-8px);
+          pointer-events: none;
+          transition: opacity 180ms ease, transform 180ms ease, visibility 180ms ease;
+          -webkit-overflow-scrolling: touch;
+          box-sizing: border-box;
+        }
+
+        .exact-mega::-webkit-scrollbar {
+          height: 5px;
+        }
+
+        .exact-mega::-webkit-scrollbar-track {
+          background: #f3ede7;
+          border-radius: 999px;
+        }
+
+        .exact-mega::-webkit-scrollbar-thumb {
+          background: #cca881;
+          border-radius: 999px;
+        }
+
+        .exact-menu-item.is-open .exact-mega {
+          opacity: 1;
+          visibility: visible;
+          transform: translateY(0);
+          pointer-events: auto;
+        }
+
+        .exact-menu-item.is-open .exact-mega-wrap {
+          pointer-events: auto;
+        }
+
+        .exact-mega-section {
+          flex: 0 0 200px;
+          min-height: 220px;
+          padding: 0 22px 8px 16px;
+          border-right: 1px solid #e6ded5;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .exact-mega-section:last-child {
+          border-right: 0;
+        }
+
+        /* remove old nth-child rules — last-child handles it now */
+        .exact-mega-section:nth-child(5n) {
+          border-right: 1px solid #e6ded5;
+        }
+
+        .exact-mega-section:nth-child(n + 6) {
+          padding-top: 0;
+        }
+
+        .exact-mega-title {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 14px;
+          color: #073B3F;
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: 18px;
+          font-weight: 600;
+          line-height: 1.2;
+        }
+
+        .exact-mega-title span {
+          color: #b57720;
+          font-family: Inter, system-ui, sans-serif;
+          font-size: 24px;
+          line-height: 1;
+        }
+
+        .exact-mega-link {
+          border: 0;
+          background: transparent;
+          width: 100%;
+          min-height: 28px;
+          padding: 0;
+          color: var(--bb-ink);
+          display: block;
+          text-align: left;
+          text-decoration: none;
+          font-size: 13px;
+          font-weight: 600;
+          letter-spacing: 0;
+          text-transform: none;
+          cursor: pointer;
+          transition: color 160ms ease, transform 160ms ease;
+        }
+
+        .exact-mega-link:hover {
+          color: #9F6130;
+          transform: translateX(3px);
+        }
+
+        .exact-mega-view {
+          border: 0;
+          background: transparent;
+          margin-top: auto;
+          padding: 12px 0 0;
+          min-height: 34px;
+          color: #073B3F;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          text-decoration: none;
+          font-size: 13px;
+          font-weight: 900;
+          text-transform: none;
+          letter-spacing: 0;
+          cursor: pointer;
+        }
+
+        .exact-mega-view:hover {
+          color: #9F6130;
+        }
+
+        .exact-mega-scroll-btn {
+          position: absolute;
+          top: 0;
+          bottom: 5px;
+          width: 44px;
+          border: none;
+          cursor: pointer;
+          display: none;
+          align-items: center;
+          justify-content: center;
+          font-size: 22px;
+          font-weight: 900;
+          z-index: 3;
+          transition: opacity 150ms ease;
+        }
+
+        .exact-mega-scroll-btn.left {
+          left: 0;
+          background: linear-gradient(to right, rgba(253,253,252,1) 55%, rgba(253,253,252,0));
+          color: #073B3F;
+          border-radius: 0 0 0 12px;
+        }
+
+        .exact-mega-scroll-btn.right {
+          right: 0;
+          background: linear-gradient(to left, rgba(253,253,252,1) 55%, rgba(253,253,252,0));
+          color: #073B3F;
+          border-radius: 0 0 12px 0;
+        }
+
+        .exact-mega-scroll-btn:hover {
+          opacity: 0.7;
+        }
+
+        .exact-menu-item.is-open .exact-mega-scroll-btn {
+          display: flex;
+        }
+
+        .exact-mega-wrap {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          z-index: 9998;
+          pointer-events: none;
+        }
+
+        .exact-mobile-toggle {
+          display: none;
+        }
+
+        .exact-mobile-menu {
+          display: none;
+        }
+
+        @media (max-width: 1180px) {
+          .exact-nav-spacer {
+            height: 136px;
+          }
+
+          .exact-inner {
+            padding-left: 18px;
+            padding-right: 18px;
+          }
+
+          .exact-main {
+            height: 94px;
+          }
+
+          .exact-main .exact-inner {
+            grid-template-columns: minmax(110px, auto) minmax(0, 1fr) auto;
+            grid-template-areas:
+              "brand search actions"
+              "brand search actions";
+            gap: 10px;
+          }
+
+          .team-brand { grid-area: brand; }
+          .exact-search-wrap { grid-area: search; min-width: 0; }
+          .exact-actions { grid-area: actions; }
+          .rate-dropdown { display: none; }
+          .exact-menu { display: none; }
+          .exact-mobile-toggle { display: grid; }
+
+          .exact-mobile-menu.open {
+            display: block;
+            padding: 0 16px 14px;
+            background: var(--bb-bg);
+            border-bottom: 1px solid var(--bb-soft-aqua);
+            max-height: 70vh;
+            overflow-y: auto;
+          }
+
+          .mobile-menu-rates {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--bb-soft-aqua);
+            font-size: 12px;
+            font-weight: 900;
+            color: var(--bb-teal-dark);
+            flex-wrap: wrap;
+          }
+
+          .mobile-menu-rates span {
+            background: #073B3F;
+            color: #fff;
+            border-radius: 999px;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: 900;
+            white-space: nowrap;
+          }
+
+          .mobile-menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            padding: 12px 0 4px;
+          }
+
+          .exact-mobile-menu button {
+            border: 1px solid var(--bb-soft-aqua);
+            border-radius: 12px;
+            background: var(--bb-surface);
+            color: var(--bb-teal-dark);
+            padding: 12px;
+            font-weight: 900;
+            text-align: left;
+            font-size: 13px;
+            width: 100%;
+          }
+
+          .exact-mobile-menu button:active {
+            background: var(--bb-mist-aqua);
+          }
+        }
+        @media (max-width: 1020px) and (min-width: 901px) {
+          .summary-pill {
+            width: 42px;
+            padding: 0;
+          }
+
+          .summary-pill .summary-text {
+            display: none;
+          }
+
+          .exact-actions {
+            gap: 8px;
+          }
+        }
+
+        @media (max-width: 900px) {
+          .exact-nav-spacer {
+            height: 142px;
+          }
+
+          .exact-main {
+            height: 96px;
+          }
+
+          .exact-main .exact-inner {
+            grid-template-columns: 1fr auto;
+            grid-template-areas:
+              "brand actions"
+              "search search";
+            gap: 10px 12px;
+            justify-content: space-between;
+            align-content: center;
+          }
+
+          .team-brand { grid-area: brand; }
+          .exact-search-wrap { grid-area: search; min-width: 0; }
+          .exact-actions { grid-area: actions; }
+          .mobile-menu-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+        @media (max-width: 640px) {
+          .exact-inner {
+            width: 100%;
+            padding-left: 14px;
+            padding-right: 14px;
+          }
+
+          .exact-strip {
+            height: 36px;
+            font-size: 11px;
+          }
+
+          .exact-strip-item {
+            padding: 0 28px;
+          }
+
+          .exact-nav-spacer {
+            height: 132px;
+          }
+
+          .exact-main {
+            height: 92px;
+          }
+
+          .team-mark {
+            width: 90px;
+            height: 38px;
+          }
+
+          .summary-pill {
+            display: none;
+          }
+
+          .exact-actions {
+            gap: 6px;
+          }
+
+          .exact-icon {
+            width: 26px;
+          }
+        }
+
+        @media (max-width: 400px) {
+          .exact-nav-spacer {
+            height: 126px;
+          }
+
+          .exact-main {
+            height: 88px;
+          }
+
+          .exact-search input {
+            font-size: 13px;
+          }
+
+          .exact-inner {
+            padding-left: 10px;
+            padding-right: 10px;
+          }
+
+          .mobile-menu-grid {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
 
-      {/* ── TOP NAV ── */}
-      <div style={{
-        background: '#fff',
-        borderBottom: '1px solid #f0e8e0',
-        padding: '0 32px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        position: 'sticky',
-        top: '-20px',
-        zIndex: 300,
-       height: '80px',
-padding: '0 24px',
-        boxShadow: '0 2px 12px rgba(139,26,26,0.06)',
-        gap: '20px',
-      }}>
-
-<div
-  onClick={() => navigate('/customer')}
-  style={{ 
-    display: 'flex', 
-    flexDirection: 'row',        // ← column → row
-    alignItems: 'center',        // ← flex-start → center
-    cursor: 'pointer', 
-    flexShrink: 0,
-    minWidth: 200,
-    gap: 8,                      // ← 0 → 8
-    paddingTop: '0px',           // ← 10px → 0
-    paddingBottom: '0px',        // ← 50px → 0
-  }}
->
-  <img
-    src="/logo.png"
-    alt="Bharathi Jewellers"
-    style={{ 
-      height: '100px',            // ← 150px → 70px
-      width: '150px',             // ← 175px → 70px
-      objectFit: 'contain',
-      display: 'block',
-      marginLeft: '-40px',
-      marginBottom: '0px',       // ← -30px → 0
-    }}
-  />
-<span style={{
-  color: '#b8860b',
-  fontFamily: '"Cormorant Garamond", Georgia, serif',  // ← elegant serif font
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: '1px',
-  marginLeft:'-30px',
-  marginTop: '2px',
-  textAlign: 'center',
-}}>
-
-<span style={{ fontSize: '17px', fontWeight: 600, fontStyle: 'normal', fontFamily: 'sans-serif', color: 'red', letterSpacing: '3px', textTransform: 'uppercase', lineHeight: 1.3 }}>Team 369</span>
-</span>
-</div>
-
-        {/* Search */}
-<div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', maxWidth: 640, marginLeft: '-20px' }}>
-  <div style={{ width: '100%', position: 'relative' }}>
-<span
-  onClick={() => {
-    if (searchQuery.trim()) {
-      setShowSearchDrop(false)
-      navigate(`/collection/all?search=${encodeURIComponent(searchQuery.trim())}`)
-    }
-  }}
-  style={{
-    position: 'absolute', left: 16, top: '50%',
-    transform: 'translateY(-50%)', color: '#8B1A1A',
-    display: 'flex', alignItems: 'center',
-    cursor: searchQuery.trim() ? 'pointer' : 'default',
-  }}
->
-              <svg width="17" height="17" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="14" cy="14" r="9"/>
-                <path d="M21 21l7 7"/>
-              </svg>
+      <header className="exact-nav">
+        <div className="exact-strip">
+          <div className="exact-strip-track">
+            {/* First set */}
+            <span className="exact-strip-item">
+              <Icon name="truck" size={14} /> FREE INSURED SHIPPING ON ALL
+              ORDERS ABOVE Rs.4,999
             </span>
-
-<input
-  value={searchQuery}
-  onChange={e => setSearchQuery(e.target.value)}
-  onBlur={() => setTimeout(() => setShowSearchDrop(false), 200)}
-  onKeyDown={e => {
-    if (e.key === 'Enter' && searchQuery.trim()) {
-      setShowSearchDrop(false)
-      navigate(`/collection/all?search=${encodeURIComponent(searchQuery.trim())}`)
-    }
-  }}
-      placeholder="Search gold & diamond jewellery..."
-      style={{
-        width: '100%', border: '1.5px solid #e8ddd5', borderRadius: 32,
-        padding: '11px 18px 11px 46px', fontSize: 15, outline: 'none',
-        color: '#374151', boxSizing: 'border-box', background: '#fdf8f4',
-        transition: 'border-color 0.2s, box-shadow 0.2s',
-        fontFamily: '"Cormorant Garamond", Georgia, serif',
-      }}
-      onFocus={e => {
-  e.target.style.borderColor = '#8B1A1A'
-  e.target.style.boxShadow = '0 0 0 3px rgba(139,26,26,0.08)'
-  if (searchResults.length > 0) setShowSearchDrop(true)  // ← இந்த line மட்டும் add
-}}
-onBlur={e => {
-  e.target.style.borderColor = '#e8ddd5'
-  e.target.style.boxShadow = 'none'
-}}
-    />
-
-    {/* 🔍 DROPDOWN — NEW, input tag keezhla, div close aagura munnadi */}
-    {showSearchDrop && (
-      <div style={{
-        position: 'absolute', top: '110%', left: 0, right: 0,
-        background: '#fff', borderRadius: 12,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-        border: '1px solid #f0e8e0', zIndex: 999,
-        maxHeight: 360, overflowY: 'auto'
-      }}>
-        {searchLoading ? (
-          <div style={{ padding: 16, textAlign: 'center', color: '#8B1A1A', fontSize: 13 }}>
-            Searching...
+            <span className="exact-strip-dot" />
+            <span className="exact-strip-item">
+              <Icon name="hallmark" size={14} /> BIS HALLMARKED JEWELLERY
+            </span>
+            <span className="exact-strip-dot" />
+            <span className="exact-strip-item">
+              <Icon name="refresh" size={14} /> 15 DAYS EASY RETURNS
+            </span>
+            <span className="exact-strip-dot" />
+            <span className="exact-strip-item">
+              <Icon name="truck" size={14} /> 100% GENUINE & CERTIFIED GOLD
+            </span>
+            <span className="exact-strip-dot" />
+            <span className="exact-strip-item">
+              <Icon name="hallmark" size={14} /> SECURE PAYMENTS GUARANTEED
+            </span>
+            <span className="exact-strip-dot" />
+            {/* Duplicate for seamless loop */}
+            <span className="exact-strip-item">
+              <Icon name="truck" size={14} /> FREE INSURED SHIPPING ON ALL
+              ORDERS ABOVE Rs.4,999
+            </span>
+            <span className="exact-strip-dot" />
+            <span className="exact-strip-item">
+              <Icon name="hallmark" size={14} /> BIS HALLMARKED JEWELLERY
+            </span>
+            <span className="exact-strip-dot" />
+            <span className="exact-strip-item">
+              <Icon name="refresh" size={14} /> 15 DAYS EASY RETURNS
+            </span>
+            <span className="exact-strip-dot" />
+            <span className="exact-strip-item">
+              <Icon name="truck" size={14} /> 100% GENUINE & CERTIFIED GOLD
+            </span>
+            <span className="exact-strip-dot" />
+            <span className="exact-strip-item">
+              <Icon name="hallmark" size={14} /> SECURE PAYMENTS GUARANTEED
+            </span>
+            <span className="exact-strip-dot" />
           </div>
-        ) : searchResults.length === 0 ? (
-          <div style={{ padding: 16, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>
-            No results found
-          </div>
-        ) : searchResults.map(p => (
-          <div key={p.id}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              padding: '10px 16px', cursor: 'pointer',
-              borderBottom: '1px solid #f5f0e8', background: '#fff',
-              transition: 'background 0.15s'
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = '#fdf8f4'}
-            onMouseLeave={e => e.currentTarget.style.background = '#fff'}
- onClick={() => {
-  navigate(`/product-display?category=${p.category}&metal=${p.metal}&id=${p.id}`)
-  setSearchQuery('')
-  setShowSearchDrop(false)
-}}
-          >
-            <div style={{ width: 44, height: 44, borderRadius: 8, background: '#f5f0e8', overflow: 'hidden', flexShrink: 0 }}>
-              {p.images?.[0]?.image
-                ? <img
-                    src={p.images[0].image.startsWith('http')
-                      ? p.images[0].image
-                      : `https://bitbyte-backend-f66f.onrender.com/${p.images[0].image}`}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 20 }}>💍</div>
-              }
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, color: '#1f2937', fontFamily: '"Cormorant Garamond",serif', fontWeight: 600 }}>
-                {p.name}
-              </div>
-              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
-                {p.metal?.toUpperCase()} • {p.category} • ₹{Number(p.price).toLocaleString('en-IN')}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
-
-  </div>
-</div>
-
-        {/* Right Icons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-
-<TodayRateDropdown />
-
-          {/* Order Summary */}
-          <button
-            style={{
-              background: 'linear-gradient(90deg,#8B1A1A,#b91c1c)', color: '#fff',
-              border: 'none', borderRadius: 22, padding: '8px 16px',
-              fontSize: 11, fontWeight: 700, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap',
-              boxShadow: '0 2px 8px rgba(139,26,26,0.25)', transition: 'transform 0.2s, box-shadow 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(139,26,26,0.4)' }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(139,26,26,0.25)' }}
-            onClick={() => navigate('/order-summary')}
-          >
-            <svg width="14" height="14" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M16 4l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/>
-            </svg>
-            Order Summary
-          </button>
-
-          {/* Wishlist */}
-          <span
-            style={{ cursor: 'pointer', position: 'relative', color: wishlistCount > 0 ? '#e11d48' : '#8B1A1A', transition: 'transform 0.2s, color 0.2s', display: 'flex', alignItems: 'center' }}
-            onClick={() => navigate('/wishlist')}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.15)'; e.currentTarget.style.color = '#e11d48' }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = wishlistCount > 0 ? '#e11d48' : '#8B1A1A' }}
-          >
-            <svg width="22" height="22" viewBox="0 0 32 32" fill={wishlistCount > 0 ? '#e11d48' : 'none'} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M16 27s-11-7.5-11-14.5a6.5 6.5 0 0111-4.7 6.5 6.5 0 0111 4.7c0 7-11 14.5-11 14.5z"/>
-            </svg>
-            {wishlistCount > 0 && (
-              <span style={{
-                position: 'absolute', top: '-6px', right: '-8px',
-                background: '#e11d48', color: '#fff', borderRadius: '50%',
-                width: '16px', height: '16px', fontSize: '9px', fontWeight: 900,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>{wishlistCount}</span>
-            )}
-          </span>
-
-          {/* Profile */}
-          <span
-            style={{ cursor: 'pointer', color: '#8B1A1A', transition: 'transform 0.2s, color 0.2s', display: 'flex', alignItems: 'center' }}
-            onClick={() => navigate('/profile')}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.15)'; e.currentTarget.style.color = '#6b1212' }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = '#8B1A1A' }}
-          >
-            <svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="16" cy="10" r="5"/>
-              <path d="M4 28c0-6.6 5.4-12 12-12s12 5.4 12 12"/>
-            </svg>
-          </span>
-
-          {/* Cart */}
-          <span
-            style={{ cursor: 'pointer', position: 'relative', color: '#8B1A1A', transition: 'transform 0.2s, color 0.2s', display: 'flex', alignItems: 'center' }}
-            onClick={() => navigate('/cart')}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.15)'; e.currentTarget.style.color = '#6b1212' }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = '#8B1A1A' }}
-          >
-            <svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 4h3l3 14h14l3-10H8"/>
-              <circle cx="13" cy="26" r="1.5" fill="currentColor"/>
-              <circle cx="23" cy="26" r="1.5" fill="currentColor"/>
-            </svg>
-            {cartCount > 0 && (
-              <span style={{
-                position: 'absolute', top: '-6px', right: '-8px',
-                background: '#8B1A1A', color: '#fff', borderRadius: '50%',
-                width: '16px', height: '16px', fontSize: '9px', fontWeight: 900,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>{cartCount}</span>
-            )}
-          </span>
-
-          {/* Logout */}
-          <span
-            style={{ cursor: 'pointer', color: '#8B1A1A', transition: 'transform 0.2s, color 0.2s', display: 'flex', alignItems: 'center' }}
-            onClick={handleLogout}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.15)'; e.currentTarget.style.color = '#6b1212' }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = '#8B1A1A' }}
-            title="Logout"
-          >
-            <svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 4H6a2 2 0 00-2 2v20a2 2 0 002 2h6"/>
-              <path d="M21 22l6-6-6-6"/>
-              <path d="M27 16H12"/>
-            </svg>
-          </span>
-
-        </div>
-      </div>
-
-      {/* ── CATEGORY NAV ── */}
-      <div style={{ position: 'sticky', marginTop: '-15px', zIndex: 250, background: '#fff' }} onMouseLeave={() => setShowDropdown(false)}>
-        <div style={{
-          borderBottom: '1px solid #f0e8e0', padding: '0 40px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          background: '#fff', minHeight: 72, width: '100%', boxSizing: 'border-box',
-        }}>
-          {[
-            { name: 'All Jewellery', key: 'all', svg: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"><path d="M6 12l10-6 10 6v10l-10 6-10-6z"/><path d="M6 12l10 6 10-6"/><line x1="16" y1="18" x2="16" y2="28"/></svg> },
-            { name: 'Gold', key: 'gold', svg: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"><polygon points="16,4 19.5,12.5 28,13.5 22,19.5 23.5,28 16,24 8.5,28 10,19.5 4,13.5 12.5,12.5"/></svg> },
-            { name: 'Diamond', key: 'diamond', svg: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4l10 8-10 16L6 12z"/><path d="M6 12h20"/><path d="M11 12l5 16"/><path d="M21 12l-5 16"/><path d="M6 12l5-8"/><path d="M26 12l-5-8"/></svg> },
-            { name: 'Platinum', key: 'platinum', svg: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="16" r="10"/><circle cx="16" cy="16" r="6"/><circle cx="16" cy="16" r="2"/><line x1="16" y1="6" x2="16" y2="4"/><line x1="16" y1="28" x2="16" y2="26"/><line x1="6" y1="16" x2="4" y2="16"/><line x1="28" y1="16" x2="26" y2="16"/></svg> },
-            { name: 'Silver', key: 'silver', svg: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"><path d="M6 10h20v12a4 4 0 01-4 4H10a4 4 0 01-4-4V10z"/><path d="M6 10l3-5h14l3 5"/><path d="M12 10v16"/><path d="M20 10v16"/><path d="M6 16h20"/></svg> },
-            { name: 'Coins', key: 'coins', svg: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="16" r="11"/><circle cx="16" cy="16" r="7"/><path d="M16 9v2"/><path d="M16 21v2"/><path d="M9 16h2"/><path d="M21 16h2"/><path d="M16 13v3l2 2"/></svg> },
-            { name: 'Offers', key: 'offers', svg: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"><path d="M4 16L16 4l12 12v12H20v-7h-8v7H4z"/><circle cx="12" cy="13" r="1.5" fill="currentColor"/><circle cx="20" cy="13" r="1.5" fill="currentColor"/></svg> },
-            { name: 'Wedding', key: 'wedding', svg: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"><path d="M16 27s-11-7-11-14a7 7 0 0111-5.7A7 7 0 0127 13c0 7-11 14-11 14z"/><circle cx="11" cy="10" r="2.5"/><circle cx="21" cy="10" r="2.5"/><path d="M11 12.5v3"/><path d="M21 12.5v3"/></svg> },
-            { name: 'BJ-LIVE', key: 'bjlive', svg: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="16" r="5"/><circle cx="16" cy="16" r="10" strokeDasharray="3 2"/><path d="M8 8l2 2"/><path d="M22 8l-2 2"/><path d="M8 24l2-2"/><path d="M22 24l-2-2"/><circle cx="16" cy="16" r="2" fill="currentColor"/></svg> },
-            { name: 'Gifting', key: 'gifting', svg: <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="13" width="24" height="4" rx="1"/><rect x="6" y="17" width="20" height="11" rx="1"/><path d="M16 13v15"/><path d="M16 13c0 0-4-6 0-8 2-1 4 1 4 4s-2 4-4 4z"/><path d="M16 13c0 0 4-6 0-8-2-1-4 1-4 4s2 4 4 4z"/></svg> },
-          ].map(cat => {
-            const isActive = showDropdown && activeCategory === cat.key
-            return (
-              <div
-                key={cat.key}
-                className={`cat-item${isActive ? ' active' : ''}`}
-                onMouseEnter={() => {
-                  if (cat.key === 'bjlive') { setShowDropdown(false); return }
-                  setShowDropdown(true)
-                  setActiveCategory(cat.key)
-                  const defaults = { all: 'category', gold: 'category', diamond: 'category', platinum: 'category', silver: 'category', coins: 'silver', wedding: 'category', gifting: 'giftsfor', offers: 'alloffers' }
-                  setActiveFilter(defaults[cat.key] || 'category')
-                }}
-                onClick={() => { if (cat.key === 'bjlive') navigate('/bj-live') }}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '12px 14px', cursor: 'pointer', userSelect: 'none', minWidth: 64 }}
-              >
-                <div className="cat-icon" style={{
-                  width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: isActive ? '#8B1A1A' : '#6b5c4a',
-                  transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)',
-                  transform: isActive ? 'translateY(0px) scale(1.15)' : 'translateY(6px) scale(1)',
-                  filter: isActive ? 'drop-shadow(0 4px 8px rgba(139,26,26,0.3))' : 'none',
-                }}>{cat.svg}</div>
-                <span className="cat-label" style={{
-                  fontSize: 11, fontWeight: isActive ? 700 : 500,
-                  color: isActive ? '#8B1A1A' : '#4b3a2a',
-                  whiteSpace: 'nowrap', transition: 'color 0.25s',
-                  letterSpacing: isActive ? '0.8px' : '0.3px',
-                  fontFamily: '"Montserrat", sans-serif', textTransform: 'uppercase',
-                }}>{cat.name}</span>
-              </div>
-            )
-          })}
         </div>
 
-        {/* ── DROPDOWN ── */}
-        {showDropdown && (() => {
-          const DROPDOWN_CONFIG = {
-            all: {
-              filters: ['Category', 'Price', 'Occasion', 'Gender'],
-              filterKeys: ['category', 'price', 'occasion', 'gender'],
-              panels: {
-                category: { type: 'icon-grid', items: ['Earrings', 'Finger Rings', 'Chains', 'Necklaces', 'Bangles', 'Bracelets'] },
-                price: { type: 'price-grid', items: [{ label: '< ₹25K' }, { label: '₹25K – ₹50K' }, { label: '₹50K – ₹1L' }, { label: '₹1L & Above' }] },
-                occasion: { type: 'occasion-grid', items: [{ label: 'Office Wear' }, { label: 'Modern Wear' }, { label: 'Casual Wear' }, { label: 'Traditional Wear' }] },
-                gender: { type: 'gender-grid', items: [{ label: 'Women' }, { label: 'Men' }, { label: 'Kids & Teens' }] },
-              }
-            },
-            gold: {
-              filters: ['Category', 'Price', 'Occasion', 'Gender'],
-              filterKeys: ['category', 'price', 'occasion', 'gender'],
-              panels: {
-                category: { type: 'icon-grid', items: ['Gold Bracelets', 'Gold Earrings', 'Gold Chains', 'Gold Rings', 'Gold Bangles', 'Gold Necklaces'] },
-                price: { type: 'price-grid', items: [{ label: '< ₹25K' }, { label: '₹25K – ₹50K' }, { label: '₹50K – ₹1L' }, { label: '₹1L & Above' }] },
-                occasion: { type: 'occasion-grid', items: [{ label: 'Office Wear' }, { label: 'Modern Wear' }, { label: 'Casual Wear' }, { label: 'Traditional Wear' }] },
-                gender: { type: 'gender-grid', items: [{ label: 'Women' }, { label: 'Men' }, { label: 'Kids & Teens' }] },
-              }
-            },
-            diamond: {
-              filters: ['Category', 'Price', 'Occasion', 'Gender'],
-              filterKeys: ['category', 'price', 'occasion', 'gender'],
-              panels: {
-                category: { type: 'icon-grid', items: ['Diamond Earrings', 'Diamond Rings', 'Diamond Chains', 'Diamond Necklaces', 'Diamond Bangles', 'Diamond Bracelets'] },
-                price: { type: 'price-grid', items: [{ label: '< ₹25K' }, { label: '₹25K – ₹50K' }, { label: '₹50K – ₹1L' }, { label: '₹1L & Above' }] },
-                occasion: { type: 'occasion-grid', items: [{ label: 'Office Wear' }, { label: 'Modern Wear' }, { label: 'Casual Wear' }, { label: 'Traditional Wear' }] },
-                gender: { type: 'gender-grid', items: [{ label: 'Women' }, { label: 'Men' }, { label: 'Kids & Teens' }] },
-              }
-            },
-            platinum: {
-              filters: ['Category', 'Price', 'Occasion', 'Gender'],
-              filterKeys: ['category', 'price', 'occasion', 'gender'],
-              panels: {
-                category: { type: 'icon-grid', items: ['Platinum Rings', 'Platinum Necklaces', 'Platinum Chains', 'Platinum Bangles', 'Platinum Bracelets', 'Platinum Earrings'] },
-                price: { type: 'price-grid', items: [{ label: '< ₹25K' }, { label: '₹25K – ₹50K' }, { label: '₹50K – ₹1L' }, { label: '₹1L & Above' }] },
-                occasion: { type: 'occasion-grid', items: [{ label: 'Office Wear' }, { label: 'Modern Wear' }, { label: 'Casual Wear' }, { label: 'Traditional Wear' }] },
-                gender: { type: 'gender-grid', items: [{ label: 'Women' }, { label: 'Men' }, { label: 'Kids & Teens' }] },
-              }
-            },
-            silver: {
-              filters: ['Category', 'Price', 'Occasion', 'Gender'],
-              filterKeys: ['category', 'price', 'occasion', 'gender'],
-              panels: {
-                category: { type: 'icon-grid', items: ['Silver Bangles', 'Silver Bracelets', 'Silver Earrings', 'Silver Chains', 'Silver Rings', 'Silver Necklaces', 'Silver Anklets'] },
-                price: { type: 'price-grid', items: [{ label: '< ₹25K' }, { label: '₹25K – ₹50K' }, { label: '₹50K – ₹1L' }, { label: '₹1L & Above' }] },
-                occasion: { type: 'occasion-grid', items: [{ label: 'Office Wear' }, { label: 'Modern Wear' }, { label: 'Casual Wear' }, { label: 'Traditional Wear' }] },
-                gender: { type: 'gender-grid', items: [{ label: 'Women' }, { label: 'Men' }, { label: 'Kids & Teens' }] },
-              }
-            },
-            coins: {
-              filters: ['Silver', 'Gold 22K', 'Gold 24K', 'Price'],
-              filterKeys: ['silver', 'gold22k', 'gold24k', 'price'],
-              panels: {
-                silver: { type: 'coin-nav-grid', metal: 'silver', items: [{ label: 'All Silver', grams: null }, { label: '500 mg', grams: 0.50 }, { label: '1 gm', grams: 1 }, { label: '2 gm', grams: 2 }, { label: '5 gm', grams: 5 }, { label: '10 gm', grams: 10 }, { label: '20 gm', grams: 20 }, { label: '50 gm', grams: 50 }, { label: '100 gm', grams: 100 }] },
-                gold22k: { type: 'coin-nav-grid', metal: 'gold22k', items: [{ label: 'All Gold', grams: null }, { label: '100 mg', grams: 0.10 }, { label: '200 mg', grams: 0.20 }, { label: '500 mg', grams: 0.50 }, { label: '1 gm', grams: 1 }, { label: '2 gm', grams: 2 }, { label: '4 gm', grams: 4 }, { label: '8 gm', grams: 8 }, { label: '16 gm', grams: 16 }, { label: '40 gm', grams: 40 }] },
-                gold24k: { type: 'coin-nav-grid', metal: 'gold24k', items: [{ label: 'All Gold', grams: null }, { label: '100 mg', grams: 0.10 }, { label: '200 mg', grams: 0.20 }, { label: '500 mg', grams: 0.50 }, { label: '1 gm', grams: 1 }, { label: '2 gm', grams: 2 }, { label: '4 gm', grams: 4 }, { label: '8 gm', grams: 8 }, { label: '16 gm', grams: 16 }, { label: '40 gm', grams: 40 }] },
-                price: { type: 'price-grid', items: [{ label: '< ₹25K' }, { label: '₹25K – ₹50K' }, { label: '₹50K – ₹1L' }, { label: '₹1L & Above' }] },
-              }
-            },
-            wedding: {
-              filters: ['Category', 'Community'],
-              filterKeys: ['category', 'community'],
-              panels: {
-                category: { type: 'image-grid', items: [{ label: 'Wedding Ring', emoji: '💍' }, { label: 'Wedding Necklaces', emoji: '📿' }, { label: 'Wedding Chain', emoji: '✨' }, { label: 'Wedding Bangles', emoji: '💛' }, { label: 'Wedding Earring', emoji: '👂' }] },
-                community: { type: 'community-grid', items: ['Tamil Bride', 'Kerala Bride', 'Karnataka Bride', 'Andhra Bride', 'Punjabi Bride'] },
-              }
-            },
-            gifting: {
-              filters: ['Gifts for', 'Gift Card', 'Price', 'Occasion', 'Corporate Gifting'],
-              filterKeys: ['giftsfor', 'giftcard', 'price', 'occasion', 'corporate'],
-              panels: {
-                giftsfor: { type: 'gender-grid', items: [{ label: 'Her' }, { label: 'Him' }, { label: 'Kids' }] },
-                giftcard: { type: 'giftcard-grid', items: [{ label: 'BitByte Gift Card', emoji: '🎁' }, { label: 'BitByte E-Gift Card', emoji: '💌' }] },
-                price: { type: 'price-grid', items: [{ label: '< ₹25K' }, { label: '₹25K – ₹50K' }, { label: '₹50K – ₹1L' }, { label: '₹1L & Above' }] },
-                occasion: { type: 'occasion-grid', items: [{ label: 'Wedding', emoji: '💍' }, { label: 'Birthday', emoji: '🎂' }, { label: 'Anniversary', emoji: '❤️' }, { label: 'Auspicious', emoji: '🪔' }] },
-                corporate: { type: 'icon-grid', items: ['Corporate Gifts', 'Bulk Orders', 'Custom Engraving'] },
-              }
-            },
-            offers: {
-              filters: ['All Offers', 'Gold Offers', 'Diamond Offers', 'Festive Deals'],
-              filterKeys: ['alloffers', 'goldoffers', 'diamondoffers', 'festive'],
-              panels: {
-                alloffers: { type: 'offers-grid', items: [{ label: 'Making Charge Off', emoji: '🏷️', badge: 'UPTO 20%' }, { label: 'Exchange Bonus', emoji: '🔄', badge: 'EXTRA ₹500' }, { label: 'New Arrivals', emoji: '✨', badge: 'FRESH STOCK' }, { label: 'Clearance Sale', emoji: '🔥', badge: 'LIMITED' }] },
-                goldoffers: { type: 'offers-grid', items: [{ label: 'Gold Making Off', emoji: '🥇', badge: 'UPTO 15%' }, { label: 'Gold Exchange', emoji: '🔄', badge: 'BONUS ₹300' }, { label: 'BIS Hallmark Gold', emoji: '✅', badge: 'CERTIFIED' }, { label: 'Gold Coins Deal', emoji: '🪙', badge: 'SPECIAL PRICE' }] },
-                diamondoffers: { type: 'offers-grid', items: [{ label: 'Diamond Making Off', emoji: '💎', badge: 'UPTO 25%' }, { label: 'Solitaire Special', emoji: '💍', badge: 'EXCLUSIVE' }, { label: 'Certified Diamond', emoji: '✅', badge: 'IGI/GIA' }, { label: 'Buy 1 Get 1', emoji: '🎁', badge: 'LIMITED' }] },
-                festive: { type: 'offers-grid', items: [{ label: 'Akshaya Tritiya', emoji: '🪔', badge: 'SPECIAL' }, { label: 'Dhanteras Offer', emoji: '🏮', badge: 'DIWALI' }, { label: 'Wedding Season', emoji: '💒', badge: 'BRIDAL' }, { label: 'Anniversary Deals', emoji: '❤️', badge: 'COUPLE' }] },
-              }
-            },
-          }
+        <div className="exact-main">
+          <div className="exact-inner">
+            <button
+              className="team-brand"
+              type="button"
+              onClick={() => navigate("/customer")}
+            >
+              <img
+                src="/luxiva-logo.svg"
+                alt="LUXIVA"
+                className="team-mark"
+                loading="eager"
+              />
+            </button>
 
-          const cfg = DROPDOWN_CONFIG[activeCategory] || DROPDOWN_CONFIG['all']
-          const panel = cfg.panels[activeFilter] || cfg.panels[cfg.filterKeys[0]]
-
-          const CATEGORY_ROUTES = {
-            'Earrings': '/collection/earrings', 'Chains': '/collection/chains',
-            'Necklaces': '/collection/necklaces', 'Bangles': '/collection/bangles',
-            'Finger Rings': '/collection/rings', 'Bracelets': '/collection/bracelets',
-            'Gold Earrings': '/gold-earrings', 'Gold Chains': '/gold-chain',
-            'Gold Rings': '/gold-rings', 'Gold Bangles': '/gold-bangles',
-            'Gold Necklaces': '/gold-necklaces', 'Gold Bracelets': '/gold-bracelets',
-            'Silver Bangles': '/silver-bangles', 'Silver Earrings': '/silver-earrings',
-            'Silver Chains': '/silver-chain', 'Silver Rings': '/silver-rings',
-            'Silver Necklaces': '/silver-necklaces', 'Silver Bracelets': '/silver-bracelets',
-            'Silver Anklets': '/collection/all?metal=silver',
-                // Diamond  ← CHANGE THESE
-    'Diamond Earrings': '/diamond-earrings',
-    'Diamond Rings': '/diamond-rings',
-    'Diamond Chains': '/diamond-chain',
-    'Diamond Necklaces': '/diamond-necklaces',
-    'Diamond Bangles': '/diamond-bangles',
-    'Diamond Bracelets': '/diamond-bracelets',
-
-     // Platinum  ← THESE ARE ALREADY CORRECT
-    'Platinum Rings': '/platinum-rings',
-    'Platinum Necklaces': '/platinum-necklaces',
-    'Platinum Chains': '/platinum-chain',
-    'Platinum Bangles': '/platinum-bangles',
-    'Platinum Bracelets': '/platinum-bracelets',
-    'Platinum Earrings': '/platinum-earrings',
-
-          }
-
-          const ITEM_ICONS = {
-            'Earrings': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="7" r="2.5"/><path d="M11 9.5v4"/><path d="M8.5 13.5h5l-1.2 6-1.3 3-1.3-3-1.2-6z"/><circle cx="21" cy="7" r="2.5"/><path d="M21 9.5v4"/><path d="M18.5 13.5h5l-1.2 6-1.3 3-1.3-3-1.2-6z"/></svg>,
-            'Finger Rings': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="19" r="8"/><circle cx="16" cy="19" r="4.5"/><path d="M13 11l-2-4h10l-2 4"/></svg>,
-            'Chains': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="10" cy="10" rx="4" ry="2.5" transform="rotate(-45 10 10)"/><ellipse cx="16" cy="16" rx="4" ry="2.5" transform="rotate(-45 16 16)"/><ellipse cx="22" cy="22" rx="4" ry="2.5" transform="rotate(-45 22 22)"/></svg>,
-            'Necklaces': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M6 6c0 10 4 16 10 18 6-2 10-8 10-18"/><circle cx="16" cy="26" r="2.5"/></svg>,
-            'Bangles': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="16" r="10"/><circle cx="16" cy="16" r="6.5"/></svg>,
-            'Bracelets': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M8 12c0-4.4 3.6-8 8-8s8 3.6 8 8"/><path d="M8 20c0 4.4 3.6 8 8 8s8-3.6 8-8"/><rect x="5" y="12" width="6" height="8" rx="2"/><rect x="21" y="12" width="6" height="8" rx="2"/></svg>,
-            'Gold Earrings': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="7" r="2.5"/><path d="M11 9.5v4"/><path d="M8.5 13.5h5l-1.2 6-1.3 3-1.3-3-1.2-6z"/><circle cx="21" cy="7" r="2.5"/><path d="M21 9.5v4"/><path d="M18.5 13.5h5l-1.2 6-1.3 3-1.3-3-1.2-6z"/></svg>,
-            'Gold Chains': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="10" cy="10" rx="4" ry="2.5" transform="rotate(-45 10 10)"/><ellipse cx="16" cy="16" rx="4" ry="2.5" transform="rotate(-45 16 16)"/><ellipse cx="22" cy="22" rx="4" ry="2.5" transform="rotate(-45 22 22)"/></svg>,
-            'Gold Rings': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="19" r="8"/><circle cx="16" cy="19" r="4.5"/><path d="M13 11l-2-4h10l-2 4"/></svg>,
-            'Gold Bangles': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="16" r="10"/><circle cx="16" cy="16" r="6.5"/></svg>,
-            'Gold Necklaces': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M6 6c0 10 4 16 10 18 6-2 10-8 10-18"/><circle cx="16" cy="26" r="2.5"/></svg>,
-            'Gold Bracelets': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M8 12c0-4.4 3.6-8 8-8s8 3.6 8 8"/><path d="M8 20c0 4.4 3.6 8 8 8s8-3.6 8-8"/><rect x="5" y="12" width="6" height="8" rx="2"/><rect x="21" y="12" width="6" height="8" rx="2"/></svg>,
-            'Diamond Earrings': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="7" r="2"/><path d="M11 9v3"/><path d="M8 12h6l-3 8z"/><circle cx="21" cy="7" r="2"/><path d="M21 9v3"/><path d="M18 12h6l-3 8z"/></svg>,
-            'Diamond Rings': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="20" r="7"/><circle cx="16" cy="20" r="3.5"/><path d="M12 13l-2-5h12l-2 5"/><path d="M14 8l2 5 2-5"/></svg>,
-            'Diamond Necklaces': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M6 6c0 10 4 16 10 18 6-2 10-8 10-18"/><path d="M13 24l3 4 3-4"/></svg>,
-            'Diamond Bangles': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="16" r="10"/><circle cx="16" cy="16" r="6"/><path d="M16 6l2 2-2 2-2-2z" fill="currentColor" stroke="none"/></svg>,
-            'Diamond Bracelets': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M8 12c0-4.4 3.6-8 8-8s8 3.6 8 8"/><path d="M8 20c0 4.4 3.6 8 8 8s8-3.6 8-8"/><rect x="5" y="12" width="6" height="8" rx="2"/><rect x="21" y="12" width="6" height="8" rx="2"/><circle cx="16" cy="4" r="1.5" fill="currentColor" stroke="none"/></svg>,
-            'Silver Bangles': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="16" r="10"/><circle cx="16" cy="16" r="6.5"/></svg>,
-            'Silver Bracelets': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M8 12c0-4.4 3.6-8 8-8s8 3.6 8 8"/><path d="M8 20c0 4.4 3.6 8 8 8s8-3.6 8-8"/><rect x="5" y="12" width="6" height="8" rx="2"/><rect x="21" y="12" width="6" height="8" rx="2"/></svg>,
-            'Silver Earrings': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="7" r="2.5"/><path d="M11 9.5v4"/><path d="M8.5 13.5h5l-2.5 9z"/><circle cx="21" cy="7" r="2.5"/><path d="M21 9.5v4"/><path d="M18.5 13.5h5l-2.5 9z"/></svg>,
-            'Silver Chains': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="10" cy="10" rx="4" ry="2.5" transform="rotate(-45 10 10)"/><ellipse cx="16" cy="16" rx="4" ry="2.5" transform="rotate(-45 16 16)"/><ellipse cx="22" cy="22" rx="4" ry="2.5" transform="rotate(-45 22 22)"/></svg>,
-            'Silver Rings': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="19" r="8"/><circle cx="16" cy="19" r="4.5"/><path d="M13 11l-2-4h10l-2 4"/></svg>,
-            'Silver Necklaces': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M6 6c0 10 4 16 10 18 6-2 10-8 10-18"/><circle cx="16" cy="26" r="2.5"/></svg>,
-            'Silver Anklets': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="18" r="9"/><circle cx="16" cy="18" r="5.5"/><path d="M12 28l4 2 4-2"/></svg>,
-            'Platinum Rings': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="19" r="8"/><circle cx="16" cy="19" r="4.5"/><path d="M13 11l-2-4h10l-2 4"/></svg>,
-            'Platinum Necklaces': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M6 6c0 10 4 16 10 18 6-2 10-8 10-18"/><circle cx="16" cy="26" r="2.5"/></svg>,
-            'Platinum Coins': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="16" r="11"/><circle cx="16" cy="16" r="7"/><line x1="16" y1="9" x2="16" y2="23"/><line x1="9" y1="16" x2="23" y2="16"/></svg>,
-            'Platinum Bangles': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="16" r="10"/><circle cx="16" cy="16" r="6.5"/></svg>,
-            'Platinum Bracelets': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M8 12c0-4.4 3.6-8 8-8s8 3.6 8 8"/><path d="M8 20c0 4.4 3.6 8 8 8s8-3.6 8-8"/><rect x="5" y="12" width="6" height="8" rx="2"/><rect x="21" y="12" width="6" height="8" rx="2"/></svg>,
-            'Platinum Earrings': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="7" r="2.5"/><path d="M11 9.5v4"/><path d="M8.5 13.5h5l-1.2 6-1.3 3-1.3-3-1.2-6z"/><circle cx="21" cy="7" r="2.5"/><path d="M21 9.5v4"/><path d="M18.5 13.5h5l-1.2 6-1.3 3-1.3-3-1.2-6z"/></svg>,
-            'Corporate Gifts': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="13" width="24" height="4" rx="1"/><rect x="6" y="17" width="20" height="11" rx="1"/><path d="M16 13v15"/><path d="M16 13c0 0-3-5 0-7 1.5-1 3.5 1 3 3s-3 4-3 4z"/><path d="M16 13c0 0 3-5 0-7-1.5-1-3.5 1-3 3s3 4 3 4z"/></svg>,
-            'Bulk Orders': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="10" height="10" rx="1"/><rect x="13" y="8" width="10" height="10" rx="1"/><rect x="8" y="18" width="10" height="10" rx="1"/></svg>,
-            'Custom Engraving': <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M6 26l4-4 12-12-4-4L6 18z"/><path d="M22 6l4 4"/><path d="M6 26l-2 2"/></svg>,
-          }
-
-          const sectionTitles = {
-            category: 'Browse by Category', price: 'Shop by Price', occasion: 'Shop by Occasion',
-            gender: 'Shop by Gender', community: 'Shop by Community', giftsfor: 'Gifts for',
-            giftcard: 'Gift Cards', corporate: 'Corporate Gifting',
-            alloffers: 'All Offers', goldoffers: 'Gold Offers', diamondoffers: 'Diamond Offers', festive: 'Festive Deals',
-            silver: '✦ Silver Coins', gold22k: '✦ Gold 22K Coins', gold24k: '✦ Gold 24K Coins',
-          }
-
-          const renderPanel = () => {
-            if (!panel) return null
-
-            if (panel.type === 'icon-grid') return (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
-                {panel.items.map(item => (
-                  <div key={item}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 10, cursor: 'pointer', transition: 'all 0.18s ease', border: '1px solid transparent' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#fdf2f2'; e.currentTarget.style.borderColor = 'rgba(139,26,26,0.15)'; e.currentTarget.querySelector('.cii').style.color = '#8B1A1A'; e.currentTarget.querySelector('.cii').style.borderColor = '#8B1A1A'; e.currentTarget.querySelector('.cil').style.color = '#8B1A1A' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.querySelector('.cii').style.color = '#6b5c4a'; e.currentTarget.querySelector('.cii').style.borderColor = '#e8e0d0'; e.currentTarget.querySelector('.cil').style.color = '#1f2937' }}
-                    onClick={() => { 
-  const route = CATEGORY_ROUTES[item]; 
-  if (route) { 
-    setShowDropdown(false); 
-    navigate(route)
-    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100)
-  } 
-}}
-                  >
-                    <div className="cii" style={{ width: 36, height: 36, borderRadius: '50%', background: '#faf6f0', border: '1px solid #e8e0d0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#6b5c4a', transition: 'all 0.18s ease' }}>
-                      {ITEM_ICONS[item] || <svg width="18" height="18" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="16" cy="16" r="10"/></svg>}
-                    </div>
-                    <span className="cil" style={{ fontSize: 13, color: '#1f2937', fontFamily: '"Cormorant Garamond", Georgia, serif', fontWeight: 600, letterSpacing: '0.3px', transition: 'color 0.18s ease', lineHeight: 1.3 }}>{item}</span>
-                  </div>
-                ))}
+            <div className="exact-search-wrap">
+              <div className="exact-search">
+                <Icon name="search" size={18} />
+                <input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  onFocus={() =>
+                    searchResults.length && setShowSearchDrop(true)
+                  }
+                  onBlur={() => setTimeout(() => setShowSearchDrop(false), 180)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") submitSearch();
+                  }}
+                  placeholder="Search gold & diamond jewellery..."
+                />
+                <button
+                  className={`exact-voice-btn ${voiceListening ? "is-listening" : ""}`}
+                  type="button"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={startVoiceSearch}
+                  disabled={!voiceSupported}
+                  title={
+                    voiceSupported
+                      ? voiceListening
+                        ? "Stop voice search"
+                        : "Search by voice"
+                      : "Voice search is not supported in this browser"
+                  }
+                  aria-label={
+                    voiceListening ? "Stop voice search" : "Search by voice"
+                  }
+                >
+                  <Icon name="mic" size={17} />
+                </button>
               </div>
-            )
 
-            if (panel.type === 'price-grid') {
-              const priceImgMap = { '< ₹25K': '/25k below.jpg', '₹25K – ₹50K': '/25k-50k.jpg', '₹50K – ₹1L': '/50k-1L.jpg', '₹1L & Above': '/1L above.jpg' }
-              return (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }}>
-                  {panel.items.map(p => (
-                    <div key={p.label} style={{ textAlign: 'center', cursor: 'pointer' }}
-                      onMouseEnter={e => { e.currentTarget.querySelector('.ph-box').style.borderColor = '#8B1A1A'; e.currentTarget.querySelector('.ph-label').style.color = '#8B1A1A' }}
-                      onMouseLeave={e => { e.currentTarget.querySelector('.ph-box').style.borderColor = '#e8e0d0'; e.currentTarget.querySelector('.ph-label').style.color = '#1f2937' }}
-onClick={() => {
-  const priceMap = { '< ₹25K': 'below25k', '₹25K – ₹50K': '25k-50k', '₹50K – ₹1L': '50k-1L', '₹1L & Above': 'above1L' }
-  const metalParam = activeCategory !== 'all' && activeCategory !== 'coins' && activeCategory !== 'wedding' && activeCategory !== 'gifting' && activeCategory !== 'offers'
-    ? `&metal=${activeCategory}` : ''
-setShowDropdown(false)
-navigate(`/collection/all?price=${priceMap[p.label]}${metalParam}`)
-setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100)
-}}>
-                      <div className="ph-box" style={{ width: '90%', height: '190px', borderRadius: 12, background: '#f5f0e8', border: '0.5px solid #e8e0d0', overflow: 'hidden', marginBottom: 8, transition: 'border-color 0.15s' }}>
-                        {priceImgMap[p.label] ? <img src={priceImgMap[p.label]} alt={p.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : null}
-                      </div>
-                      <div className="ph-label" style={{ fontSize: 14, color: '#1f2937', transition: 'color 0.15s', fontFamily: '"Cormorant Garamond", Georgia, serif', fontWeight: 600, letterSpacing: '0.3px' }}>{p.label}</div>
+              {showSearchDrop && (
+                <div className="exact-results">
+                  {searchLoading && (
+                    <div
+                      style={{
+                        padding: 12,
+                        color: "var(--bb-muted)",
+                        fontWeight: 900,
+                      }}
+                    >
+                      Searching...
                     </div>
-                  ))}
-                </div>
-              )
-            }
-
-            if (panel.type === 'occasion-grid') {
-const occasionImgMap = { 
-  'Office Wear': '/office-women.png', 
-  'Modern Wear': '/modern-women.png', 
-  'Casual Wear': '/Casual Wear.png', 
-  'Traditional Wear': '/trdisional.png', 
-  'Wedding': '/gift_wedding.jpg', 
-  'Birthday': '/gift_birthday.jpg', 
-  'Anniversary': '/gift_anniversary.jpg', 
-  'Auspicious': '/gift_auspicious.jpg' 
-}
-              return (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }}>
-                  {panel.items.map(o => (
-                    <div key={o.label} style={{ textAlign: 'center', cursor: 'pointer' }}
-                      onMouseEnter={e => e.currentTarget.querySelector('.oh-box').style.borderColor = '#8B1A1A'}
-                      onMouseLeave={e => e.currentTarget.querySelector('.oh-box').style.borderColor = '#e8e0d0'}
-                     onClick={() => {
-  const metalParam = activeCategory !== 'all' && activeCategory !== 'coins' && activeCategory !== 'wedding' && activeCategory !== 'gifting' && activeCategory !== 'offers'
-    ? `&metal=${activeCategory}` : ''
-  setShowDropdown(false)
-  setShowDropdown(false)
-navigate(`/collection/all?occasion=${encodeURIComponent(o.label)}${metalParam}`)
-setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100)
-}}>
-                      <div className="oh-box" style={{ width: '100%', height: '190px', borderRadius: 12, background: '#f5f0e8', border: '0.5px solid #e8e0d0', overflow: 'hidden', marginBottom: 8, transition: 'border-color 0.15s', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40 }}>
-                        {occasionImgMap[o.label] ? <img src={occasionImgMap[o.label]} alt={o.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span>{o.emoji}</span>}
-                      </div>
-                      <div style={{ fontSize: 14, color: '#1f2937', fontFamily: '"Cormorant Garamond", Georgia, serif', fontWeight: 600, letterSpacing: '0.3px' }}>{o.label}</div>
+                  )}
+                  {!searchLoading && searchResults.length === 0 && (
+                    <div
+                      style={{
+                        padding: 12,
+                        color: "var(--bb-muted)",
+                        fontWeight: 900,
+                      }}
+                    >
+                      No products found
                     </div>
-                  ))}
-                </div>
-              )
-            }
-
-            if (panel.type === 'gender-grid') {
-              const genderImgMap = { 'Women': "/Woman's Jewlley.jpg", 'Her': "/Woman's Jewlley.jpg", 'Men': "/Men's Jewellery.jpg", 'Him': "/Men's Jewellery.jpg", 'Kids & Teens': "/Kids Jewllery.jpg", 'Kids': "/Kids Jewllery.jpg" }
-              return (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, maxWidth: 460 }}>
-                  {panel.items.map(g => (
-                    <div key={g.label} style={{ textAlign: 'center', cursor: 'pointer' }}
-                      onMouseEnter={e => e.currentTarget.querySelector('.gh-box').style.borderColor = '#8B1A1A'}
-                      onMouseLeave={e => e.currentTarget.querySelector('.gh-box').style.borderColor = '#e8e0d0'}
+                  )}
+                  {searchResults.map((product) => (
+                    <button
+                      className="exact-result"
+                      type="button"
+                      key={product.id}
+                      onMouseDown={(event) => event.preventDefault()}
                       onClick={() => {
-  const gMap = { 'Women': 'women', 'Her': 'women', 'Men': 'men', 'Him': 'men', 'Kids & Teens': 'kids', 'Kids': 'kids' }
-  const g2 = gMap[g.label]
-  const metalParam = activeCategory !== 'all' && activeCategory !== 'coins' && activeCategory !== 'wedding' && activeCategory !== 'gifting' && activeCategory !== 'offers'
-    ? `&metal=${activeCategory}` : ''
-  if (g2) { 
-  setShowDropdown(false); 
-  navigate(`/collection/all?gender=${g2}${metalParam}`)
-  setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100)
-}
-}}>
-                      <div className="gh-box" style={{ width: '100%', aspectRatio: '0.85', borderRadius: 12, background: '#f5f0e8', border: '0.5px solid #e8e0d0', overflow: 'hidden', marginBottom: 8, transition: 'border-color 0.15s' }}>
-                        {genderImgMap[g.label] ? <img src={genderImgMap[g.label]} alt={g.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : null}
-                      </div>
-                      <div style={{ fontSize: 14, color: '#1f2937', fontFamily: '"Cormorant Garamond", Georgia, serif', fontWeight: 600, letterSpacing: '0.3px' }}>{g.label}</div>
-                    </div>
+                        setShowSearchDrop(false);
+                        setSearchQuery("");
+                        navigate(
+                          `/product-display?category=${product.category}&metal=${product.metal}&id=${product.id}`,
+                        );
+                      }}
+                    >
+                      {productImage(product) ? (
+                        <img src={productImage(product)} alt="" />
+                      ) : (
+                        <div className="exact-fallback" />
+                      )}
+                      <span>
+                        <strong>{product.name}</strong>
+                        <span>
+                          {product.metal?.toUpperCase()} - {product.category} -{" "}
+                          {money(product.price)}
+                        </span>
+                      </span>
+                    </button>
                   ))}
                 </div>
-              )
-            }
-
-            if (panel.type === 'image-grid') {
-              const weddingImgMap = { 'Wedding Ring': '/wedding_ring.jpg', 'Wedding Necklaces': '/wedding_necklaces.jpg', 'Wedding Chain': '/wedding_chain.jpg', 'Wedding Bangles': '/wedding_bangesh.jpg', 'Wedding Earring': '/wedding_earring.jpg' }
-              return (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 14 }}>
-                  {panel.items.map(item => (
-                    <div key={item.label} style={{ textAlign: 'center', cursor: 'pointer' }}
-                      onMouseEnter={e => e.currentTarget.querySelector('.wh-box').style.borderColor = '#8B1A1A'}
-                      onMouseLeave={e => e.currentTarget.querySelector('.wh-box').style.borderColor = '#e8e0d0'}
-                      onClick={() => { 
-  setShowDropdown(false); 
-  navigate(`/collection/all?wedding_category=${encodeURIComponent(item.label)}`)
-  setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100)
-}}>
-                      <div className="wh-box" style={{ width: '90%', height: '190px', borderRadius: 12, background: '#f5f0e8', border: '0.5px solid #e8e0d0', overflow: 'hidden', marginBottom: 8, transition: 'border-color 0.15s' }}>
-                        {weddingImgMap[item.label] ? <img src={weddingImgMap[item.label]} alt={item.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>{item.emoji}</span>}
-                      </div>
-                      <div style={{ fontSize: 14, color: '#1f2937', fontFamily: '"Cormorant Garamond", Georgia, serif', fontWeight: 600, letterSpacing: '0.3px' }}>{item.label}</div>
-                    </div>
-                  ))}
-                </div>
-              )
-            }
-
-            if (panel.type === 'community-grid') return (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 12 }}>
-                {panel.items.map(item => (
-                  <div key={item} style={{ textAlign: 'center', cursor: 'pointer' }}
-                    onMouseEnter={e => { e.currentTarget.querySelector('.ch-box').style.borderColor = '#8B1A1A'; e.currentTarget.querySelector('.ch-label').style.color = '#8B1A1A' }}
-                    onMouseLeave={e => { e.currentTarget.querySelector('.ch-box').style.borderColor = '#e8e0d0'; e.currentTarget.querySelector('.ch-label').style.color = '#1f2937' }}>
-                    <div className="ch-box" style={{ width: '100%', aspectRatio: '0.75', borderRadius: 10, background: 'linear-gradient(135deg,#fdf2f2,#f5f0e8)', border: '0.5px solid #e8e0d0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, marginBottom: 6, transition: 'border-color 0.15s' }}>👰</div>
-                    <div className="ch-label" style={{ fontSize: 13, color: '#1f2937', transition: 'color 0.15s', lineHeight: 1.3, fontFamily: '"Cormorant Garamond", Georgia, serif', fontWeight: 600 }}>{item}</div>
-                  </div>
-                ))}
-              </div>
-            )
-
-            if (panel.type === 'giftcard-grid') return (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 16, maxWidth: 360 }}>
-                {panel.items.map(item => (
-                  <div key={item.label} style={{ cursor: 'pointer' }}
-                    onMouseEnter={e => e.currentTarget.querySelector('.gc-box').style.borderColor = '#8B1A1A'}
-                    onMouseLeave={e => e.currentTarget.querySelector('.gc-box').style.borderColor = '#c9a0a0'}>
-                    <div className="gc-box" style={{ width: '100%', aspectRatio: '1.6', borderRadius: 12, background: 'linear-gradient(135deg,#6b0f0f,#8B1A1A)', border: '2px solid #c9a0a0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 8, transition: 'border-color 0.15s' }}>
-                      <span style={{ fontSize: 28 }}>{item.emoji}</span>
-                      <span style={{ fontSize: 11, color: '#fff', fontStyle: 'italic', letterSpacing: '0.5px', fontWeight: 300 }}>BitByte</span>
-                    </div>
-                    <div style={{ fontSize: 13, color: '#1f2937', textAlign: 'center' }}>{item.label}</div>
-                  </div>
-                ))}
-              </div>
-            )
-
-            if (panel.type === 'coin-nav-grid') return (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
-                {panel.items.map(item => (
-                  <div key={item.label}
-                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', transition: 'background 0.15s' }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#fdf2f2'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                    onClick={() => {
-                      setShowDropdown(false)
-if (panel.metal === 'silver') navigate(item.grams ? `/silver-coins?weight=${encodeURIComponent(item.label)}` : '/silver-coins')
-else { const grade = panel.metal === 'gold24k' ? '24k' : '22k'; navigate(item.grams ? `/gold-coins?weight=${encodeURIComponent(item.label)}&grade=${grade}` : `/gold-coins?grade=${grade}`) }
-setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100)
-                    }}>
-                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: panel.metal === 'silver' ? 'rgba(192,192,192,0.1)' : 'rgba(184,134,11,0.08)', border: panel.metal === 'silver' ? '1px solid rgba(192,192,192,0.4)' : '1px solid rgba(184,134,11,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: panel.metal === 'silver' ? '#9ca3af' : '#b8860b' }}>
-                      {panel.metal === 'silver'
-                        ? <svg width="18" height="18" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="16" r="11"/><circle cx="16" cy="16" r="7"/><path d="M16 9v2"/><path d="M16 21v2"/><path d="M9 16h2"/><path d="M21 16h2"/></svg>
-                        : <svg width="18" height="18" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="16" r="11"/><circle cx="16" cy="16" r="7"/><path d="M16 9v2"/><path d="M16 21v2"/><path d="M9 16h2"/><path d="M21 16h2"/><polygon points="16,11 17.5,14.5 21,15 18.5,17.5 19,21 16,19.5 13,21 13.5,17.5 11,15 14.5,14.5" strokeWidth="1.2"/></svg>
-                      }
-                    </div>
-                    <span style={{ fontSize: 14, color: '#1f2937', fontFamily: '"Cormorant Garamond", Georgia, serif', fontWeight: 600, letterSpacing: '0.3px' }}>{item.label}</span>
-                  </div>
-                ))}
-              </div>
-            )
-
-            if (panel.type === 'offers-grid') return (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 14 }}>
-                {panel.items.map(o => (
-                  <div key={o.label} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 12, background: '#fdf2f2', border: '0.5px solid #f3d5d5', cursor: 'pointer', transition: 'all 0.15s' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#f7e0e0'; e.currentTarget.style.borderColor = '#8B1A1A' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = '#fdf2f2'; e.currentTarget.style.borderColor = '#f3d5d5' }}>
-                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', border: '1px solid #f3d5d5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>{o.emoji}</div>
-                    <div>
-                      <div style={{ fontSize: 13, color: '#1f2937', fontWeight: 500 }}>{o.label}</div>
-                      <div style={{ fontSize: 10, color: '#8B1A1A', fontWeight: 700, letterSpacing: '0.5px', marginTop: 3, background: '#fce8e8', display: 'inline-block', padding: '2px 8px', borderRadius: 20 }}>{o.badge}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )
-
-            return null
-          }
-
-          return (
-            <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200, background: '#fff', borderBottom: '0.5px solid #e5e7eb', boxShadow: '0 8px 24px rgba(0,0,0,0.08)', display: 'flex', minHeight: '260px' }}>
-              <div style={{ width: 190, borderRight: '0.5px solid #f3f4f6', padding: '20px 0', flexShrink: 0 }}>
-                {cfg.filters.map((f, i) => (
-                  <div key={cfg.filterKeys[i]} onMouseEnter={() => setActiveFilter(cfg.filterKeys[i])}
-                    style={{ padding: '11px 22px', cursor: 'pointer', margin: '2px 10px', borderRadius: 8, color: activeFilter === cfg.filterKeys[i] ? '#8B1A1A' : '#4b5563', background: activeFilter === cfg.filterKeys[i] ? '#fdf2f2' : 'transparent', fontWeight: activeFilter === cfg.filterKeys[i] ? 700 : 400, fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 15, letterSpacing: '0.3px', transition: 'all 0.15s' }}
-                  >{f}</div>
-                ))}
-              </div>
-              <div style={{ flex: 1, padding: '24px 28px', overflowY: 'auto', maxHeight: '420px' }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#8B1A1A', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 16, paddingBottom: 8, borderBottom: '0.5px solid #fce8e8', fontFamily: '"Montserrat", sans-serif' }}>
-                  {sectionTitles[activeFilter] || activeFilter}
-                </div>
-                {renderPanel()}
-              </div>
+              )}
             </div>
-          )
-        })()}
-      </div>
+
+            <div
+              className="rate-dropdown"
+              onMouseEnter={() => setRatesOpen(true)}
+              onMouseLeave={() => setRatesOpen(false)}
+              onFocus={() => setRatesOpen(true)}
+              onBlur={() => setRatesOpen(false)}
+            >
+              <button
+                type="button"
+                className="rate-dropdown-toggle"
+                aria-expanded={ratesOpen}
+                aria-haspopup="true"
+              >
+                <Icon name="calendar" size={16} />
+                <span className="rate-label">
+                  Today's Gold Rate 22K - {money(rates?.gold_22k)}
+                </span>
+                <span
+                  style={{
+                    transform: ratesOpen ? "rotate(270deg)" : "rotate(90deg)",
+                    display: "inline-block",
+                    transition: "transform 150ms ease",
+                  }}
+                >
+                  ▾
+                </span>
+              </button>
+
+              {ratesOpen && (
+                <div className="rate-dropdown-panel">
+                  <div className="rate-item">
+                    <div className="rate-item-title">Gold 24K</div>
+                    <div className="rate-item-value">
+                      {money(rates?.gold_24k)}
+                    </div>
+                  </div>
+                  <div className="rate-item">
+                    <div className="rate-item-title">Silver</div>
+                    <div className="rate-item-value">
+                      {money(rates?.silver_999)}
+                    </div>
+                  </div>
+                  <div className="rate-item">
+                    <div className="rate-item-title">Diamond 18K</div>
+                    <div className="rate-item-value">
+                      {money(rates?.diamond_18k)}
+                    </div>
+                  </div>
+                  <div className="rate-item">
+                    <div className="rate-item-title">Diamond 22K</div>
+                    <div className="rate-item-value">
+                      {money(rates?.diamond_22k)}
+                    </div>
+                  </div>
+                  <div className="rate-item">
+                    <div className="rate-item-title">Platinum</div>
+                    <div className="rate-item-value">
+                      {money(rates?.platinum_92)}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="exact-actions">
+              <button
+                className="summary-pill"
+                type="button"
+                onClick={() => navigate("/order-summary")}
+              >
+                <Icon name="star" size={15} />{" "}
+                <span className="summary-text">Order Summary</span>
+              </button>
+
+              <button
+                className="exact-icon"
+                type="button"
+                onClick={() => navigate("/wishlist")}
+                aria-label="Wishlist"
+              >
+                <Icon name="heart" filled={wishlistCount > 0} />
+                {wishlistCount > 0 && (
+                  <span className="exact-badge">{wishlistCount}</span>
+                )}
+              </button>
+
+              <button
+                className="exact-icon"
+                type="button"
+                onClick={() => navigate("/profile")}
+                aria-label="Profile"
+              >
+                <Icon name="user" />
+              </button>
+
+              <button
+                className="exact-icon"
+                type="button"
+                onClick={() => navigate("/cart")}
+                aria-label="Cart"
+              >
+                <Icon name="cart" />
+                {cartCount > 0 && (
+                  <span className="exact-badge">{cartCount}</span>
+                )}
+              </button>
+
+              <button
+                className="exact-icon"
+                type="button"
+                onClick={logout}
+                aria-label="Logout"
+              >
+                <Icon name="logout" />
+              </button>
+
+              <button
+                className="exact-icon exact-mobile-toggle"
+                type="button"
+                onClick={() => setMobileOpen((value) => !value)}
+                aria-label="Menu"
+              >
+                <Icon name={mobileOpen ? "close" : "menu"} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <nav className="exact-menu">
+          <div className="exact-inner">
+            {menuItems.map((item) => {
+              const sections = megaByLabel[item.label];
+
+              return (
+                <div
+                  className={`exact-menu-item ${activeMega === item.label ? "is-open" : ""}`}
+                  key={item.label}
+                  onMouseEnter={() =>
+                    setActiveMega(sections ? item.label : null)
+                  }
+                  onMouseLeave={() => setActiveMega(null)}
+                >
+                  <button
+                    className="exact-menu-button"
+                    type="button"
+                    onClick={() => {
+                      setActiveMega(null);
+                      navigate(item.route);
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                  {sections && (
+                    <div className="exact-mega-wrap">
+                      <button
+                        className="exact-mega-scroll-btn left"
+                        type="button"
+                        aria-label="Scroll left"
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => scrollMega(item.label, -1)}
+                      >‹</button>
+                      <div
+                        className="exact-mega"
+                        ref={el => { megaRefs.current[item.label] = el; }}
+                        onClick={() => setActiveMega(null)}
+                      >
+                        {sections.map((section) => (
+                          <section
+                            className="exact-mega-section"
+                            key={section.title}
+                          >
+                            <div className="exact-mega-title">
+                              <span>{megaIconFor(section.title)}</span>
+                              {section.title}
+                            </div>
+                            {section.links.map(([label, route]) => (
+                              <Link
+                                className="exact-mega-link"
+                                key={label}
+                                to={route}
+                              >
+                                {label}
+                              </Link>
+                            ))}
+                            <Link
+                              className="exact-mega-view"
+                              to={section.viewAll[1]}
+                            >
+                              {section.viewAll[0]} -&gt;
+                            </Link>
+                          </section>
+                        ))}
+                      </div>
+                      <button
+                        className="exact-mega-scroll-btn right"
+                        type="button"
+                        aria-label="Scroll right"
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => scrollMega(item.label, 1)}
+                      >›</button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </nav>
+
+        <div className={`exact-mobile-menu ${mobileOpen ? "open" : ""}`}>
+          {rates && (
+            <div className="mobile-menu-rates">
+              <span>Gold 22K — {money(rates?.gold_22k)}</span>
+              <span>Silver — {money(rates?.silver_999)}</span>
+            </div>
+          )}
+          <div className="mobile-menu-grid">
+            {menuItems.map((item) => (
+              <button
+                type="button"
+                key={item.label}
+                onClick={() => {
+                  setMobileOpen(false);
+                  navigate(item.route);
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </header>
+
+      <div className="exact-nav-spacer" aria-hidden="true" />
     </>
-  )
+  );
 }

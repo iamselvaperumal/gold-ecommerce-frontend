@@ -4,11 +4,11 @@ import CustomerNavbar from '../collection/CustomerNavbar'
 import CustomerFooter from '../collection/CustomerFooter'
 
 const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
-const GOLD = '#b8860b'
-const DARK = '#1c1410'
-const CREAM = '#FDF5EE'
-const MUTED = '#92400e'
-const RED = '#7B1F2E'
+const GOLD = '#BB8958'
+const DARK = '#111817'
+const CREAM = '#FDFDFC'
+const MUTED = '#7A8987'
+const RED = '#073B3F'
 
 const COUNTRIES = [
   { code: 'IN', name: 'India', flag: '🇮🇳' },
@@ -77,17 +77,363 @@ const IconSearch = () => (
   </svg>
 )
 
+const checkoutStyles = `
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600;700;800;900&display=swap');
+  @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+  .oc-page {
+    min-height: 100vh;
+    background:
+      linear-gradient(180deg, rgba(231,237,236,0.74) 0%, #FDFDFC 28%, #F3F3F0 100%);
+    color: #111817;
+    font-family: "Montserrat", system-ui, sans-serif;
+  }
+
+  .oc-main {
+    width: min(1320px, calc(100% - 40px));
+    margin: 0 auto;
+    padding: clamp(42px, 5vw, 72px) 0 88px;
+    animation: fadeUp 0.42s ease both;
+  }
+
+  .oc-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 22px;
+    align-items: end;
+    margin-bottom: 30px;
+  }
+
+  .oc-kicker {
+    margin: 0 0 10px;
+    color: #BB8958;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 2.8px;
+    text-transform: uppercase;
+  }
+
+  .oc-hero h1 {
+    margin: 0;
+    color: #073B3F;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: clamp(42px, 5vw, 68px);
+    line-height: 0.98;
+  }
+
+  .oc-hero p {
+    margin: 14px 0 0;
+    color: #52625f;
+    font-size: 14px;
+    line-height: 1.75;
+    max-width: 680px;
+  }
+
+  .oc-trust-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid rgba(12,64,68,0.18);
+    border-radius: 999px;
+    background: rgba(253,253,252,0.82);
+    color: #073B3F;
+    padding: 13px 18px;
+    font-size: 12px;
+    font-weight: 900;
+    box-shadow: 0 14px 34px rgba(12,64,68,0.08);
+  }
+
+  .oc-stepper {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .oc-step {
+    position: relative;
+    border: 1px solid rgba(189,207,206,0.78);
+    border-radius: 8px;
+    background: rgba(253,253,252,0.82);
+    padding: 14px 16px;
+    color: #7A8987;
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  .oc-step.active {
+    border-color: rgba(12,64,68,0.34);
+    background: linear-gradient(135deg, #073B3F, #0C4044);
+    color: #FDFDFC;
+    box-shadow: 0 18px 42px rgba(12,64,68,0.18);
+  }
+
+  .oc-step i {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    margin-right: 9px;
+    background: rgba(122,137,135,0.14);
+    font-style: normal;
+  }
+
+  .oc-step.active i {
+    background: rgba(253,253,252,0.15);
+  }
+
+  .oc-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 0.42fr);
+    gap: 28px;
+    align-items: start;
+  }
+
+  .oc-review-card,
+  .oc-summary-card {
+    border: 1px solid rgba(189,207,206,0.84);
+    border-radius: 8px;
+    background: rgba(253,253,252,0.92);
+    box-shadow: 0 28px 76px rgba(12,64,68,0.11);
+    overflow: hidden;
+  }
+
+  .oc-product-band {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 24px;
+    padding: 26px;
+    background: linear-gradient(120deg, rgba(231,237,236,0.82), rgba(243,232,222,0.70));
+  }
+
+  .oc-product-img {
+    width: 150px;
+    height: 150px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(204,168,129,0.44);
+    background: #FDFDFC;
+    box-shadow: 0 20px 44px rgba(12,64,68,0.12);
+  }
+
+  .oc-product-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .oc-product-tag {
+    display: inline-flex;
+    border: 1px solid rgba(187,137,88,0.42);
+    border-radius: 999px;
+    background: rgba(243,232,222,0.76);
+    color: #9F6130;
+    padding: 7px 11px;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .oc-product-title {
+    margin: 0 0 14px;
+    color: #073B3F;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: clamp(28px, 3vw, 42px);
+    line-height: 1;
+  }
+
+  .oc-specs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .oc-spec {
+    border: 1px solid rgba(12,64,68,0.12);
+    border-radius: 8px;
+    background: rgba(253,253,252,0.78);
+    padding: 12px;
+  }
+
+  .oc-spec span {
+    display: block;
+    color: #7A8987;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+
+  .oc-spec strong {
+    color: #111817;
+    font-size: 14px;
+  }
+
+  .oc-qty-row,
+  .oc-price-panel {
+    padding: 22px 26px;
+    border-top: 1px solid rgba(189,207,206,0.62);
+  }
+
+  .oc-qty-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .oc-stepper-qty {
+    display: inline-flex;
+    border: 1px solid rgba(189,207,206,0.92);
+    border-radius: 999px;
+    overflow: hidden;
+    background: #FDFDFC;
+  }
+
+  .oc-stepper-qty button,
+  .oc-stepper-qty span {
+    width: 44px;
+    height: 42px;
+    border: 0;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    color: #073B3F;
+    font-weight: 900;
+  }
+
+  .oc-stepper-qty button {
+    cursor: pointer;
+  }
+
+  .oc-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 12px;
+    color: #52625f;
+    font-size: 14px;
+  }
+
+  .oc-row strong {
+    color: #111817;
+  }
+
+  .oc-total {
+    border-top: 1px dashed rgba(12,64,68,0.20);
+    padding-top: 16px;
+    margin-top: 16px;
+    font-size: 18px;
+    font-weight: 900;
+    color: #073B3F;
+  }
+
+  .oc-delivery-note {
+    margin-top: 18px;
+    border: 1px solid rgba(12,64,68,0.16);
+    border-radius: 8px;
+    background: rgba(231,237,236,0.72);
+    padding: 15px 16px;
+    color: #073B3F;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .oc-primary {
+    width: 100%;
+    margin-top: 22px;
+    min-height: 58px;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #073B3F, #0C4044);
+    color: #FDFDFC;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 22px 44px rgba(12,64,68,0.18);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .oc-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 28px 58px rgba(12,64,68,0.24);
+  }
+
+  .oc-summary-card {
+    position: sticky;
+    top: 178px;
+    padding: 24px;
+  }
+
+  .oc-summary-title {
+    margin: 0 0 16px;
+    color: #073B3F;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+  }
+
+  .oc-secure-box {
+    margin-top: 18px;
+    border: 1px dashed rgba(12,64,68,0.34);
+    border-radius: 8px;
+    background: rgba(231,237,236,0.54);
+    padding: 13px 14px;
+    color: #073B3F;
+    font-size: 12px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  @media (max-width: 980px) {
+    .oc-hero,
+    .oc-layout,
+    .oc-product-band {
+      grid-template-columns: 1fr;
+    }
+    .oc-summary-card {
+      position: relative;
+      top: auto;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .oc-main {
+      width: min(100% - 24px, 1320px);
+    }
+    .oc-stepper,
+    .oc-specs {
+      grid-template-columns: 1fr;
+    }
+    .oc-product-img {
+      width: 118px;
+      height: 118px;
+    }
+  }
+`
+
 export default function OrderConfirm() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { product, qty: initialQty, displayPrice, metal } = location.state || {}
+  const { product, qty: initialQty, displayPrice, metal, cartItems = [], cartTotal } = location.state || {}
+  const isCartCheckout = Array.isArray(cartItems) && cartItems.length > 0
+  const cartQuantity = isCartCheckout ? cartItems.reduce((sum, item) => sum + (Number(item.qty) || 1), 0) : 0
+  const cartAmount = isCartCheckout ? cartItems.reduce((sum, item) => sum + (Number(item.total) || ((Number(item.price) || 0) * (Number(item.qty) || 1))), 0) : 0
 
-  const [qty, setQty] = useState(initialQty || 1)
+  const [qty, setQty] = useState(isCartCheckout ? cartQuantity || 1 : initialQty || 1)
   const [step, setStep] = useState(1)
   const [placing, setPlacing] = useState(false)
   const [orderId, setOrderId] = useState(null)
 
-  // Address popup
   const [showAddressPopup, setShowAddressPopup] = useState(false)
   const [savedAddress, setSavedAddress] = useState(null)
   const [addressType, setAddressType] = useState('Home')
@@ -99,21 +445,18 @@ export default function OrderConfirm() {
     name: '', email: '', phone: '', pincode: '', city: '', state: '', address: '', locality: '',
   })
   const [addressErrors, setAddressErrors] = useState({})
-
-  // Payment
   const [payTab, setPayTab] = useState('card')
   const [cardForm, setCardForm] = useState({ number: '', expiry: '', cvv: '' })
   const [upiId, setUpiId] = useState('')
   const [selectedBank, setSelectedBank] = useState(null)
   const [bankSearch, setBankSearch] = useState('')
 
-  // Load customer profile to pre-fill
-useEffect(() => {
-    // Restore saved address from sessionStorage if exists
+  useEffect(() => {
     const cached = sessionStorage.getItem('bb_saved_address')
     if (cached) {
       try { setSavedAddress(JSON.parse(cached)) } catch {}
     }
+
     const loadProfile = async () => {
       try {
         const { default: api } = await import('../api')
@@ -145,9 +488,9 @@ useEffect(() => {
     return `${API_BASE}/${p.replace(/^\/+/, '')}`
   }
 
-  const firstImage = product.images?.[0] ? getImageUrl(product.images[0]) : null
-  const totalPrice = (displayPrice || 0) * qty
-  const inr = n => `₹${Math.round(n).toLocaleString('en-IN')}`
+  const firstImage = product.images?.[0] ? getImageUrl(product.images[0]) : cartItems[0]?.image || null
+  const totalPrice = isCartCheckout ? (Number(cartTotal) || cartAmount) : (displayPrice || 0) * qty
+  const inr = n => `Rs. ${Math.round(n).toLocaleString('en-IN')}`
 
   const validateAddress = () => {
     const e = {}
@@ -170,10 +513,7 @@ useEffect(() => {
     setShowAddressPopup(false)
   }
 
- // Razorpay Script Load Helper
-const loadRazorpay = () => {
-  return new Promise((resolve) => {
-    // Already loaded check
+  const loadRazorpay = () => new Promise(resolve => {
     if (window.Razorpay) { resolve(true); return }
     const script = document.createElement('script')
     script.src = 'https://checkout.razorpay.com/v1/checkout.js'
@@ -181,315 +521,309 @@ const loadRazorpay = () => {
     script.onerror = () => resolve(false)
     document.body.appendChild(script)
   })
-}
 
-const handlePlaceOrder = async () => {
-  if (!savedAddress) return
-  setPlacing(true)
+  const handlePlaceOrder = async () => {
+    if (!savedAddress) return
+    setPlacing(true)
 
-  try {
-    // ── STEP 1: Razorpay script load ──
-    const loaded = await loadRazorpay()
-    if (!loaded) {
-      alert('Payment load ஆகலை. Internet check பண்ணு!')
-      setPlacing(false)
-      return
-    }
-
-    // ── STEP 2: Backend-ல Razorpay order create ──
-    const { default: api } = await import('../api')
-    const orderRes = await api.post('/create-razorpay-order/', {
-      amount: totalPrice
-    })
-    const { razorpay_order_id, amount, currency, key } = orderRes.data
-
-    // ── STEP 3: Razorpay Popup Options ──
-const options = {
-  key: key,
-  amount: parseInt(amount) * 100,
-  currency: currency,
-  name: "BitByte Jewels",
-  description: product.name,
-  image: firstImage?.startsWith('http') && !firstImage?.includes('localhost') ? firstImage : '',
-  order_id: razorpay_order_id,
-  config: {
-    display: {
-      blocks: {
-        international: {
-          name: "International Cards",
-          instruments: [{ method: "card" }]
-        }
-      },
-      sequence: ["block.international"],
-      preferences: { show_default_blocks: true }
-    }
-  },
-
-      // ✅ Payment Success Handler
-      handler: async function (response) {
-        try {
-          const verifyRes = await api.post('/verify-payment/', {
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-            product_id: product.id,
-            customer_name: savedAddress.name,
-            customer_phone: savedAddress.phone,
-            pincode: savedAddress.pincode,
-            address_line1: savedAddress.address,
-            address_line2: savedAddress.locality || '',
-            city: savedAddress.city,
-            state: savedAddress.state,
-            quantity: qty,
-            unit_price: displayPrice,
-            total_price: totalPrice,
-          })
-
-          if (verifyRes.data.status === 'success') {
-            setOrderId(verifyRes.data.order_id)
-            setStep(4)  // ✅ Order Confirmed Page
-          } else {
-            alert('Payment verify ஆகலை! Support-ஐ contact பண்ணு.')
-          }
-        } catch {
-          alert('Something went wrong! Try again.')
-        }
+    try {
+      const loaded = await loadRazorpay()
+      if (!loaded) {
+        alert('Payment could not load. Please check your internet connection.')
         setPlacing(false)
-      },
-
-      // ❌ Customer popup close பண்ணா
-      modal: {
-        ondismiss: function () {
-          setPlacing(false)
-        }
-      },
-
-      // Customer details pre-fill
-      prefill: {
-        name: savedAddress.name,
-        contact: savedAddress.phone,
-        email: savedAddress.email || '',
-      },
-
-      // Brand color
-      theme: {
-        color: "#7B1F2E"
+        return
       }
+
+      const { default: api } = await import('../api')
+      const orderRes = await api.post('/create-razorpay-order/', { amount: totalPrice })
+      const { razorpay_order_id, amount, currency, key } = orderRes.data
+
+      const options = {
+        key,
+        amount: parseInt(amount) * 100,
+        currency,
+        name: 'BitByte Jewels',
+        description: isCartCheckout ? `${cartItems.length} jewellery pieces` : product.name,
+        image: firstImage?.startsWith('http') && !firstImage?.includes('localhost') ? firstImage : '',
+        order_id: razorpay_order_id,
+        handler: async response => {
+          try {
+            const verifyRes = await api.post('/verify-payment/', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              product_id: product.id,
+              customer_name: savedAddress.name,
+              customer_phone: savedAddress.phone,
+              pincode: savedAddress.pincode,
+              address_line1: savedAddress.address,
+              address_line2: savedAddress.locality || '',
+              city: savedAddress.city,
+              state: savedAddress.state,
+              quantity: isCartCheckout ? cartQuantity : qty,
+              unit_price: isCartCheckout ? totalPrice : displayPrice,
+              total_price: totalPrice,
+            })
+            if (verifyRes.data.status === 'success') {
+              setOrderId(verifyRes.data.order_id)
+              setStep(4)
+            } else {
+              alert('Payment verification failed. Please contact support.')
+            }
+          } catch {
+            alert('Something went wrong. Please try again.')
+          }
+          setPlacing(false)
+        },
+        modal: { ondismiss: () => setPlacing(false) },
+        prefill: {
+          name: savedAddress.name,
+          contact: savedAddress.phone,
+          email: savedAddress.email || '',
+        },
+        theme: { color: '#073B3F' },
+      }
+
+      const rzp = new window.Razorpay(options)
+      rzp.open()
+    } catch {
+      alert('Unable to create order. Please try again.')
+      setPlacing(false)
     }
-
-    // ── STEP 4: Popup திற ──
-    const rzp = new window.Razorpay(options)
-    rzp.open()
-
-  } catch (err) {
-    alert('Order create பண்ண முடியலை! Try again.')
-    setPlacing(false)
   }
-}
 
   const selectedCountry = COUNTRIES.find(c => c.code === country) || COUNTRIES[0]
   const filteredBanks = BANKS.filter(b => b.name.toLowerCase().includes(bankSearch.toLowerCase()))
 
-  const inp = (err) => ({
+  const inp = err => ({
     width: '100%', padding: '13px 16px',
-    border: `1px solid ${err ? '#e53e3e' : '#e2d9d0'}`,
-    borderRadius: 6, fontSize: 14, color: DARK,
-    background: '#fafafa', outline: 'none',
+    border: `1px solid ${err ? '#e53e3e' : '#D1DFDE'}`,
+    borderRadius: 8, fontSize: 14, color: DARK,
+    background: '#FDFDFC', outline: 'none',
     fontFamily: '"Montserrat", sans-serif',
     boxSizing: 'border-box',
   })
-  const lbl = { display: 'block', fontSize: 12, color: '#888', marginBottom: 6, fontWeight: 500 }
+  const lbl = { display: 'block', fontSize: 12, color: '#7A8987', marginBottom: 6, fontWeight: 700 }
 
-  // ── ORDER SIDEBAR ──
   const OrderSidebar = () => (
-    <div style={{ background: '#f9f5f2', border: '1px solid #e2d9d0', borderRadius: 8, padding: 24, position: 'sticky', top: 24 }}>
-      <h3 style={{ margin: '0 0 16px', fontSize: 13, fontWeight: 700, color: DARK, letterSpacing: '1px', textTransform: 'uppercase', paddingBottom: 12, borderBottom: '1px solid #e2d9d0' }}>Order Summary</h3>
-      <div style={{ display: 'flex', gap: 14, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #e2d9d0' }}>
-        <div style={{ width: 56, height: 56, borderRadius: 6, border: '1px solid #e2d9d0', background: '#fff', overflow: 'hidden', flexShrink: 0 }}>
-          {firstImage ? <img src={firstImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}/> : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 22 }}>💍</div>}
-        </div>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: RED, fontFamily: '"Playfair Display", serif', marginBottom: 4 }}>{product.name}</div>
-          <div style={{ fontSize: 11, color: MUTED, marginBottom: 2 }}>{product.product_code || ''}</div>
-          <div style={{ fontSize: 11, color: '#aaa' }}>Qty: {qty}</div>
-          {step === 3 && savedAddress && (
-            <div style={{ fontSize: 10, color: '#aaa', marginTop: 4 }}>
-              🚚 Delivery On <strong style={{ color: DARK }}>
-                {(() => { const d = new Date(); d.setDate(d.getDate() + 5); return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long' }) })()}
-              </strong>
+    <aside className="oc-summary-card">
+      <h3 className="oc-summary-title">Order Summary</h3>
+      {isCartCheckout ? (
+        <div style={{ display: 'grid', gap: 12, marginBottom: 18, paddingBottom: 18, borderBottom: '1px solid rgba(189,207,206,0.62)' }}>
+          {cartItems.map(item => (
+            <div key={`${item.id}-${item.product_id}`} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <div style={{ width: 54, height: 54, borderRadius: 8, border: '1px solid rgba(204,168,129,0.42)', background: '#FDFDFC', overflow: 'hidden', flexShrink: 0 }}>
+                {item.image ? <img src={item.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}/> : <div style={{ display: 'grid', placeItems: 'center', height: '100%', color: '#073B3F', fontWeight: 900 }}>BJ</div>}
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#073B3F', marginBottom: 4, lineHeight: 1.15 }}>{item.name}</div>
+                <div style={{ fontSize: 11, color: '#7A8987', fontWeight: 700 }}>Qty: {item.qty}</div>
+              </div>
+              <strong style={{ color: '#111817', fontSize: 13 }}>{inr(item.total || ((item.price || 0) * (item.qty || 1)))}</strong>
             </div>
-          )}
+          ))}
         </div>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 13, color: '#777' }}>Sub Total</span>
-          <span style={{ fontSize: 13, fontWeight: 600, color: DARK }}>{inr(totalPrice)}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 13, color: '#777' }}>Delivery Charge</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#22c55e' }}>FREE</span>
-        </div>
-        <div style={{ borderTop: '1px solid #e2d9d0', paddingTop: 10, marginTop: 4 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: RED }}>TOTAL <span style={{ fontSize: 10, fontWeight: 400 }}>(Incl of all Taxes.)</span></span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: RED }}>{inr(totalPrice)}</span>
+      ) : (
+        <div style={{ display: 'flex', gap: 14, marginBottom: 18, paddingBottom: 18, borderBottom: '1px solid rgba(189,207,206,0.62)' }}>
+          <div style={{ width: 66, height: 66, borderRadius: 8, border: '1px solid rgba(204,168,129,0.42)', background: '#FDFDFC', overflow: 'hidden', flexShrink: 0 }}>
+            {firstImage ? <img src={firstImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}/> : <div style={{ display: 'grid', placeItems: 'center', height: '100%', color: '#073B3F', fontWeight: 900 }}>BJ</div>}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: RED }}>AMOUNT PAYABLE <span style={{ fontSize: 9, fontWeight: 400 }}>(Incl of all Taxes.)</span></span>
-            <span style={{ fontSize: 13, fontWeight: 800, color: RED }}>{inr(totalPrice)}</span>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: '#073B3F', fontFamily: '"Playfair Display", serif', marginBottom: 5, lineHeight: 1.1 }}>{product.name}</div>
+            <div style={{ fontSize: 11, color: '#9F6130', marginBottom: 3, fontWeight: 800 }}>{product.product_code || `${metal?.toUpperCase()} ${product.grade?.toUpperCase() || ''}`}</div>
+            <div style={{ fontSize: 12, color: '#7A8987', fontWeight: 700 }}>Qty: {qty}</div>
           </div>
         </div>
+      )}
+      <div>
+        <div className="oc-row"><span>Sub Total</span><strong>{inr(totalPrice)}</strong></div>
+        <div className="oc-row"><span>Delivery Charge</span><strong style={{ color: '#16a34a' }}>FREE</strong></div>
+        <div className="oc-row"><span>GST</span><strong>Included</strong></div>
+        <div className="oc-row oc-total"><span>Amount Payable</span><strong>{inr(totalPrice)}</strong></div>
       </div>
-      <div style={{ marginTop: 16, padding: '10px 14px', border: `1px dashed ${RED}`, borderRadius: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <IconShield /><span style={{ fontSize: 12, fontWeight: 600, color: RED }}>Delivery secured by BitByte</span>
+      <div className="oc-secure-box">
+        <IconShield /><span>Delivery secured by BitByte</span>
       </div>
-    </div>
+    </aside>
   )
 
-  // ── STEP 4: CONFIRMED ──
-  if (step === 4) {
-    return (
-      <div style={{ minHeight: '100vh', background: CREAM, fontFamily: '"Montserrat", sans-serif' }}>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600;700&display=swap');@keyframes checkDraw{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}@keyframes ringPop{0%{transform:scale(0.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}`}</style>
-        <CustomerNavbar />
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', padding: '60px 24px', textAlign: 'center' }}>
-          <div style={{ animation: 'ringPop 0.6s cubic-bezier(0.34,1.56,0.64,1) both', marginBottom: 32 }}>
-            <svg width="100" height="100" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="44" fill="rgba(123,31,46,0.08)" stroke={RED} strokeWidth="2.5"/>
-              <polyline points="30,52 44,66 70,36" fill="none" stroke={RED} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="100" strokeDashoffset="0" style={{ animation: 'checkDraw 0.5s 0.3s ease both' }}/>
-            </svg>
-          </div>
-          <div style={{ animation: 'fadeUp 0.5s 0.4s ease both', opacity: 0 }}>
-            <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: RED }}>Order Confirmed</p>
-            <h1 style={{ margin: '0 0 12px', fontSize: 38, fontWeight: 700, color: DARK, fontFamily: '"Playfair Display", serif' }}>Thank You!</h1>
-            <p style={{ margin: '0 0 32px', color: MUTED, fontSize: 15, maxWidth: 440 }}>Your order has been placed successfully. We'll send you updates soon.</p>
-            <div style={{ background: '#fff', border: '1px solid #e2d9d0', borderRadius: 8, padding: '20px 40px', display: 'inline-block', marginBottom: 32 }}>
-              <div style={{ fontSize: 11, color: '#aaa', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 6 }}>Order ID</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: RED, fontFamily: '"Playfair Display", serif' }}>#{orderId}</div>
-            </div>
-            <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button onClick={() => navigate('/customer')} style={{ padding: '14px 32px', background: RED, border: 'none', borderRadius: 2, color: '#fff', fontWeight: 700, fontSize: 12, letterSpacing: '1.5px', textTransform: 'uppercase', cursor: 'pointer' }}>Continue Shopping</button>
-              <button onClick={() => navigate('/order-summary')} style={{ padding: '14px 32px', background: 'transparent', border: `1.5px solid ${RED}`, borderRadius: 2, color: RED, fontWeight: 700, fontSize: 12, letterSpacing: '1.5px', textTransform: 'uppercase', cursor: 'pointer' }}>View My Orders</button>
-            </div>
-          </div>
-        </div>
-        <div style={{ height: '80px' }} />
-        <CustomerFooter />
-      </div>
-    )
-  }
-
-  // ── STEP 1: REVIEW ──
   if (step === 1) {
     return (
-      <div style={{ minHeight: '100vh', background: CREAM, fontFamily: '"Montserrat", sans-serif' }}>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600;700&display=swap');@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}.oc-btn:hover{opacity:0.88}`}</style>
+      <div className="oc-page">
+        <style>{checkoutStyles}</style>
         <CustomerNavbar />
-        <main style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 24px 80px', animation: 'fadeUp 0.4s ease both' }}>
-          <div style={{ marginBottom: 36 }}>
-            <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: RED }}>+ Secure Checkout</p>
-            <h1 style={{ margin: 0, fontSize: 32, fontWeight: 700, color: DARK, fontFamily: '"Playfair Display", serif' }}>Review Your Order</h1>
-            <div style={{ width: 48, height: 2, background: RED, marginTop: 12 }} />
-          </div>
-          {/* Step bar */}
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 36 }}>
-            {['Review Order', 'Delivery & Payment', 'Order Placed'].map((label, i) => {
-              const active = i === 0
-              return (
-                <div key={label} style={{ display: 'flex', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: active ? RED : '#e2d9d0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: active ? '#fff' : '#aaa' }}>{i + 1}</div>
-                    <span style={{ fontSize: 13, fontWeight: active ? 700 : 400, color: active ? DARK : '#aaa' }}>{label}</span>
-                  </div>
-                  {i < 2 && <div style={{ width: 40, height: 1, background: '#e2d9d0', margin: '0 12px' }} />}
-                </div>
-              )
-            })}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 32, alignItems: 'start' }}>
+        <main className="oc-main">
+          <header className="oc-hero">
             <div>
-              <div style={{ background: '#fff', border: '1px solid #e2d9d0', borderRadius: 8, overflow: 'hidden' }}>
-                <div style={{ padding: 24, display: 'flex', gap: 20, borderBottom: '1px solid #f0ebe4' }}>
-                  <div style={{ width: 110, height: 110, borderRadius: 6, border: '1px solid #e2d9d0', overflow: 'hidden', flexShrink: 0 }}>
-                    {firstImage ? <img src={firstImage} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}/> : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 36 }}>💍</div>}
+              <p className="oc-kicker">Secure Checkout</p>
+              <h1>Review Your Order</h1>
+              <p>Confirm your jewellery, quantity, insured delivery, and final payable amount before moving to delivery and payment.</p>
+            </div>
+            <div className="oc-trust-pill"><IconShield /> BIS checked checkout</div>
+          </header>
+
+          <div className="oc-stepper">
+            {['Review Order', 'Delivery & Payment', 'Order Placed'].map((label, i) => (
+              <div key={label} className={`oc-step ${i === 0 ? 'active' : ''}`}><i>{i + 1}</i>{label}</div>
+            ))}
+          </div>
+
+          <div className="oc-layout">
+            <div>
+              <section className="oc-review-card">
+                <div className="oc-product-band">
+                  <div className="oc-product-img">
+                    {firstImage ? <img src={firstImage} alt={product.name} /> : <div style={{ height: '100%', display: 'grid', placeItems: 'center', color: '#073B3F', fontWeight: 900 }}>Team 369</div>}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, padding: '2px 10px', borderRadius: 2, background: 'rgba(123,31,46,0.08)', border: '1px solid rgba(123,31,46,0.2)', color: RED, display: 'inline-block', marginBottom: 8, letterSpacing: '1px' }}>
-                      {metal?.toUpperCase()} · {product.grade?.toUpperCase()}
-                    </div>
-                    <h2 style={{ margin: '0 0 10px', fontSize: 20, fontWeight: 600, color: DARK, fontFamily: '"Playfair Display", serif' }}>{product.name}</h2>
-                    <div style={{ display: 'flex', gap: 20 }}>
-                      {[{ label: 'METAL', value: metal?.charAt(0).toUpperCase() + metal?.slice(1) }, { label: 'WEIGHT', value: product.net_weight ? `${product.net_weight} gm` : '—' }, { label: 'PURITY', value: product.grade?.toUpperCase() || '—' }].map(s => (
-                        <div key={s.label}><div style={{ fontSize: 10, fontWeight: 700, color: '#aaa', letterSpacing: '1px', marginBottom: 2 }}>{s.label}</div><div style={{ fontSize: 13, fontWeight: 600, color: DARK }}>{s.value}</div></div>
+                  <div>
+                    <div className="oc-product-tag">{isCartCheckout ? 'Cart Checkout' : `${metal?.toUpperCase()} ${product.grade?.toUpperCase() || ''}`}</div>
+                    <h2 className="oc-product-title">{product.name}</h2>
+                    <div className="oc-specs">
+                      {[
+                        { label: isCartCheckout ? 'Items' : 'Metal', value: isCartCheckout ? cartItems.length : metal?.charAt(0).toUpperCase() + metal?.slice(1) },
+                        { label: isCartCheckout ? 'Quantity' : 'Weight', value: isCartCheckout ? cartQuantity : product.net_weight ? `${product.net_weight} gm` : '-' },
+                        { label: isCartCheckout ? 'Shipping' : 'Purity', value: isCartCheckout ? 'Insured' : product.grade?.toUpperCase() || '-' },
+                      ].map(s => (
+                        <div className="oc-spec" key={s.label}><span>{s.label}</span><strong>{s.value}</strong></div>
                       ))}
                     </div>
                   </div>
                 </div>
-                <div style={{ padding: '16px 24px', borderBottom: '1px solid #f0ebe4', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: DARK }}>Quantity</span>
-                  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #e2d9d0', borderRadius: 2, overflow: 'hidden' }}>
-                    <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ width: 38, height: 38, border: 'none', background: '#f7f4f0', color: DARK, fontSize: 18, fontWeight: 700, cursor: 'pointer', borderRight: '1px solid #e2d9d0' }}>−</button>
-                    <span style={{ width: 40, textAlign: 'center', fontSize: 14, fontWeight: 700, color: DARK }}>{qty}</span>
-                    <button onClick={() => setQty(q => q + 1)} style={{ width: 38, height: 38, border: 'none', background: '#f7f4f0', color: DARK, fontSize: 18, fontWeight: 700, cursor: 'pointer', borderLeft: '1px solid #e2d9d0' }}>+</button>
+
+                {!isCartCheckout && <div className="oc-qty-row">
+                  <div>
+                    <strong style={{ display: 'block', color: '#073B3F', fontSize: 16, marginBottom: 4 }}>Quantity</strong>
+                    <span style={{ color: '#7A8987', fontSize: 12, fontWeight: 700 }}>Adjust pieces before checkout</span>
                   </div>
+                  <div className="oc-stepper-qty">
+                    <button type="button" onClick={() => setQty(q => Math.max(1, q - 1))}>-</button>
+                    <span>{qty}</span>
+                    <button type="button" onClick={() => setQty(q => q + 1)}>+</button>
+                  </div>
+                </div>}
+
+                <div className="oc-price-panel">
+                  <div className="oc-row"><span>{isCartCheckout ? 'Cart Subtotal' : 'Unit Price'}</span><strong>{inr(isCartCheckout ? totalPrice : displayPrice || 0)}</strong></div>
+                  <div className="oc-row"><span>Quantity</span><strong>x {isCartCheckout ? cartQuantity : qty}</strong></div>
+                  <div className="oc-row"><span>GST</span><strong>Included</strong></div>
+                  <div className="oc-row"><span>Shipping</span><strong style={{ color: '#16a34a' }}>FREE</strong></div>
+                  <div className="oc-row oc-total"><span>Total</span><strong>{inr(totalPrice)}</strong></div>
+                  <div className="oc-delivery-note">Free insured delivery. Estimated delivery: <strong>3-5 business days</strong></div>
                 </div>
-                <div style={{ padding: '16px 24px' }}>
-                  {[{ label: 'Unit Price', value: inr(displayPrice || 0) }, { label: 'Quantity', value: `× ${qty}` }, { label: 'GST (included)', value: '3%' }, { label: 'Shipping', value: 'FREE', color: '#22c55e' }].map(r => (
-                    <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                      <span style={{ fontSize: 13, color: MUTED }}>{r.label}</span>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: r.color || DARK }}>{r.value}</span>
-                    </div>
-                  ))}
-                  <div style={{ borderTop: '1px solid #e2d9d0', paddingTop: 12, marginTop: 4, display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: DARK }}>Total</span>
-                    <span style={{ fontSize: 18, fontWeight: 800, color: DARK }}>{inr(totalPrice)}</span>
-                  </div>
-                  <div style={{ marginTop: 14, background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 6, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 18 }}>🚚</span>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#16a34a' }}>Free Delivery</div>
-                      <div style={{ fontSize: 12, color: '#aaa', marginTop: 2 }}>Estimated delivery: <strong style={{ color: DARK }}>3–5 business days</strong></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <button className="oc-btn" onClick={() => { setStep(2); window.scrollTo({ top: 0, behavior: 'smooth' }) }}style={{ marginTop: 24, width: '100%', padding: '16px', background: RED, border: 'none', borderRadius: 2, color: '#fff', fontWeight: 700, fontSize: 13, letterSpacing: '1.5px', textTransform: 'uppercase', cursor: 'pointer' }}>
-                CONTINUE TO ADDRESS →
+              </section>
+
+              <button className="oc-primary" type="button" onClick={() => { setStep(2); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
+                Continue To Address
               </button>
             </div>
             <OrderSidebar />
           </div>
         </main>
-        <div style={{ height: '80px' }} />
         <CustomerFooter />
       </div>
     )
   }
-
-  // ── STEP 2: DELIVER TO ──
+  // STEP 2: DELIVER TO ──
   if (step === 2) {
     return (
       <div style={{ minHeight: '100vh', background: CREAM, fontFamily: '"Montserrat", sans-serif' }}>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600;700&display=swap');@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}.oc-btn:hover{opacity:0.88}.country-opt:hover{background:#f9f5f2}`}</style>
+        <style>{checkoutStyles}</style>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@400;500;600;700&display=swap');
+          @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+          @keyframes modalIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+          .oc-btn:hover{opacity:.88}.country-opt:hover{background:#e7edec!important}
+          .address-overlay{backdrop-filter:blur(7px);background:rgba(7,59,63,.62)!important}
+          .address-modal{max-width:780px!important;border-radius:8px!important;border:1px solid #bdcfce;box-shadow:0 30px 90px rgba(7,59,63,.28)!important;animation:modalIn .28s ease both}
+          .address-modal-header{padding:24px 30px!important;background:linear-gradient(110deg,#fdfdfc,#e7edec);border-bottom:1px solid #bdcfce!important}
+          .address-kicker{margin:0 0 5px;color:#9f6130;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase}
+          .address-title{font-family:"Playfair Display",serif;font-size:26px!important;color:#073b3f!important}
+          .address-subtitle{margin:5px 0 0;color:#7a8987;font-size:12px;line-height:1.5}
+          .address-close{width:38px;height:38px;border:1px solid #bdcfce!important;border-radius:50%!important;background:#fdfdfc!important;color:#073b3f!important;font-size:21px!important;transition:.2s ease}
+          .address-close:hover{background:#073b3f!important;color:#fff!important;transform:rotate(90deg)}
+          .address-modal-body{padding:24px 30px 28px!important;background:#fdfdfc}
+          .address-section{padding:20px;border:1px solid #d1dfde;border-radius:8px;background:#fff;margin-bottom:16px}
+          .address-section-title{display:flex;align-items:center;gap:10px;margin:0 0 18px!important;font-family:"Playfair Display",serif;font-size:17px!important;color:#073b3f!important}
+          .address-section-title:before{content:"";width:4px;height:20px;border-radius:2px;background:#bb8958}
+          .address-modal input:focus{outline:none!important;border-color:#0c4044!important;box-shadow:0 0 0 3px rgba(12,64,68,.1)}
+          .address-type-button:hover{border-color:#0c4044!important;color:#0c4044!important;transform:translateY(-1px)}
+          .address-default{padding:12px 14px;border-radius:6px;background:#f3f3f0}
+          .address-modal-footer{padding:16px 30px!important;background:#f3f3f0;border-top:1px solid #d1dfde!important}
+          .address-action{min-height:46px;border-radius:5px!important;transition:transform .2s ease,box-shadow .2s ease}
+          .address-action:hover{transform:translateY(-2px);box-shadow:0 9px 20px rgba(7,59,63,.15)}
+          .address-submit{background:#073b3f!important;min-width:190px}
+          .delivery-main{max-width:1240px!important;padding-top:38px!important}
+          .delivery-heading{margin-bottom:28px}
+          .delivery-kicker{margin:0 0 7px;color:#9f6130;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase}
+          .delivery-heading h1{margin:0;font-family:"Playfair Display",serif;color:#073b3f;font-size:34px;line-height:1.1}
+          .delivery-heading p{margin:8px 0 0;color:#7a8987;font-size:13px}
+          .delivery-layout{grid-template-columns:minmax(0,1fr) 390px!important;gap:30px!important}
+          .delivery-step{gap:16px!important;margin-bottom:22px!important}
+          .delivery-step-marker{width:46px!important;height:46px!important;background:#e7edec!important;border-color:#bdcfce!important;color:#073b3f;box-shadow:0 7px 18px rgba(7,59,63,.08)}
+          .delivery-step-line{background:linear-gradient(#bdcfce,transparent)!important}
+          .delivery-content h2,.delivery-content h3{color:#073b3f!important;letter-spacing:0!important}
+          .saved-address-card{border:1px solid #bdcfce!important;border-radius:8px!important;box-shadow:0 14px 34px rgba(7,59,63,.08);transition:transform .2s ease,box-shadow .2s ease}
+          .saved-address-card:hover{transform:translateY(-2px);box-shadow:0 18px 42px rgba(7,59,63,.12)}
+          .saved-address-head{padding:15px 20px!important;background:#e7edec;border-bottom-color:#d1dfde!important}
+          .saved-address-body{padding:20px!important}
+          .new-address-button{border-color:#0c4044!important;color:#073b3f!important;background:#fdfdfc!important;min-height:38px}
+          .address-use-button{background:#073b3f!important;min-height:38px}
+          .voucher-card{background:#f3f3f0!important;border-color:#d1dfde!important;min-height:54px;transition:.2s ease}
+          .voucher-card:hover{background:#e7edec!important;border-color:#bdcfce!important;transform:translateX(3px)}
+          .delivery-layout .oc-summary-card{position:sticky;top:190px;border-color:#bdcfce;box-shadow:0 18px 44px rgba(7,59,63,.1)}
+          .checkout-actionbar{position:sticky!important;bottom:18px!important;left:auto!important;right:auto!important;margin:28px 0 0!important;padding:14px 18px!important;border:1px solid #bdcfce!important;border-radius:8px!important;background:rgba(253,253,252,.96)!important;backdrop-filter:blur(12px);box-shadow:0 16px 42px rgba(7,59,63,.14)!important}
+          .checkout-total-label{font-size:10px;color:#7a8987;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+          .checkout-total-value{font-family:"Playfair Display",serif;font-size:23px!important;color:#073b3f!important}
+          .checkout-buy{min-width:220px;border-radius:5px!important;background:#073b3f!important;min-height:50px;transition:.2s ease}
+          .checkout-buy:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(7,59,63,.22)}
+          .checkout-buy:disabled{background:#bdcfce!important;color:#fdfdfc!important}
+          @media(max-width:700px){
+            .address-overlay{padding:0!important;align-items:flex-end!important}
+            .address-modal{max-height:96vh!important;border-radius:8px 8px 0 0!important}
+            .address-modal-header,.address-modal-body,.address-modal-footer{padding-left:18px!important;padding-right:18px!important}
+            .address-contact-grid,.address-location-grid,.address-detail-grid{grid-template-columns:1fr!important}
+            .address-section{padding:16px}
+            .address-modal-footer{display:grid!important;grid-template-columns:1fr 1.4fr}
+            .address-action{padding:11px 14px!important;min-width:0!important}
+          }
+          @media(max-width:900px){
+            .delivery-layout{grid-template-columns:1fr!important}
+            .delivery-layout .oc-summary-card{position:static}
+          }
+          @media(max-width:620px){
+            .delivery-main{padding:28px 14px 70px!important}
+            .delivery-heading h1{font-size:28px}
+            .delivery-step-marker-wrap{display:none!important}
+            .saved-address-body{flex-direction:column;gap:18px}
+            .saved-address-actions{width:100%;margin-left:0!important;flex-direction:row!important}
+            .saved-address-actions button{flex:1}
+            .checkout-actionbar{bottom:8px!important}
+            .checkout-buy{min-width:0}
+          }
+        `}</style>
         <CustomerNavbar />
 
         {/* ── ADDRESS POPUP ── */}
         {showAddressPopup && (
-          <div onClick={() => setShowAddressPopup(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-            <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 8, width: '100%', maxWidth: 680, maxHeight: '92vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,0.25)' }}>
+          <div className="address-overlay" onClick={() => setShowAddressPopup(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div className="address-modal" role="dialog" aria-modal="true" aria-labelledby="address-modal-title" onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 8, width: '100%', maxWidth: 680, maxHeight: '92vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,0.25)' }}>
               {/* Header */}
-              <div style={{ padding: '22px 28px', borderBottom: '1px solid #f0ebe4', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-                <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: RED }}>Add Shipping Details</h2>
-                <button onClick={() => setShowAddressPopup(false)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#999', lineHeight: 1 }}>×</button>
+              <div className="address-modal-header" style={{ padding: '22px 28px', borderBottom: '1px solid #f0ebe4', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                <div>
+                  <p className="address-kicker">Secure delivery</p>
+                  <h2 id="address-modal-title" className="address-title" style={{ margin: 0, fontSize: 18, fontWeight: 700, color: RED }}>Where should we deliver?</h2>
+                  <p className="address-subtitle">Add a complete address for insured and on-time delivery.</p>
+                </div>
+                <button className="address-close" type="button" aria-label="Close address form" onClick={() => setShowAddressPopup(false)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#999', lineHeight: 1 }}>&times;</button>
               </div>
 
               {/* Body */}
-              <div style={{ padding: '24px 28px', overflowY: 'auto', flex: 1 }}>
+              <div className="address-modal-body" style={{ padding: '24px 28px', overflowY: 'auto', flex: 1 }}>
 
                 {/* Contact Details */}
-                <h3 style={{ margin: '0 0 16px', fontSize: 13, fontWeight: 700, color: DARK }}>Contact Details</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                <section className="address-section">
+                <h3 className="address-section-title" style={{ margin: '0 0 16px', fontSize: 13, fontWeight: 700, color: DARK }}>Contact Details</h3>
+                <div className="address-contact-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
                   <div>
                     <label style={lbl}>Name *</label>
                     <input style={inp(addressErrors.name)} placeholder="Full Name"
@@ -505,18 +839,20 @@ const options = {
                 <div style={{ marginBottom: 24 }}>
                   <label style={lbl}>Contact Number *</label>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <div style={{ padding: '13px 14px', border: '1px solid #e2d9d0', borderRadius: 6, background: '#fafafa', fontSize: 14, color: DARK, display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                      🇮🇳 +91
+                    <div style={{ padding: '13px 14px', border: '1px solid #d1dfde', borderRadius: 6, background: '#f3f3f0', fontSize: 13, fontWeight: 700, color: '#073B3F', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                      IN +91
                     </div>
                     <input style={{ ...inp(addressErrors.phone), flex: 1 }} placeholder="10-digit mobile" maxLength={10}
                       value={addressForm.phone} onChange={e => setAddressForm(f => ({ ...f, phone: e.target.value }))} />
                   </div>
                   {addressErrors.phone && <div style={{ color: '#e53e3e', fontSize: 11, marginTop: 3 }}>{addressErrors.phone}</div>}
                 </div>
+                </section>
 
                 {/* Address Details */}
-                <h3 style={{ margin: '0 0 16px', fontSize: 13, fontWeight: 700, color: DARK }}>Address Details</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '0.65fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <section className="address-section">
+                <h3 className="address-section-title" style={{ margin: '0 0 16px', fontSize: 13, fontWeight: 700, color: DARK }}>Address Details</h3>
+                <div className="address-location-grid" style={{ display: 'grid', gridTemplateColumns: '0.65fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
 
                   {/* Country dropdown */}
                   <div style={{ position: 'relative' }}>
@@ -525,7 +861,7 @@ const options = {
                       style={{ padding: '13px 14px', border: '1px solid #e2d9d0', borderRadius: 6, background: '#fafafa', fontSize: 14, color: DARK, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
                       <span>{selectedCountry.flag}</span>
                       <span>{selectedCountry.code}</span>
-                      <span style={{ marginLeft: 'auto', color: '#aaa', fontSize: 12 }}>▾</span>
+                      <span style={{ marginLeft: 'auto', color: '#7A8987', fontSize: 12 }}>&#9662;</span>
                     </div>
                     {showCountryDrop && (
                       <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e2d9d0', borderRadius: 6, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 100, maxHeight: 220, overflowY: 'auto' }}>
@@ -556,7 +892,7 @@ const options = {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <div className="address-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                   <div>
                     <label style={lbl}>State *</label>
                     <input style={inp(addressErrors.state)} placeholder="State"
@@ -576,12 +912,14 @@ const options = {
                   <input style={inp()} placeholder="Locality / Town (optional)"
                     value={addressForm.locality} onChange={e => setAddressForm(f => ({ ...f, locality: e.target.value }))} />
                 </div>
+                </section>
 
                 {/* Save Address As */}
-                <h3 style={{ margin: '0 0 12px', fontSize: 13, fontWeight: 700, color: DARK }}>Save Address As</h3>
+                <section className="address-section" style={{ marginBottom: 0 }}>
+                <h3 className="address-section-title" style={{ margin: '0 0 12px', fontSize: 13, fontWeight: 700, color: DARK }}>Save Address As</h3>
                 <div style={{ display: 'flex', gap: 12, marginBottom: addressType === 'Other' ? 12 : 16, flexWrap: 'wrap' }}>
                   {['Home', 'Work', 'Other'].map(t => (
-                    <button key={t} onClick={() => setAddressType(t)}
+                    <button className="address-type-button" type="button" key={t} onClick={() => setAddressType(t)}
                       style={{ padding: '8px 24px', borderRadius: 20, border: `1.5px solid ${addressType === t ? RED : '#e2d9d0'}`, background: addressType === t ? 'rgba(123,31,46,0.06)' : '#fff', color: addressType === t ? RED : '#777', fontWeight: addressType === t ? 700 : 400, fontSize: 13, cursor: 'pointer', transition: 'all 0.15s' }}>
                       {t}
                     </button>
@@ -597,41 +935,47 @@ const options = {
                   </div>
                 )}
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div className="address-default" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <input type="checkbox" id="default-addr" checked={isDefault} onChange={e => setIsDefault(e.target.checked)} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: RED }} />
-                  <label htmlFor="default-addr" style={{ fontSize: 13, color: DARK, cursor: 'pointer' }}>Make This address default</label>
+                  <label htmlFor="default-addr" style={{ fontSize: 13, color: DARK, cursor: 'pointer' }}>Make this my default delivery address</label>
                 </div>
+                </section>
               </div>
 
               {/* Footer */}
-              <div style={{ padding: '16px 28px', borderTop: '1px solid #f0ebe4', display: 'flex', justifyContent: 'flex-end', gap: 12, flexShrink: 0 }}>
-                <button onClick={() => setShowAddressPopup(false)} style={{ padding: '12px 28px', background: '#fff', border: `1.5px solid ${RED}`, borderRadius: 2, color: RED, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
-                <button onClick={handleUseAddress} style={{ padding: '12px 28px', background: RED, border: 'none', borderRadius: 2, color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Use This Address</button>
+              <div className="address-modal-footer" style={{ padding: '16px 28px', borderTop: '1px solid #f0ebe4', display: 'flex', justifyContent: 'flex-end', gap: 12, flexShrink: 0 }}>
+                <button className="address-action" type="button" onClick={() => setShowAddressPopup(false)} style={{ padding: '12px 28px', background: '#fff', border: '1.5px solid #0C4044', borderRadius: 2, color: '#073B3F', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+                <button className="address-action address-submit" type="button" onClick={handleUseAddress} style={{ padding: '12px 28px', background: RED, border: 'none', borderRadius: 2, color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Use This Address</button>
               </div>
             </div>
           </div>
         )}
 
-        <main style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 24px 100px', animation: 'fadeUp 0.4s ease both' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 32, alignItems: 'start' }}>
+        <main className="delivery-main" style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 24px 100px', animation: 'fadeUp 0.4s ease both' }}>
+          <header className="delivery-heading">
+            <p className="delivery-kicker">Delivery &amp; offers</p>
+            <h1>Choose your delivery address</h1>
+            <p>Your jewellery is insured from dispatch until it reaches you.</p>
+          </header>
+          <div className="delivery-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 32, alignItems: 'start' }}>
             <div>
               {/* DELIVER TO */}
-              <div style={{ display: 'flex', gap: 20, marginBottom: 32 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 4 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#f7f4f0', border: '1px solid #e2d9d0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IconLocation /></div>
-                  <div style={{ width: 1, flex: 1, background: '#e2d9d0', marginTop: 8, minHeight: 40 }} />
+              <div className="delivery-step" style={{ display: 'flex', gap: 20, marginBottom: 32 }}>
+                <div className="delivery-step-marker-wrap" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 4 }}>
+                  <div className="delivery-step-marker" style={{ width: 44, height: 44, borderRadius: '50%', background: '#f7f4f0', border: '1px solid #e2d9d0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IconLocation /></div>
+                  <div className="delivery-step-line" style={{ width: 1, flex: 1, background: '#e2d9d0', marginTop: 8, minHeight: 40 }} />
                 </div>
-                <div style={{ flex: 1 }}>
+                <div className="delivery-content" style={{ flex: 1 }}>
                   <h2 style={{ margin: '0 0 16px', fontSize: 18, fontWeight: 700, color: DARK }}>DELIVER TO</h2>
                   {savedAddress ? (
-                    <div style={{ background: '#fff', border: '1px solid #e2d9d0', borderRadius: 6, overflow: 'hidden' }}>
-                      <div style={{ padding: '14px 20px', borderBottom: '1px solid #f0ebe4', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className="saved-address-card" style={{ background: '#fff', border: '1px solid #e2d9d0', borderRadius: 6, overflow: 'hidden' }}>
+                      <div className="saved-address-head" style={{ padding: '14px 20px', borderBottom: '1px solid #f0ebe4', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ fontSize: 12, fontWeight: 700, color: '#777', letterSpacing: '1px' }}>SAVED ADDRESSES</span>
-                        <button onClick={() => setShowAddressPopup(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', background: 'transparent', border: `1px solid ${RED}`, borderRadius: 4, color: RED, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                        <button className="new-address-button" type="button" onClick={() => setShowAddressPopup(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', background: 'transparent', border: `1px solid ${RED}`, borderRadius: 4, color: RED, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                           <span style={{ fontSize: 16 }}>+</span> New Address
                         </button>
                       </div>
-                      <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div className="saved-address-body" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                             <span style={{ fontSize: 14, fontWeight: 700, color: DARK }}>{savedAddress.name.toUpperCase()}</span>
@@ -640,9 +984,9 @@ const options = {
                           </div>
                           <div style={{ fontSize: 13, color: MUTED }}>{savedAddress.address}{savedAddress.locality ? `, ${savedAddress.locality}` : ''} {savedAddress.city}, {savedAddress.state} {savedAddress.pincode}</div>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0, marginLeft: 16 }}>
+                        <div className="saved-address-actions" style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0, marginLeft: 16 }}>
                           <button onClick={() => setShowAddressPopup(true)} style={{ padding: '7px 18px', background: '#fff', border: '1px solid #e2d9d0', borderRadius: 4, color: DARK, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Edit Address</button>
-                          <button disabled={placing} onClick={handlePlaceOrder} style={{ padding: '8px 18px', background: placing ? '#ccc' : RED, border: 'none', borderRadius: 4, color: '#fff', fontSize: 12, fontWeight: 700, cursor: placing ? 'not-allowed' : 'pointer' }}>{placing ? 'Processing...' : 'Use This Address'}</button>
+                          <button className="address-use-button" disabled={placing} onClick={handlePlaceOrder} style={{ padding: '8px 18px', background: placing ? '#ccc' : RED, border: 'none', borderRadius: 4, color: '#fff', fontSize: 12, fontWeight: 700, cursor: placing ? 'not-allowed' : 'pointer' }}>{placing ? 'Processing...' : 'Use This Address'}</button>
                         </div>
                       </div>
                     </div>
@@ -658,18 +1002,18 @@ const options = {
               </div>
 
               {/* GIFTCARDS */}
-              <div style={{ display: 'flex', gap: 20 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 4 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#f7f4f0', border: '1px solid #e2d9d0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div className="delivery-step" style={{ display: 'flex', gap: 20 }}>
+                <div className="delivery-step-marker-wrap" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 4 }}>
+                  <div className="delivery-step-marker" style={{ width: 44, height: 44, borderRadius: '50%', background: '#f7f4f0', border: '1px solid #e2d9d0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
                     </svg>
                   </div>
                 </div>
-                <div style={{ flex: 1 }}>
+                <div className="delivery-content" style={{ flex: 1 }}>
                   <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700, color: DARK }}>GIFTCARDS AND VOUCHERS</h3>
                   <p style={{ margin: '0 0 12px', fontSize: 13, color: MUTED }}>Apply DigiGold, NeuCoins, GiftCards/E-Gift Cards, E-Vouchers, Discount Vouchers etc.</p>
-                  <div style={{ background: '#f7f4f0', border: '1px solid #e2d9d0', borderRadius: 6, padding: '14px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div className="voucher-card" role="button" tabIndex={0} style={{ background: '#f7f4f0', border: '1px solid #e2d9d0', borderRadius: 6, padding: '14px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: 13, color: MUTED }}>Coupons and Vouchers</span>
                     <span style={{ color: MUTED }}>›</span>
                   </div>
@@ -680,9 +1024,12 @@ const options = {
           </div>
 
           {/* Bottom bar */}
-          <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#fff', borderTop: '1px solid #e2d9d0', padding: '16px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100, boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: RED }}>Total ({qty} Item{qty > 1 ? 's' : ''}) : {inr(totalPrice)}</div>
-           <button className="oc-btn" disabled={!savedAddress || placing} onClick={handlePlaceOrder}
+          <div className="checkout-actionbar" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#fff', borderTop: '1px solid #e2d9d0', padding: '16px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100, boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
+            <div>
+              <div className="checkout-total-label">Final payable · {isCartCheckout ? cartQuantity : qty} item{(isCartCheckout ? cartQuantity : qty) > 1 ? 's' : ''}</div>
+              <div className="checkout-total-value" style={{ fontSize: 16, fontWeight: 700, color: RED }}>{inr(totalPrice)}</div>
+            </div>
+           <button className="oc-btn checkout-buy" disabled={!savedAddress || placing} onClick={handlePlaceOrder}
               style={{ padding: '14px 32px', background: (savedAddress && !placing) ? RED : '#ccc', border: 'none', borderRadius: 2, color: '#fff', fontWeight: 700, fontSize: 13, letterSpacing: '1px', textTransform: 'uppercase', cursor: (savedAddress && !placing) ? 'pointer' : 'not-allowed' }}>
               {placing ? 'Processing...' : 'Proceed To Buy'}
             </button>
@@ -871,7 +1218,7 @@ const options = {
 
           {/* Bottom bar */}
           <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#fff', borderTop: '1px solid #e2d9d0', padding: '16px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100, boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: RED }}>Total ({qty} Item{qty > 1 ? 's' : ''}) : {inr(totalPrice)}</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: RED }}>Total ({isCartCheckout ? cartQuantity : qty} Item{(isCartCheckout ? cartQuantity : qty) > 1 ? 's' : ''}) : {inr(totalPrice)}</div>
             <button onClick={() => setStep(2)} style={{ padding: '10px 20px', background: 'transparent', border: `1px solid ${RED}`, borderRadius: 2, color: RED, fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>← Checkout Page</button>
           </div>
           <div style={{ height: 80 }} />

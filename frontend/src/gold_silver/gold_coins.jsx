@@ -222,7 +222,7 @@ return (
             </button>
           </div>
         ) : (
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'20px' }}>
             {products.map(p => {
   const images = p.images?.map(img => getImageUrl(img)).filter(Boolean) || []
   const isHovered = hoveredId === p.id

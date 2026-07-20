@@ -139,7 +139,7 @@ const collections = [
           </p>
         </div>
 
-<div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 20 }}>
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 20 }}>
   {collections.map((col) => (
     <div
       key={col.id}

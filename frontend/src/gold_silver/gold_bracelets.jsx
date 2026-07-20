@@ -164,7 +164,7 @@ const inpBorder = '#d1d5db'
 
 
         {/* Bracelet Cards Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '28px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '28px' }}>
           {loading ? (
             <div style={{ gridColumn: 'span 3', textAlign: 'center', color: subtext, padding: '60px 0', fontSize: '15px' }}>
               ⏳ Loading products...

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
 import logo from '../assets/logo.png'
-import goldCoin from '../assets/gold-coin.png'
+import goldCoin from '../assets/gold-coin-transparent.png'
 import silverCoin from '../assets/silver-coin.png'
 
 const OCCUPATIONS = ['employee', 'business', 'others']
@@ -23,7 +23,7 @@ const PARTICLES = Array.from({ length: 15 }, (_, i) => ({
   delay: Math.random() * 8, duration: Math.random() * 12 + 15, opacity: Math.random() * 0.2 + 0.05,
 }))
 
-const SD_COLORS = ['#f59e0b', '#22d3ee', '#a78bfa', '#f472b6']
+const SD_COLORS = ['#BB8958', '#BDCFCE', '#CCA881', '#C92035']
 
 let _sdPopupEl = null
 let _sdHideTimer = null
@@ -45,25 +45,25 @@ function createSubDealerPopup(sd, i, anchorEl, dark, subtext, text, currentDeale
   removeSubDealerPopup()
   const c = SD_COLORS[i % SD_COLORS.length]
 
-  const popupBg = dark ? 'linear-gradient(160deg,#0d1a0d,#060e1c)' : 'linear-gradient(160deg,#ffffff,#f1f5f9)'
-  const popupBorder = dark ? 'rgba(245,158,11,0.25)' : 'rgba(245,158,11,0.35)'
-  const accentColor = dark ? '#f59e0b' : '#d97706'
+  const popupBg = dark ? 'linear-gradient(160deg,#F3F3F0,#E7EDEC)' : 'linear-gradient(160deg,#FDFDFC,#E7EDEC)'
+  const popupBorder = dark ? 'rgba(187,137,88,0.25)' : 'rgba(187,137,88,0.35)'
+  const accentColor = dark ? '#BB8958' : '#9F6130'
 
   // Super Admin box
-  const saBoxBg = dark ? 'rgba(255,215,0,0.05)' : 'rgba(255,193,7,0.08)'
-  const saBoxBorder = dark ? 'rgba(255,215,0,0.22)' : 'rgba(255,193,7,0.35)'
+  const saBoxBg = dark ? 'rgba(204,168,129,0.05)' : 'rgba(204,168,129,0.08)'
+  const saBoxBorder = dark ? 'rgba(204,168,129,0.22)' : 'rgba(204,168,129,0.35)'
 
   // Admin box
-  const adminBoxBg = dark ? 'rgba(74,222,128,0.05)' : 'rgba(16,185,129,0.05)'
-  const adminBoxBd = dark ? 'rgba(74,222,128,0.2)' : 'rgba(16,185,129,0.2)'
+  const adminBoxBg = dark ? 'rgba(12,64,68,0.05)' : 'rgba(204,168,129,0.05)'
+  const adminBoxBd = dark ? 'rgba(12,64,68,0.2)' : 'rgba(204,168,129,0.2)'
 
   // Dealer box
-  const dealerBoxBg = dark ? 'rgba(245,158,11,0.05)' : 'rgba(245,158,11,0.08)'
-  const dealerBoxBd = dark ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.3)'
+  const dealerBoxBg = dark ? 'rgba(187,137,88,0.05)' : 'rgba(187,137,88,0.08)'
+  const dealerBoxBd = dark ? 'rgba(187,137,88,0.2)' : 'rgba(187,137,88,0.3)'
 
   // Sub Dealer box
-  const sdBoxBg = dark ? 'rgba(34,211,238,0.04)' : 'rgba(37,99,235,0.05)'
-  const sdBoxBd = dark ? 'rgba(34,211,238,0.14)' : 'rgba(37,99,235,0.2)'
+  const sdBoxBg = dark ? 'rgba(189,207,206,0.04)' : 'rgba(12,64,68,0.05)'
+  const sdBoxBd = dark ? 'rgba(189,207,206,0.14)' : 'rgba(12,64,68,0.2)'
 
   const el = document.createElement('div')
   el.id = 'sd-popup'
@@ -71,7 +71,7 @@ function createSubDealerPopup(sd, i, anchorEl, dark, subtext, text, currentDeale
     position:fixed; z-index:9999;
     background:${popupBg}; border:1px solid ${popupBorder};
     border-radius:14px; padding:14px;
-    box-shadow:0 16px 48px rgba(0,0,0,0.45);
+    box-shadow:0 16px 48px rgba(17,24,23,0.45);
     animation:sdPopupIn 0.25s cubic-bezier(0.22,1,0.36,1) both;
     min-width:210px; max-width:260px;
     display:flex; flex-direction:column; align-items:stretch;
@@ -85,23 +85,23 @@ function createSubDealerPopup(sd, i, anchorEl, dark, subtext, text, currentDeale
 
     <!-- Super Admin -->
     <div style="border-radius:9px;padding:10px;margin-bottom:6px;background:${saBoxBg};border:1px solid ${saBoxBorder};">
-      <div style="display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(255,215,0,0.12);color:#ffd700;border:1px solid rgba(255,215,0,0.3);margin-bottom:6px;">🛡️ SUPER ADMIN</div>
+      <div style="display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(204,168,129,0.12);color:#CCA881;border:1px solid rgba(204,168,129,0.3);margin-bottom:6px;">🛡️ SUPER ADMIN</div>
       <div style="font-size:11px;color:${subtext};word-break:break-all;">${localStorage.getItem('superAdminEmail') || localStorage.getItem('email') || '—'}</div>
-      <div style="margin-top:5px;font-size:9px;padding:2px 7px;background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.25);border-radius:20px;color:#ffd700;display:inline-block;">● ONLINE</div>
+      <div style="margin-top:5px;font-size:9px;padding:2px 7px;background:rgba(204,168,129,0.1);border:1px solid rgba(204,168,129,0.25);border-radius:20px;color:#CCA881;display:inline-block;">● ONLINE</div>
     </div>
 
     <!-- Arrow SA → Admin -->
     <div style="display:flex;justify-content:center;padding:3px 0;">
       <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-        <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid #ffd700;"></div>
-        <div style="width:2px;height:7px;background:linear-gradient(180deg,#ffd700,#ffd70044);"></div>
+        <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid #CCA881;"></div>
+        <div style="width:2px;height:7px;background:linear-gradient(180deg,#CCA881,#CCA88144);"></div>
       </div>
     </div>
 
     <!-- Admin -->
     <div style="border-radius:9px;padding:10px;margin-bottom:6px;background:${adminBoxBg};border:1px solid ${adminBoxBd};">
-      <div style="display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.3);margin-bottom:6px;">🛡️ ADMIN</div>
-      <div style="font-size:10px;color:#4ade80;font-family:monospace;margin-bottom:3px;">${currentDealer?.admin_id}</div>
+      <div style="display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(12,64,68,0.12);color:#0C4044;border:1px solid rgba(12,64,68,0.3);margin-bottom:6px;">🛡️ ADMIN</div>
+      <div style="font-size:10px;color:#0C4044;font-family:monospace;margin-bottom:3px;">${currentDealer?.admin_id}</div>
      <div style="font-size:13px;font-weight:700;color:${text};margin-bottom:5px;">${currentDealer?.admin_name}</div>
      <div style="font-size:11px;color:${subtext};margin-bottom:2px;">📞 ${currentDealer?.admin_contact_no}</div>
     </div>
@@ -109,15 +109,15 @@ function createSubDealerPopup(sd, i, anchorEl, dark, subtext, text, currentDeale
     <!-- Arrow Admin → Dealer -->
     <div style="display:flex;justify-content:center;padding:3px 0;">
       <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-        <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid #4ade80;"></div>
-        <div style="width:2px;height:7px;background:linear-gradient(180deg,#4ade80,#4ade8044);"></div>
+        <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid #0C4044;"></div>
+        <div style="width:2px;height:7px;background:linear-gradient(180deg,#0C4044,#0C404444);"></div>
       </div>
     </div>
 
     <!-- Dealer -->
     <div style="border-radius:9px;padding:10px;margin-bottom:6px;background:${dealerBoxBg};border:1px solid ${dealerBoxBd};">
-      <div style="display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(245,158,11,0.12);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);margin-bottom:6px;">🏪 DEALER</div>
-      <div style="font-size:10px;color:#f59e0b;font-family:monospace;margin-bottom:3px;">${currentDealer?.dealer_id}</div>
+      <div style="display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(187,137,88,0.12);color:#BB8958;border:1px solid rgba(187,137,88,0.3);margin-bottom:6px;">🏪 DEALER</div>
+      <div style="font-size:10px;color:#BB8958;font-family:monospace;margin-bottom:3px;">${currentDealer?.dealer_id}</div>
 <div style="font-size:13px;font-weight:700;color:${text};margin-bottom:5px;">${currentDealer?.dealer_name}</div>
 <div style="font-size:11px;color:${subtext};margin-bottom:2px;">📞 ${currentDealer?.mobile_number}</div>
 <div style="font-size:11px;color:${subtext};">📍 ${currentDealer?.city_name}</div>
@@ -133,7 +133,7 @@ function createSubDealerPopup(sd, i, anchorEl, dark, subtext, text, currentDeale
 
     <!-- Sub Dealer -->
     <div style="background:${sdBoxBg};border:1px solid ${sdBoxBd};border-radius:10px;padding:10px;">
-      <div style="display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(34,211,238,0.12);color:#22d3ee;border:1px solid rgba(34,211,238,0.25);margin-bottom:6px;">SUB DEALER</div>
+      <div style="display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(189,207,206,0.12);color:#BDCFCE;border:1px solid rgba(189,207,206,0.25);margin-bottom:6px;">SUB DEALER</div>
       <div style="font-size:10px;color:${c};font-family:monospace;margin-bottom:3px;">${sd.sub_dealer_id}</div>
       <div style="font-size:14px;font-weight:700;color:${text};margin-bottom:6px;">${sd.first_name || sd.name}</div>
       <div style="font-size:11px;color:${subtext};margin-bottom:2px;">📞 ${sd.mobile_number}</div>
@@ -167,12 +167,12 @@ function hexToRgb(hex) {
 }
 
 // ── Tree colors ──
-const DL_TREE_COLORS = ['#f59e0b','#22d3ee','#a78bfa','#f472b6','#4ade80','#60a5fa']
+const DL_TREE_COLORS = ['#BB8958','#BDCFCE','#CCA881','#C92035','#0C4044','#BDCFCE']
 
 const DL_ROLE_CFG = {
-  sub_dealer: { color:'#22d3ee', label:'🔗 SUB DEALER', idKey:'sub_dealer_id' },
-  promotor:   { color:'#a78bfa', label:'🌟 PROMOTOR',   idKey:'promotor_id' },
-  customer:   { color:'#f472b6', label:'👤 CUSTOMER',   idKey:'customer_id' },
+  sub_dealer: { color:'#BDCFCE', label:'🔗 SUB DEALER', idKey:'sub_dealer_id' },
+  promotor:   { color:'#CCA881', label:'🌟 PROMOTOR',   idKey:'promotor_id' },
+  customer:   { color:'#C92035', label:'👤 CUSTOMER',   idKey:'customer_id' },
 }
 
 // ── Chain popup globals ──
@@ -189,12 +189,12 @@ function showDLChainPopup(anchorEl, ancestors, current, dark, text, subtext, dea
   removeDLChainPopup()
 
   const CHAIN_LABELS = {
-    super_admin: { emoji: '🛡️', label: 'SUPER ADMIN', color: '#ffd700', idKey: null },
-    admin:       { emoji: '🛡️', label: 'ADMIN',       color: '#4ade80', idKey: 'admin_id' },
-    dealer:      { emoji: '🏪', label: 'DEALER',       color: '#f59e0b', idKey: 'dealer_id' },
-    sub_dealer:  { emoji: '🔗', label: 'SUB DEALER',   color: '#22d3ee', idKey: 'sub_dealer_id' },
-    promotor:    { emoji: '🌟', label: 'PROMOTOR',     color: '#a78bfa', idKey: 'promotor_id' },
-    customer:    { emoji: '👤', label: 'CUSTOMER',     color: '#f472b6', idKey: 'customer_id' },
+    super_admin: { emoji: '🛡️', label: 'SUPER ADMIN', color: '#CCA881', idKey: null },
+    admin:       { emoji: '🛡️', label: 'ADMIN',       color: '#0C4044', idKey: 'admin_id' },
+    dealer:      { emoji: '🏪', label: 'DEALER',       color: '#BB8958', idKey: 'dealer_id' },
+    sub_dealer:  { emoji: '🔗', label: 'SUB DEALER',   color: '#BDCFCE', idKey: 'sub_dealer_id' },
+    promotor:    { emoji: '🌟', label: 'PROMOTOR',     color: '#CCA881', idKey: 'promotor_id' },
+    customer:    { emoji: '👤', label: 'CUSTOMER',     color: '#C92035', idKey: 'customer_id' },
   }
 
   const chain = [
@@ -217,10 +217,10 @@ function showDLChainPopup(anchorEl, ancestors, current, dark, text, subtext, dea
     s.id = 'dl-chain-popup-styles'
     s.textContent = `
       #dl-chain-popup::-webkit-scrollbar{width:6px}
-      #dl-chain-popup::-webkit-scrollbar-track{background:rgba(255,255,255,0.03);border-radius:10px;margin:4px 0}
-      #dl-chain-popup::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#f59e0b,#22d3ee);border-radius:10px;box-shadow:0 0 6px rgba(245,158,11,0.4)}
-      #dl-chain-popup::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#fcd34d,#67e8f9)}
-      #dl-chain-popup{scrollbar-color:rgba(245,158,11,0.5) rgba(255,255,255,0.03)}
+      #dl-chain-popup::-webkit-scrollbar-track{background:rgba(253,253,252,0.03);border-radius:10px;margin:4px 0}
+      #dl-chain-popup::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#BB8958,#BDCFCE);border-radius:10px;box-shadow:0 0 6px rgba(187,137,88,0.4)}
+      #dl-chain-popup::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#fcd34d,#D1DFDE)}
+      #dl-chain-popup{scrollbar-color:rgba(187,137,88,0.5) rgba(253,253,252,0.03)}
     `
     document.head.appendChild(s)
   }
@@ -228,12 +228,12 @@ function showDLChainPopup(anchorEl, ancestors, current, dark, text, subtext, dea
   const isDark = dark
   el.style.cssText = `
     position:fixed; z-index:9999;
-    background:${isDark ? 'rgba(5,10,20,0.97)' : 'rgba(248,250,252,0.98)'};
-    border:1px solid ${isDark ? 'rgba(245,158,11,0.22)' : 'rgba(245,158,11,0.28)'};
+    background:${isDark ? 'rgba(7,59,63,0.97)' : 'rgba(248,250,252,0.98)'};
+    border:1px solid ${isDark ? 'rgba(187,137,88,0.22)' : 'rgba(187,137,88,0.28)'};
     border-radius:20px; padding:20px;
     box-shadow:${isDark
-      ? '0 32px 80px rgba(0,0,0,0.85), 0 0 0 1px rgba(245,158,11,0.06), inset 0 1px 0 rgba(255,255,255,0.04)'
-      : '0 32px 80px rgba(0,0,0,0.15), 0 0 0 1px rgba(245,158,11,0.05)'};
+      ? '0 32px 80px rgba(17,24,23,0.85), 0 0 0 1px rgba(187,137,88,0.06), inset 0 1px 0 rgba(253,253,252,0.04)'
+      : '0 32px 80px rgba(17,24,23,0.15), 0 0 0 1px rgba(187,137,88,0.05)'};
     animation:acpSlideIn 0.3s cubic-bezier(0.22,1,0.36,1) both;
     min-width:200px; max-width:280px;
     max-height:85vh; overflow-y:auto; overflow-x:hidden;
@@ -255,8 +255,8 @@ function showDLChainPopup(anchorEl, ancestors, current, dark, text, subtext, dea
     const arrowHtml = idx > 0 ? `
       <div style="display:flex;justify-content:center;padding:5px 0;">
         <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
-          <div style="width:1.5px;height:16px;background:linear-gradient(180deg,rgba(245,158,11,0.65),rgba(245,158,11,0.1));"></div>
-          <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid rgba(245,158,11,0.5);"></div>
+          <div style="width:1.5px;height:16px;background:linear-gradient(180deg,rgba(187,137,88,0.65),rgba(187,137,88,0.1));"></div>
+          <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid rgba(187,137,88,0.5);"></div>
         </div>
       </div>` : ''
 
@@ -265,23 +265,23 @@ function showDLChainPopup(anchorEl, ancestors, current, dark, text, subtext, dea
         ${arrowHtml}
         <div style="
           border-radius:14px;padding:14px 16px;
-          background:${isDark ? 'linear-gradient(135deg,rgba(255,215,0,0.09),rgba(255,140,0,0.04))' : 'linear-gradient(135deg,rgba(255,215,0,0.14),rgba(255,140,0,0.06))'};
-          border:1px solid rgba(255,215,0,0.28);
+          background:${isDark ? 'linear-gradient(135deg,rgba(204,168,129,0.09),rgba(187,137,88,0.04))' : 'linear-gradient(135deg,rgba(204,168,129,0.14),rgba(187,137,88,0.06))'};
+          border:1px solid rgba(204,168,129,0.28);
           position:relative;overflow:hidden;
         ">
-          <div style="position:absolute;top:-10px;right:-10px;width:70px;height:70px;background:radial-gradient(circle,rgba(255,215,0,0.14),transparent 70%);pointer-events:none;"></div>
+          <div style="position:absolute;top:-10px;right:-10px;width:70px;height:70px;background:radial-gradient(circle,rgba(204,168,129,0.14),transparent 70%);pointer-events:none;"></div>
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-            <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#ffd700,#ff8c00);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;box-shadow:0 4px 12px rgba(255,215,0,0.35);">🛡️</div>
+            <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#CCA881,#BB8958);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;box-shadow:0 4px 12px rgba(204,168,129,0.35);">🛡️</div>
             <div>
-              <div style="font-size:9px;color:#ffd700;font-weight:800;letter-spacing:1.8px;">SUPER ADMIN</div>
-              <div style="font-size:8px;color:rgba(255,215,0,0.45);margin-top:2px;letter-spacing:0.5px;">ROOT • FULL ACCESS</div>
+              <div style="font-size:9px;color:#CCA881;font-weight:800;letter-spacing:1.8px;">SUPER ADMIN</div>
+              <div style="font-size:8px;color:rgba(204,168,129,0.45);margin-top:2px;letter-spacing:0.5px;">ROOT • FULL ACCESS</div>
             </div>
             <div style="margin-left:auto;display:flex;align-items:center;gap:5px;">
-              <div style="width:7px;height:7px;border-radius:50%;background:#4ade80;animation:acpPulse 1.8s ease-in-out infinite;box-shadow:0 0 8px rgba(74,222,128,0.9);"></div>
-              <span style="font-size:9px;color:#4ade80;font-weight:700;">LIVE</span>
+              <div style="width:7px;height:7px;border-radius:50%;background:#0C4044;animation:acpPulse 1.8s ease-in-out infinite;box-shadow:0 0 8px rgba(12,64,68,0.9);"></div>
+              <span style="font-size:9px;color:#0C4044;font-weight:700;">LIVE</span>
             </div>
           </div>
-          <div style="font-size:12px;color:${isDark ? '#cbd5e1' : '#475569'};word-break:break-all;font-family:monospace;letter-spacing:0.3px;">${item.data.email || '—'}</div>
+          <div style="font-size:12px;color:${isDark ? '#111817' : '#7A8987'};word-break:break-all;font-family:monospace;letter-spacing:0.3px;">${item.data.email || '—'}</div>
         </div>
       `
     }
@@ -322,18 +322,18 @@ function showDLChainPopup(anchorEl, ancestors, current, dark, text, subtext, dea
             white-space:nowrap;letter-spacing:0.5px;">● CURRENT</div>` : ''}
         </div>
 
-        <div style="font-size:14px;color:${isDark ? '#f1f5f9' : '#0f172a'};font-weight:700;margin-bottom:9px;letter-spacing:-0.3px;">${name}</div>
+        <div style="font-size:14px;color:${isDark ? '#E7EDEC' : '#111817'};font-weight:700;margin-bottom:9px;letter-spacing:-0.3px;">${name}</div>
 
         <div style="display:flex;flex-direction:column;gap:6px;">
           ${phone !== '—' ? `
           <div style="display:flex;align-items:center;gap:8px;">
             <div style="width:20px;height:20px;border-radius:6px;background:rgba(${rc},0.12);border:1px solid rgba(${rc},0.2);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;">📞</div>
-            <span style="font-size:12px;color:${isDark ? '#94a3b8' : '#64748b'};">${phone}</span>
+            <span style="font-size:12px;color:${isDark ? '#7A8987' : '#7A8987'};">${phone}</span>
           </div>` : ''}
           ${city ? `
           <div style="display:flex;align-items:center;gap:8px;">
             <div style="width:20px;height:20px;border-radius:6px;background:rgba(${rc},0.12);border:1px solid rgba(${rc},0.2);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;">📍</div>
-            <span style="font-size:12px;color:${isDark ? '#94a3b8' : '#64748b'};">${city}</span>
+            <span style="font-size:12px;color:${isDark ? '#7A8987' : '#7A8987'};">${city}</span>
           </div>` : ''}
         </div>
       </div>
@@ -341,28 +341,28 @@ function showDLChainPopup(anchorEl, ancestors, current, dark, text, subtext, dea
   }).join('')
 
   el.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid ${isDark ? 'rgba(245,158,11,0.1)' : 'rgba(245,158,11,0.12)'};">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid ${isDark ? 'rgba(187,137,88,0.1)' : 'rgba(187,137,88,0.12)'};">
       <div style="display:flex;align-items:center;gap:9px;">
-        <div style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#f59e0b,#22d3ee);display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 4px 10px rgba(245,158,11,0.4);">🔗</div>
+        <div style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#BB8958,#BDCFCE);display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 4px 10px rgba(187,137,88,0.4);">🔗</div>
         <div>
-          <div style="font-size:11px;color:${isDark ? '#fcd34d' : '#d97706'};font-weight:800;letter-spacing:1.8px;">HIERARCHY CHAIN</div>
-          <div style="font-size:9px;color:${isDark ? '#475569' : '#94a3b8'};margin-top:2px;">${totalNodes} level${totalNodes !== 1 ? 's' : ''} deep</div>
+          <div style="font-size:11px;color:${isDark ? '#fcd34d' : '#9F6130'};font-weight:800;letter-spacing:1.8px;">HIERARCHY CHAIN</div>
+          <div style="font-size:9px;color:${isDark ? '#7A8987' : '#7A8987'};margin-top:2px;">${totalNodes} level${totalNodes !== 1 ? 's' : ''} deep</div>
         </div>
       </div>
       <div style="
         font-size:9px;font-weight:800;padding:4px 11px;border-radius:20px;
-        background:linear-gradient(90deg,rgba(245,158,11,0.15),rgba(34,211,238,0.12),rgba(245,158,11,0.15));
+        background:linear-gradient(90deg,rgba(187,137,88,0.15),rgba(189,207,206,0.12),rgba(187,137,88,0.15));
         background-size:200% auto;
         animation:acpShimmer 2.5s linear infinite;
-        border:1px solid rgba(245,158,11,0.25);
-        color:${isDark ? '#fcd34d' : '#d97706'};
+        border:1px solid rgba(187,137,88,0.25);
+        color:${isDark ? '#fcd34d' : '#9F6130'};
         letter-spacing:1px;">● LIVE</div>
     </div>
 
     ${itemsHtml}
 
-    <div style="margin-top:14px;padding-top:12px;border-top:1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)'};">
-      <div style="font-size:9px;color:${isDark ? '#334155' : '#cbd5e1'};text-align:center;letter-spacing:0.8px;font-weight:600;">BitByte Network • Hierarchy View</div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid ${isDark ? 'rgba(253,253,252,0.04)' : 'rgba(17,24,23,0.05)'};">
+      <div style="font-size:9px;color:${isDark ? '#7A8987' : '#111817'};text-align:center;letter-spacing:0.8px;font-weight:600;">BitByte Network • Hierarchy View</div>
     </div>
   `
 
@@ -391,7 +391,7 @@ function printDLCard(node, role, color, ancestors, dealerProfile) {
     promotor:   { label:'PROMOTOR',   emoji:'🌟', idKey:'promotor_id' },
     customer:   { label:'CUSTOMER',   emoji:'👤', idKey:'customer_id' },
   }
-  const arrowDiv = `<div class="chain-arrow"><div style="display:flex;flex-direction:column;align-items:center;"><div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:9px solid #94a3b8;"></div><div style="width:2px;height:12px;background:linear-gradient(180deg,#94a3b8,rgba(148,163,184,0.2));"></div></div></div>`
+  const arrowDiv = `<div class="chain-arrow"><div style="display:flex;flex-direction:column;align-items:center;"><div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:9px solid #7A8987;"></div><div style="width:2px;height:12px;background:linear-gradient(180deg,#7A8987,rgba(122,137,135,0.2));"></div></div></div>`
 
   const chain = [
     { type:'super_admin', label:'SUPER ADMIN', emoji:'🛡️', data:{ email: localStorage.getItem('superAdminEmail') || '—' } },
@@ -427,7 +427,7 @@ function printDLCard(node, role, color, ancestors, dealerProfile) {
   const roleLabel   = ROLE_PRINT[role]?.label || role.toUpperCase()
   const win = window.open('', '_blank')
   win.document.write(`<!DOCTYPE html><html><head><title>${roleLabel} — ${currentName}</title>
-    <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Inter',system-ui,sans-serif;background:#f8fafc;padding:40px;display:flex;justify-content:center;}.wrapper{max-width:480px;width:100%;}.header{text-align:center;margin-bottom:28px;}.header h1{font-size:20px;font-weight:800;color:#020617;}.header p{font-size:12px;color:#64748b;margin-top:4px;}.chain-item{background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px 18px;}.chain-item.current{border-color:${color};background:${color}11;box-shadow:0 4px 16px ${color}22;}.chain-role{font-size:10px;font-weight:800;color:#64748b;letter-spacing:1px;margin-bottom:4px;text-transform:uppercase;}.chain-item.current .chain-role{color:${color};}.chain-id{font-family:monospace;font-size:11px;color:${color};margin-bottom:4px;}.chain-name{font-size:16px;font-weight:800;color:#020617;margin-bottom:6px;}.chain-email,.chain-info{font-size:12px;color:#475569;margin-top:3px;}.chain-arrow{display:flex;justify-content:center;padding:4px 0;}.footer{text-align:center;font-size:10px;color:#94a3b8;margin-top:24px;}@media print{body{background:white;padding:20px;}.chain-item{box-shadow:none;}}</style>
+    <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Inter',system-ui,sans-serif;background:#FDFDFC;padding:40px;display:flex;justify-content:center;}.wrapper{max-width:480px;width:100%;}.header{text-align:center;margin-bottom:28px;}.header h1{font-size:20px;font-weight:800;color:#FDFDFC;}.header p{font-size:12px;color:#7A8987;margin-top:4px;}.chain-item{background:#FDFDFC;border:1.5px solid #E7EDEC;border-radius:12px;padding:14px 18px;}.chain-item.current{border-color:${color};background:${color}11;box-shadow:0 4px 16px ${color}22;}.chain-role{font-size:10px;font-weight:800;color:#7A8987;letter-spacing:1px;margin-bottom:4px;text-transform:uppercase;}.chain-item.current .chain-role{color:${color};}.chain-id{font-family:monospace;font-size:11px;color:${color};margin-bottom:4px;}.chain-name{font-size:16px;font-weight:800;color:#FDFDFC;margin-bottom:6px;}.chain-email,.chain-info{font-size:12px;color:#7A8987;margin-top:3px;}.chain-arrow{display:flex;justify-content:center;padding:4px 0;}.footer{text-align:center;font-size:10px;color:#7A8987;margin-top:24px;}@media print{body{background:white;padding:20px;}.chain-item{box-shadow:none;}}</style>
     </head><body><div class="wrapper"><div class="header"><h1>BitByte — ${roleLabel} Profile</h1><p>Hierarchy Chain Report</p></div>${chainHtml}<div class="footer">Printed on ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'})}</div></div><script>window.onload=()=>{window.print()}<\/script></body></html>`)
   win.document.close()
 }
@@ -489,7 +489,7 @@ function DLTreeNode({ node, role, depth=0, dark, text, subtext, colorIdx=0, ance
           <div style={{ position:'absolute', top:'8px', right:'10px', color:c, fontSize:'10px', fontWeight:700, transition:'transform 0.3s ease', transform: expanded ? 'rotate(0deg)' : 'rotate(180deg)' }}>▲</div>
         )}
         {hasChildren && (
-          <div style={{ position:'absolute', bottom:'-10px', left:'50%', transform:'translateX(-50%)', background:c, color:'#000', fontSize:'9px', fontWeight:800, padding:'1px 7px', borderRadius:'20px', whiteSpace:'nowrap' }}>
+          <div style={{ position:'absolute', bottom:'-10px', left:'50%', transform:'translateX(-50%)', background:c, color:'#FDFDFC', fontSize:'9px', fontWeight:800, padding:'1px 7px', borderRadius:'20px', whiteSpace:'nowrap' }}>
             {children.length} {childRole?.replace('_',' ')}
           </div>
         )}
@@ -529,7 +529,7 @@ function DLTreeNode({ node, role, depth=0, dark, text, subtext, colorIdx=0, ance
 
 export default function DealerDashboard() {
   const navigate = useNavigate()
-  const [dark, setDark] = useState(true)
+  const [dark, setDark] = useState(false)
   const [subDealers, setSubDealers] = useState([])
   const [dealers, setDealers] = useState([])
   const [myProfile, setMyProfile] = useState(null)       // ← current dealer's full profile
@@ -573,19 +573,18 @@ const [replyPopupPos, setReplyPopupPos] = useState({ top: 0, left: 0 })
 const wishTimerRef = useRef(null)
 
   const canvasRef = useRef(null)
-
-  const bg = dark ? '#020617' : '#f8fafc'
-  const text = dark ? '#f8fafc' : '#020617'
-  const subtext = dark ? '#94a3b8' : '#64748b'
-  const accent = dark ? '#22d3ee' : '#2563eb'
-  const border = dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-  const glass = dark ? 'rgba(15, 23, 42, 0.65)' : 'rgba(255, 255, 255, 0.7)'
-  const cardBg = dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'
-  const cardBorder = dark ? '1px solid rgba(103,232,249,0.1)' : '1px solid rgba(0,0,0,0.1)'
-  const inpBg = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
-  const inpBorder = dark ? '#374151' : '#d1d5db'
-  const optionBg = dark ? '#1a2035' : '#ffffff'
-  const selectInput = { width: '100%', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '10px', padding: '12px 16px', color: text, fontSize: '14px', outline: 'none', boxSizing: 'border-box', cursor: 'pointer' }
+  const bg = dark ? '#073B3F' : '#FDFDFC'
+  const text = dark ? '#FDFDFC' : '#111817'
+  const subtext = dark ? '#D1DFDE' : '#7A8987'
+  const accent = dark ? '#CCA881' : '#0C4044'
+  const border = dark ? 'rgba(209,223,222,0.22)' : 'rgba(189,207,206,0.78)'
+  const glass = dark ? 'rgba(7,59,63,0.9)' : 'rgba(253,253,252,0.92)'
+  const cardBg = dark ? 'rgba(12,64,68,0.88)' : 'rgba(253,253,252,0.96)'
+  const cardBorder = dark ? '1px solid rgba(209,223,222,0.22)' : '1px solid rgba(189,207,206,0.72)'
+  const inpBg = dark ? 'rgba(253,253,252,0.08)' : '#FDFDFC'
+  const inpBorder = dark ? 'rgba(209,223,222,0.24)' : '#BDCFCE'
+  const optionBg = dark ? '#073B3F' : '#F3F3F0'
+  const selectInput = { width: '100%', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '12px', padding: '13px 16px', color: text, fontSize: '14px', outline: 'none', boxSizing: 'border-box', cursor: 'pointer' }
 
   // Particle canvas
   useEffect(() => {
@@ -628,7 +627,7 @@ const wishTimerRef = useRef(null)
   }                          // ← update() ends here
 
 draw() {
-  ctx.fillStyle = dark ? 'rgba(34, 211, 238, 0.9)' : 'rgba(37, 99, 235, 0.8)'
+  ctx.fillStyle = dark ? 'rgba(189, 207, 206, 0.9)' : 'rgba(12, 64, 68, 0.8)'
   ctx.save()
   ctx.translate(this.x, this.y)
   ctx.beginPath()
@@ -654,7 +653,7 @@ draw() {
     function connect() {
       for (let a = 0; a < particlesArray.length; a++) for (let b = a; b < particlesArray.length; b++) {
         let dx = particlesArray[a].x - particlesArray[b].x, dy = particlesArray[a].y - particlesArray[b].y, d = Math.sqrt(dx * dx + dy * dy)
-        if (d < 150) { ctx.strokeStyle = dark ? `rgba(245,158,11,${1 - d / 150})` : `rgba(245,158,11,${0.5 - d / 300})`; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(particlesArray[a].x, particlesArray[a].y); ctx.lineTo(particlesArray[b].x, particlesArray[b].y); ctx.stroke() }
+        if (d < 150) { ctx.strokeStyle = dark ? `rgba(187,137,88,${1 - d / 150})` : `rgba(187,137,88,${0.5 - d / 300})`; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(particlesArray[a].x, particlesArray[a].y); ctx.lineTo(particlesArray[b].x, particlesArray[b].y); ctx.stroke() }
       }
     }
     function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particlesArray.forEach(p => { p.update(); p.draw() }); connect(); animationFrameId = requestAnimationFrame(animate) }
@@ -680,7 +679,7 @@ draw() {
         const orbitRadius = maxDim * this.distFactor
         const x = centerX + Math.cos(this.angle) * orbitRadius
         const y = centerY + Math.sin(this.angle) * orbitRadius
-        x2.strokeStyle = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
+        x2.strokeStyle = dark ? 'rgba(253,253,252,0.04)' : 'rgba(17,24,23,0.04)'
         x2.lineWidth = 1
         x2.beginPath()
         x2.arc(centerX, centerY, orbitRadius, 0, Math.PI * 2)
@@ -1029,40 +1028,40 @@ const handleSubmit = async e => {
   }
 }
 
-  const card = { background: cardBg, border: cardBorder, borderRadius: '20px', padding: '32px 36px', marginBottom: '24px' }
-  const secHead = (color = '#fcd34d') => ({ color, fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 20px', paddingBottom: '14px', borderBottom: cardBorder })
-  const secLabel = (color = '#fcd34d') => ({ color, fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '4px 0 0', paddingBottom: '10px', borderBottom: cardBorder })
-  const inp = { width: '100%', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '10px', padding: '12px 16px', color: text, fontSize: '14px', outline: 'none', boxSizing: 'border-box' }
+  const card = { background: cardBg, border: cardBorder, borderRadius: '22px', padding: '34px 38px', marginBottom: '26px', boxShadow: dark ? '0 26px 70px rgba(17,24,23,0.18)' : '0 22px 58px rgba(7,59,63,0.08)', backdropFilter: 'blur(18px)' }
+  const secHead = (color = '#fcd34d') => ({ color, fontSize: '13px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 20px', paddingBottom: '14px', borderBottom: cardBorder })
+  const secLabel = (color = '#fcd34d') => ({ color, fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '4px 0 0', paddingBottom: '10px', borderBottom: cardBorder })
+  const inp = { width: '100%', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '12px', padding: '13px 16px', color: text, fontSize: '14px', outline: 'none', boxSizing: 'border-box' }
   const lbl = { display: 'block', color: subtext, fontSize: '12px', marginBottom: '7px', textTransform: 'uppercase', letterSpacing: '0.04em' }
 
   return (
-    <div style={{ minHeight: '100vh', background: bg, color: text, transition: 'background 0.8s ease, color 0.4s ease', fontFamily: '"Inter",system-ui,sans-serif', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ minHeight: '100vh', background: dark ? bg : 'linear-gradient(135deg,#FDFDFC 0%,#F3F3F0 46%,#E7EDEC 100%)', color: text, transition: 'background 0.8s ease, color 0.4s ease', fontFamily: '"Inter",system-ui,sans-serif', position: 'relative', overflow: 'hidden' }}>
       <style>{`
         @keyframes float-orb{0%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-50px) scale(1.1)}66%{transform:translate(-20px,20px) scale(0.9)}100%{transform:translate(0,0) scale(1)}}
         @keyframes antigravity{0%{transform:translateY(110vh) rotate(0deg);opacity:0}10%{opacity:var(--op)}90%{opacity:var(--op)}100%{transform:translateY(-20vh) rotate(360deg);opacity:0}}
         @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
         @keyframes sdPopupIn{from{opacity:0;transform:translateY(8px) scale(0.97);}to{opacity:1;transform:translateY(0) scale(1);}}
-        @keyframes sdPulseGlow{0%,100%{box-shadow:0 0 8px rgba(245,158,11,0.15);}50%{box-shadow:0 0 22px rgba(245,158,11,0.35);}}
+        @keyframes sdPulseGlow{0%,100%{box-shadow:0 0 8px rgba(187,137,88,0.15);}50%{box-shadow:0 0 22px rgba(187,137,88,0.35);}}
         @keyframes sdDotPulse{0%,100%{transform:scale(1);opacity:0.7;}50%{transform:scale(1.6);opacity:1;}}
         @keyframes dlPopupIn{from{opacity:0;transform:translateY(8px) scale(0.97);}to{opacity:1;transform:translateY(0) scale(1);}}
         @keyframes sdDotPulse{0%,100%{transform:scale(1);opacity:0.7;}50%{transform:scale(1.6);opacity:1;}}
         @keyframes acpSlideIn{from{opacity:0;transform:translateX(18px) scale(0.95)}to{opacity:1;transform:translateX(0) scale(1)}}
         @keyframes acpPulse{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
-        @keyframes acpGlow{0%,100%{box-shadow:0 0 0px rgba(245,158,11,0)}50%{box-shadow:0 0 20px rgba(245,158,11,0.22)}}
+        @keyframes acpGlow{0%,100%{box-shadow:0 0 0px rgba(187,137,88,0)}50%{box-shadow:0 0 20px rgba(187,137,88,0.22)}}
         @keyframes acpShimmer{0%{background-position:-200% center}100%{background-position:200% center}}
         @keyframes acpBadgePop{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}}
-        .dl-inp:focus{border-color:#f59e0b !important}
+        .dl-inp:focus{border-color:#BB8958 !important}
         .dl-grad-btn{position:relative;overflow:hidden}
-        .dl-grad-btn::after{content:"";position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);transform:translateX(-100%)}
+        .dl-grad-btn::after{content:"";position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(253,253,252,.2),transparent);transform:translateX(-100%)}
         .dl-grad-btn:hover::after{animation:shimmer 1s infinite}
-        .dl-tr:hover td{background:rgba(255,255,255,.02)}
-        .sd-card{background:rgba(255,255,255,0.03);border:1px solid rgba(245,158,11,0.18);border-radius:14px;padding:14px 18px;min-width:140px;cursor:pointer;position:relative;overflow:hidden;transition:background 0.35s ease,border-color 0.35s ease,transform 0.4s cubic-bezier(0.34,1.4,0.64,1),box-shadow 0.35s ease;}
-        .sd-card.sd-active{background:rgba(245,158,11,0.07);border-color:rgba(245,158,11,0.65);transform:translateY(-6px) scale(1.02);box-shadow:0 12px 32px rgba(245,158,11,0.18);animation:sdPulseGlow 2.5s ease-in-out infinite;}
+        .dl-tr:hover td{background:rgba(253,253,252,.02)}
+        .sd-card{background:rgba(253,253,252,0.03);border:1px solid rgba(187,137,88,0.18);border-radius:14px;padding:14px 18px;min-width:140px;cursor:pointer;position:relative;overflow:hidden;transition:background 0.35s ease,border-color 0.35s ease,transform 0.4s cubic-bezier(0.34,1.4,0.64,1),box-shadow 0.35s ease;}
+        .sd-card.sd-active{background:rgba(187,137,88,0.07);border-color:rgba(187,137,88,0.65);transform:translateY(-6px) scale(1.02);box-shadow:0 12px 32px rgba(187,137,88,0.18);animation:sdPulseGlow 2.5s ease-in-out infinite;}
         #dl-wish-popup::-webkit-scrollbar{width:5px}
-#dl-wish-popup::-webkit-scrollbar-track{background:rgba(245,158,11,0.05);border-radius:10px;margin:4px 0}
-#dl-wish-popup::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#f59e0b,#22d3ee);border-radius:10px;box-shadow:0 0 6px rgba(245,158,11,0.4)}
-#dl-wish-popup::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#fcd34d,#67e8f9)}
-#dl-wish-popup{scrollbar-color:rgba(245,158,11,0.5) rgba(245,158,11,0.03)}
+#dl-wish-popup::-webkit-scrollbar-track{background:rgba(187,137,88,0.05);border-radius:10px;margin:4px 0}
+#dl-wish-popup::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#BB8958,#BDCFCE);border-radius:10px;box-shadow:0 0 6px rgba(187,137,88,0.4)}
+#dl-wish-popup::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#fcd34d,#D1DFDE)}
+#dl-wish-popup{scrollbar-color:rgba(187,137,88,0.5) rgba(187,137,88,0.03)}
 @keyframes wishPopupIn{from{opacity:0;transform:translate(-50%,calc(-100% + 8px)) scale(0.95)}to{opacity:1;transform:translate(-50%,calc(-100% - 10px)) scale(1)}}
 @keyframes coinFadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes coinSpin{0%,100%{transform:rotateY(0deg)}40%{transform:rotateY(180deg)}60%{transform:rotateY(180deg)}}
@@ -1072,8 +1071,8 @@ const handleSubmit = async e => {
       `}</style>
 
       <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, pointerEvents: 'none', zIndex: 1, opacity: 0.45 }} />
-      <div style={{ position: 'absolute', borderRadius: '50%', filter: 'blur(80px)', animation: 'float-orb 20s infinite ease-in-out', zIndex: 0, top: '8%', left: '8%', width: '380px', height: '380px', background: dark ? 'rgba(245,158,11,0.07)' : 'rgba(245,158,11,0.06)' }} />
-      <div style={{ position: 'absolute', borderRadius: '50%', filter: 'blur(80px)', animation: 'float-orb 20s infinite ease-in-out', zIndex: 0, bottom: '10%', right: '4%', width: '460px', height: '460px', background: dark ? 'rgba(34,211,238,0.05)' : 'rgba(34,211,238,0.04)', animationDelay: '-5s' }} />
+      <div style={{ position: 'absolute', borderRadius: '50%', filter: 'blur(80px)', animation: 'float-orb 20s infinite ease-in-out', zIndex: 0, top: '8%', left: '8%', width: '380px', height: '380px', background: dark ? 'rgba(187,137,88,0.07)' : 'rgba(187,137,88,0.06)' }} />
+      <div style={{ position: 'absolute', borderRadius: '50%', filter: 'blur(80px)', animation: 'float-orb 20s infinite ease-in-out', zIndex: 0, bottom: '10%', right: '4%', width: '460px', height: '460px', background: dark ? 'rgba(189,207,206,0.05)' : 'rgba(189,207,206,0.04)', animationDelay: '-5s' }} />
 
       {PARTICLES.map(p => (
         <div key={p.id} style={{ position: 'absolute', left: `${p.x}%`, bottom: '-100px', width: p.size, height: p.size, borderRadius: '40% 60% 60% 40% / 40% 40% 60% 60%', border: `1px solid ${accent}44`, opacity: p.opacity, animation: `antigravity ${p.duration}s ${p.delay}s infinite linear`, '--op': p.opacity, pointerEvents: 'none', zIndex: 0 }} />
@@ -1090,21 +1089,21 @@ const handleSubmit = async e => {
 {/* 👤 Profile Icon */}
 <div
   onClick={() => { setShowProfile(true) }}
-  style={{ cursor: 'pointer', width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg,rgba(245,158,11,0.25),rgba(34,211,238,0.15))', border: '2px solid rgba(245,158,11,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', transition: 'all 0.25s ease' }}
-  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(245,158,11,0.3)'; e.currentTarget.style.borderColor = 'rgba(245,158,11,0.9)' }}
-  onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(245,158,11,0.5)' }}
+  style={{ cursor: 'pointer', width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg,rgba(187,137,88,0.25),rgba(189,207,206,0.15))', border: '2px solid rgba(187,137,88,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', transition: 'all 0.25s ease' }}
+  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(187,137,88,0.3)'; e.currentTarget.style.borderColor = 'rgba(187,137,88,0.9)' }}
+  onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(187,137,88,0.5)' }}
   title="View Profile"
 >🏪</div>    
       {/* 📢 Announcement Bell */}
 <div
   onClick={() => { setShowAnnouncements(true); localStorage.setItem('dealerAnnouncementSeen', Date.now().toString()); setUnreadCount(0) }}
-  style={{ position: 'relative', cursor: 'pointer', padding: '6px', borderRadius: '10px', border: '1px solid rgba(245,158,11,0.35)', background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.25s ease' }}
-  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(245,158,11,0.25)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
-  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(245,158,11,0.1)'; e.currentTarget.style.transform = 'translateY(0)' }}
+  style={{ position: 'relative', cursor: 'pointer', padding: '6px', borderRadius: '10px', border: '1px solid rgba(187,137,88,0.35)', background: 'rgba(187,137,88,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.25s ease' }}
+  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(187,137,88,0.25)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(187,137,88,0.1)'; e.currentTarget.style.transform = 'translateY(0)' }}
 >
   <span style={{ fontSize: '18px', lineHeight: 1 }}>📢</span>
   {unreadCount > 0 && (
-    <div style={{ position: 'absolute', top: '-7px', right: '-7px', background: 'linear-gradient(135deg,#f59e0b,#fcd34d)', color: '#000', borderRadius: '50%', minWidth: '18px', height: '18px', fontSize: '9px', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px', boxShadow: '0 2px 8px rgba(245,158,11,0.5)', border: '1.5px solid #020617' }}>
+    <div style={{ position: 'absolute', top: '-7px', right: '-7px', background: 'linear-gradient(135deg,#BB8958,#fcd34d)', color: '#FDFDFC', borderRadius: '50%', minWidth: '18px', height: '18px', fontSize: '9px', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px', boxShadow: '0 2px 8px rgba(187,137,88,0.5)', border: '1.5px solid #FDFDFC' }}>
       {unreadCount > 99 ? '99+' : unreadCount}
     </div>
   )}
@@ -1114,7 +1113,7 @@ const handleSubmit = async e => {
             {dark ? '☀️ Light' : '🌙 Dark'}
           </button>
           <button onClick={() => { localStorage.clear(); navigate('/login') }}
-            style={{ padding: '8px 18px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '10px', fontSize: '13px', cursor: 'pointer' }}>
+            style={{ padding: '8px 18px', background: 'rgba(201,32,53,0.1)', border: '1px solid rgba(201,32,53,0.3)', color: '#C92035', borderRadius: '10px', fontSize: '13px', cursor: 'pointer' }}>
             Logout
           </button>
         </div>
@@ -1122,7 +1121,7 @@ const handleSubmit = async e => {
 
       <div style={{ position: 'relative', zIndex: 10, padding: '36px 40px', maxWidth: '1200px', margin: '0 auto' }}>
         {msg && (
-          <div style={{ background: msgType === 'success' ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${msgType === 'success' ? 'rgba(74,222,128,0.25)' : 'rgba(239,68,68,0.3)'}`, color: msgType === 'success' ? '#4ade80' : '#f87171', borderRadius: '12px', padding: '14px 20px', fontSize: '14px', marginBottom: '20px' }}>
+          <div style={{ background: msgType === 'success' ? 'rgba(12,64,68,0.1)' : 'rgba(201,32,53,0.1)', border: `1px solid ${msgType === 'success' ? 'rgba(12,64,68,0.25)' : 'rgba(201,32,53,0.3)'}`, color: msgType === 'success' ? '#0C4044' : '#C92035', borderRadius: '12px', padding: '14px 20px', fontSize: '14px', marginBottom: '20px' }}>
             {msg}
           </div>
         )}
@@ -1146,7 +1145,7 @@ const handleSubmit = async e => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
         <span style={{ fontSize: '22px' }}>⚖️</span>
         <div>
-          <div style={{ color: '#a5f3fc', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+          <div style={{ color: '#0C4044', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
             Today's Gold & Silver Rates
           </div>
           <div style={{ color: subtext, fontSize: '11px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1155,11 +1154,11 @@ const handleSubmit = async e => {
             <span>₹ per gram</span>
             <span style={{ opacity: 0.4 }}>•</span>
             {dbRateDate ? (
-              <span style={{ color: '#4ade80', fontSize: '10px', fontWeight: 700 }}>
+              <span style={{ color: '#0C4044', fontSize: '10px', fontWeight: 700 }}>
                 📅 {new Date(dbRateDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
               </span>
             ) : (
-              <span style={{ color: '#f87171', fontSize: '9px', fontWeight: 700 }}>No rate entered yet</span>
+              <span style={{ color: '#C92035', fontSize: '9px', fontWeight: 700 }}>No rate entered yet</span>
             )}
           </div>
         </div>
@@ -1171,26 +1170,26 @@ const handleSubmit = async e => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
             <span style={{ fontSize: '16px' }}>🏅</span>
-            <span style={{ color: '#fbbf24', fontWeight: 800, fontSize: '12px', letterSpacing: '1px' }}>GOLD 22K</span>
+            <span style={{ color: '#CCA881', fontWeight: 800, fontSize: '12px', letterSpacing: '1px' }}>GOLD 22K</span>
             {metalPrices.gold22k && (
-              <span style={{ color: 'rgba(251,191,36,0.55)', fontSize: '11px' }}>₹{metalPrices.gold22k.toFixed(2)}/gm</span>
+              <span style={{ color: 'rgba(204,168,129,0.55)', fontSize: '11px' }}>₹{metalPrices.gold22k.toFixed(2)}/gm</span>
             )}
           </div>
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap' }}>
             {WEIGHTS.map(w => (
               <div key={w.label}
-                style={{ flex: 1, minWidth: 0, background: dark ? 'rgba(251,191,36,0.05)' : 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '14px', overflow: 'hidden', transition: 'transform 0.2s ease, box-shadow 0.2s ease', cursor: 'default' }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(251,191,36,0.2)' }}
+                style={{ flex: 1, minWidth: 0, background: dark ? 'rgba(204,168,129,0.05)' : 'rgba(204,168,129,0.07)', border: '1px solid rgba(204,168,129,0.3)', borderRadius: '14px', overflow: 'hidden', transition: 'transform 0.2s ease, box-shadow 0.2s ease', cursor: 'default' }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(204,168,129,0.2)' }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px 0' }}>
-                  <img src={goldCoin} alt="Gold 22K" style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(251,191,36,0.4))' }} />
+                  <img src={goldCoin} alt="Gold 22K" style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(204,168,129,0.4))' }} />
                 </div>
                 <div style={{ padding: '8px 8px 4px', textAlign: 'center' }}>
-                  <div style={{ display: 'inline-block', fontSize: '10px', fontWeight: 800, color: '#fbbf24', background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '20px', padding: '2px 8px', marginBottom: '6px' }}>
+                  <div style={{ display: 'inline-block', fontSize: '10px', fontWeight: 800, color: '#CCA881', background: 'rgba(204,168,129,0.12)', border: '1px solid rgba(204,168,129,0.3)', borderRadius: '20px', padding: '2px 8px', marginBottom: '6px' }}>
                     {w.label}
                   </div>
-                  <div style={{ color: '#fbbf24', fontWeight: 900, fontSize: '12px', fontFamily: 'monospace', paddingBottom: '8px' }}>
+                  <div style={{ color: '#CCA881', fontWeight: 900, fontSize: '12px', fontFamily: 'monospace', paddingBottom: '8px' }}>
                     {metalPrices.gold22k != null ? `₹${(w.grams * metalPrices.gold22k).toFixed(2)}` : '—'}
                   </div>
                 </div>
@@ -1203,26 +1202,26 @@ const handleSubmit = async e => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
             <span style={{ fontSize: '16px' }}>🥇</span>
-            <span style={{ color: '#ffd700', fontWeight: 800, fontSize: '12px', letterSpacing: '1px' }}>GOLD 24K</span>
+            <span style={{ color: '#CCA881', fontWeight: 800, fontSize: '12px', letterSpacing: '1px' }}>GOLD 24K</span>
             {metalPrices.gold24k && (
-              <span style={{ color: 'rgba(255,215,0,0.55)', fontSize: '11px' }}>₹{metalPrices.gold24k.toFixed(2)}/gm</span>
+              <span style={{ color: 'rgba(204,168,129,0.55)', fontSize: '11px' }}>₹{metalPrices.gold24k.toFixed(2)}/gm</span>
             )}
           </div>
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap' }}>
             {WEIGHTS.map(w => (
               <div key={w.label}
-                style={{ flex: 1, minWidth: 0, background: dark ? 'rgba(255,215,0,0.05)' : 'rgba(255,215,0,0.07)', border: '1px solid rgba(255,215,0,0.3)', borderRadius: '14px', overflow: 'hidden', transition: 'transform 0.2s ease, box-shadow 0.2s ease', cursor: 'default' }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(255,215,0,0.2)' }}
+                style={{ flex: 1, minWidth: 0, background: dark ? 'rgba(204,168,129,0.05)' : 'rgba(204,168,129,0.07)', border: '1px solid rgba(204,168,129,0.3)', borderRadius: '14px', overflow: 'hidden', transition: 'transform 0.2s ease, box-shadow 0.2s ease', cursor: 'default' }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(204,168,129,0.2)' }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px 0' }}>
-                  <img src={goldCoin} alt="Gold 24K" style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(255,215,0,0.5))' }} />
+                  <img src={goldCoin} alt="Gold 24K" style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(204,168,129,0.5))' }} />
                 </div>
                 <div style={{ padding: '8px 8px 4px', textAlign: 'center' }}>
-                  <div style={{ display: 'inline-block', fontSize: '10px', fontWeight: 800, color: '#ffd700', background: 'rgba(255,215,0,0.12)', border: '1px solid rgba(255,215,0,0.3)', borderRadius: '20px', padding: '2px 8px', marginBottom: '6px' }}>
+                  <div style={{ display: 'inline-block', fontSize: '10px', fontWeight: 800, color: '#CCA881', background: 'rgba(204,168,129,0.12)', border: '1px solid rgba(204,168,129,0.3)', borderRadius: '20px', padding: '2px 8px', marginBottom: '6px' }}>
                     {w.label}
                   </div>
-                  <div style={{ color: '#ffd700', fontWeight: 900, fontSize: '12px', fontFamily: 'monospace', paddingBottom: '8px' }}>
+                  <div style={{ color: '#CCA881', fontWeight: 900, fontSize: '12px', fontFamily: 'monospace', paddingBottom: '8px' }}>
                     {metalPrices.gold24k != null ? `₹${(w.grams * metalPrices.gold24k).toFixed(2)}` : '—'}
                   </div>
                 </div>
@@ -1235,7 +1234,7 @@ const handleSubmit = async e => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
             <span style={{ fontSize: '16px' }}>🥈</span>
-            <span style={{ color: '#c0c0c0', fontWeight: 800, fontSize: '12px', letterSpacing: '1px' }}>SILVER 999</span>
+            <span style={{ color: '#BDCFCE', fontWeight: 800, fontSize: '12px', letterSpacing: '1px' }}>SILVER 999</span>
             {metalPrices.silver && (
               <span style={{ color: 'rgba(192,192,192,0.55)', fontSize: '11px' }}>₹{metalPrices.silver.toFixed(2)}/gm</span>
             )}
@@ -1251,10 +1250,10 @@ const handleSubmit = async e => {
                   <img src={silverCoin} alt="Silver 999" style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(192,192,192,0.4))' }} />
                 </div>
                 <div style={{ padding: '8px 8px 4px', textAlign: 'center' }}>
-                  <div style={{ display: 'inline-block', fontSize: '10px', fontWeight: 800, color: '#c0c0c0', background: 'rgba(192,192,192,0.1)', border: '1px solid rgba(192,192,192,0.25)', borderRadius: '20px', padding: '2px 8px', marginBottom: '6px' }}>
+                  <div style={{ display: 'inline-block', fontSize: '10px', fontWeight: 800, color: '#BDCFCE', background: 'rgba(192,192,192,0.1)', border: '1px solid rgba(192,192,192,0.25)', borderRadius: '20px', padding: '2px 8px', marginBottom: '6px' }}>
                     {w.label}
                   </div>
-                  <div style={{ color: '#c0c0c0', fontWeight: 900, fontSize: '12px', fontFamily: 'monospace', paddingBottom: '8px' }}>
+                  <div style={{ color: '#BDCFCE', fontWeight: 900, fontSize: '12px', fontFamily: 'monospace', paddingBottom: '8px' }}>
                     {metalPrices.silver != null ? `₹${(w.grams * metalPrices.silver).toFixed(2)}` : '—'}
                   </div>
                 </div>
@@ -1272,15 +1271,15 @@ const handleSubmit = async e => {
           <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0 }}>Sub Dealer Management</h2>
           <div style={{ display: 'flex', gap: '12px' }}>
 <button onClick={() => navigate('/sales-report')}
-  style={{ padding: '11px 28px', background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '12px', fontWeight: 700, color: '#4ade80', fontSize: '14px', cursor: 'pointer' }}>
+  style={{ padding: '11px 28px', background: 'rgba(12,64,68,0.08)', border: '1px solid rgba(12,64,68,0.3)', borderRadius: '12px', fontWeight: 700, color: '#0C4044', fontSize: '14px', cursor: 'pointer' }}>
   📊 Sales Report
 </button>
 <button onClick={() => navigate('/dealer-hierarchy')}
-  style={{ padding: '11px 28px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '12px', fontWeight: 700, color: '#fcd34d', fontSize: '14px', cursor: 'pointer' }}>
+  style={{ padding: '11px 28px', background: 'rgba(187,137,88,0.08)', border: '1px solid rgba(187,137,88,0.3)', borderRadius: '12px', fontWeight: 700, color: '#fcd34d', fontSize: '14px', cursor: 'pointer' }}>
   🏢 Sub Dealer Hierarchy
 </button>
             <button onClick={() => setShowForm(!showForm)} className="dl-grad-btn"
-              style={{ padding: '11px 28px', background: 'linear-gradient(90deg,#f59e0b,#22d3ee)', border: 'none', borderRadius: '12px', fontWeight: 800, color: '#003b40', fontSize: '14px', cursor: 'pointer' }}>
+              style={{ padding: '11px 28px', background: 'linear-gradient(90deg,#BB8958,#BDCFCE)', border: 'none', borderRadius: '12px', fontWeight: 800, color: '#FDFDFC', fontSize: '14px', cursor: 'pointer' }}>
               {showForm ? 'Cancel' : '+ Create Sub Dealer'}
             </button>
           </div>
@@ -1290,17 +1289,17 @@ const handleSubmit = async e => {
 
 {/* ── ANNOUNCEMENT VIEW MODAL (Dealer) ── */}
 {showAnnouncements && (
-  <div onClick={() => setShowAnnouncements(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(10px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    <div onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '24px', width: '95%', maxWidth: '560px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.6)', animation: 'fadeIn 0.3s cubic-bezier(0.22,1,0.36,1)' }}>
-      <div style={{ flexShrink: 0, padding: '24px 28px', borderBottom: '1px solid rgba(245,158,11,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+  <div onClick={() => setShowAnnouncements(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,23,0.82)', backdropFilter: 'blur(10px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#F3F3F0,#E7EDEC)' : '#FDFDFC', border: '1px solid rgba(187,137,88,0.3)', borderRadius: '24px', width: '95%', maxWidth: '560px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 32px 80px rgba(17,24,23,0.6)', animation: 'fadeIn 0.3s cubic-bezier(0.22,1,0.36,1)' }}>
+      <div style={{ flexShrink: 0, padding: '24px 28px', borderBottom: '1px solid rgba(187,137,88,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'linear-gradient(135deg,rgba(245,158,11,0.25),rgba(34,211,238,0.15))', border: '1px solid rgba(245,158,11,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>📢</div>
+          <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'linear-gradient(135deg,rgba(187,137,88,0.25),rgba(189,207,206,0.15))', border: '1px solid rgba(187,137,88,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>📢</div>
           <div>
-            <div style={{ color: '#f59e0b', fontWeight: 800, fontSize: '14px' }}>ANNOUNCEMENTS</div>
+            <div style={{ color: '#BB8958', fontWeight: 800, fontSize: '14px' }}>ANNOUNCEMENTS</div>
             <div style={{ color: subtext, fontSize: '11px', marginTop: '2px' }}>{announcements.length} total from Super Admin</div>
           </div>
         </div>
-        <button onClick={() => setShowAnnouncements(false)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px' }}>✕ Close</button>
+        <button onClick={() => setShowAnnouncements(false)} style={{ background: 'rgba(201,32,53,0.1)', border: '1px solid rgba(201,32,53,0.3)', color: '#C92035', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px' }}>✕ Close</button>
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px 28px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {announcements.length === 0 ? (
@@ -1310,20 +1309,20 @@ const handleSubmit = async e => {
           const alreadyReplied = repliedIds.has(ann.id)
           const replies = annReplies[ann.id] || []
           return (
-            <div key={ann.id} style={{ background: idx === 0 ? (dark ? 'rgba(245,158,11,0.07)' : 'rgba(245,158,11,0.05)') : (dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'), border: `1px solid ${idx === 0 ? 'rgba(245,158,11,0.35)' : (dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)')}`, borderRadius: '14px', padding: '16px 18px', position: 'relative' }}>
+            <div key={ann.id} style={{ background: idx === 0 ? (dark ? 'rgba(187,137,88,0.07)' : 'rgba(187,137,88,0.05)') : (dark ? 'rgba(253,253,252,0.02)' : 'rgba(17,24,23,0.02)'), border: `1px solid ${idx === 0 ? 'rgba(187,137,88,0.35)' : (dark ? 'rgba(253,253,252,0.06)' : 'rgba(17,24,23,0.08)')}`, borderRadius: '14px', padding: '16px 18px', position: 'relative' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {idx === 0 && <span style={{ fontSize: '9px', fontWeight: 800, padding: '2px 8px', borderRadius: '20px', background: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.3)' }}>● NEW</span>}
-                  <span style={{ color: idx === 0 ? '#f59e0b' : text, fontWeight: 700, fontSize: '14px' }}>{ann.title}</span>
+                  {idx === 0 && <span style={{ fontSize: '9px', fontWeight: 800, padding: '2px 8px', borderRadius: '20px', background: 'rgba(187,137,88,0.15)', color: '#BB8958', border: '1px solid rgba(187,137,88,0.3)' }}>● NEW</span>}
+                  <span style={{ color: idx === 0 ? '#BB8958' : text, fontWeight: 700, fontSize: '14px' }}>{ann.title}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ color: subtext, fontSize: '10px', whiteSpace: 'nowrap' }}>{new Date(ann.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                  <button disabled={alreadyReplied} onClick={() => { setReplyAnn(ann); setReplyMsg(''); setReplyText('') }} style={{ padding: '4px 12px', fontSize: '10px', fontWeight: 700, borderRadius: '20px', cursor: alreadyReplied ? 'not-allowed' : 'pointer', background: alreadyReplied ? 'rgba(255,255,255,0.05)' : 'rgba(245,158,11,0.15)', border: `1px solid ${alreadyReplied ? 'rgba(255,255,255,0.1)' : 'rgba(245,158,11,0.4)'}`, color: alreadyReplied ? subtext : '#f59e0b', whiteSpace: 'nowrap' }}>
+                  <button disabled={alreadyReplied} onClick={() => { setReplyAnn(ann); setReplyMsg(''); setReplyText('') }} style={{ padding: '4px 12px', fontSize: '10px', fontWeight: 700, borderRadius: '20px', cursor: alreadyReplied ? 'not-allowed' : 'pointer', background: alreadyReplied ? 'rgba(253,253,252,0.05)' : 'rgba(187,137,88,0.15)', border: `1px solid ${alreadyReplied ? 'rgba(253,253,252,0.1)' : 'rgba(187,137,88,0.4)'}`, color: alreadyReplied ? subtext : '#BB8958', whiteSpace: 'nowrap' }}>
                     {alreadyReplied ? '✓ Wished' : '💬 Reply'}
                   </button>
                 </div>
               </div>
-              <p style={{ color: dark ? '#cbd5e1' : '#475569', fontSize: '13px', lineHeight: '1.6', margin: 0 }}>{ann.message}</p>
+              <p style={{ color: dark ? '#111817' : '#7A8987', fontSize: '13px', lineHeight: '1.6', margin: 0 }}>{ann.message}</p>
         {isMentioned && (
   <div
     onMouseEnter={e => {
@@ -1341,7 +1340,7 @@ const handleSubmit = async e => {
     }}
     style={{ marginTop: '10px', display: 'flex', justifyContent: 'center' }}
   >
-    <div style={{ fontSize: '10px', color: '#f59e0b', padding: '3px 14px', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '20px', cursor: 'default', background: 'rgba(245,158,11,0.06)', fontWeight: 600 }}>
+    <div style={{ fontSize: '10px', color: '#BB8958', padding: '3px 14px', border: '1px solid rgba(187,137,88,0.3)', borderRadius: '20px', cursor: 'default', background: 'rgba(187,137,88,0.06)', fontWeight: 600 }}>
       🎂 You are mentioned · {replies.length} wish{replies.length !== 1 ? 'es' : ''} — hover to see
     </div>
   </div>
@@ -1357,18 +1356,18 @@ const handleSubmit = async e => {
 
 {/* ── REPLY MODAL — Dealer ── */}
 {replyAnn && (
-  <div onClick={() => { setReplyAnn(null); setReplyMsg(''); setReplyText('') }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    <div onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '20px', padding: '28px', width: '95%', maxWidth: '460px', boxShadow: '0 32px 80px rgba(0,0,0,0.7)' }}>
+  <div onClick={() => { setReplyAnn(null); setReplyMsg(''); setReplyText('') }} style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,23,0.85)', backdropFilter: 'blur(12px)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#F3F3F0,#E7EDEC)' : '#FDFDFC', border: '1px solid rgba(187,137,88,0.3)', borderRadius: '20px', padding: '28px', width: '95%', maxWidth: '460px', boxShadow: '0 32px 80px rgba(17,24,23,0.7)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
         <div>
-          <div style={{ color: '#f59e0b', fontWeight: 800, fontSize: '14px' }}>💬 SEND YOUR WISH</div>
+          <div style={{ color: '#BB8958', fontWeight: 800, fontSize: '14px' }}>💬 SEND YOUR WISH</div>
           <div style={{ color: subtext, fontSize: '11px', marginTop: '4px' }}>Replying to: <span style={{ color: text, fontWeight: 600 }}>{replyAnn.title}</span></div>
         </div>
-        <button onClick={() => setReplyAnn(null)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '5px 12px', cursor: 'pointer', fontSize: '12px' }}>✕</button>
+        <button onClick={() => setReplyAnn(null)} style={{ background: 'rgba(201,32,53,0.1)', border: '1px solid rgba(201,32,53,0.3)', color: '#C92035', borderRadius: '8px', padding: '5px 12px', cursor: 'pointer', fontSize: '12px' }}>✕</button>
       </div>
-      {replyMsg && <div style={{ background: replyMsg.includes('✅') ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${replyMsg.includes('✅') ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.3)'}`, color: replyMsg.includes('✅') ? '#4ade80' : '#f87171', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', marginBottom: '16px' }}>{replyMsg}</div>}
-      <textarea value={replyText} onChange={e => setReplyText(e.target.value)} rows={4} placeholder="Type your wish..." style={{ width: '100%', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '10px', padding: '12px 14px', color: text, fontSize: '14px', outline: 'none', resize: 'vertical', fontFamily: 'inherit', lineHeight: '1.6', boxSizing: 'border-box' }} onFocus={e => e.target.style.borderColor = '#f59e0b'} onBlur={e => e.target.style.borderColor = inpBorder} />
-      <button disabled={replyLoading || !replyText.trim()} onClick={submitReply} style={{ marginTop: '14px', width: '100%', padding: '13px', background: replyLoading || !replyText.trim() ? 'rgba(245,158,11,0.2)' : 'linear-gradient(90deg,#f59e0b,#22d3ee)', border: 'none', borderRadius: '12px', fontWeight: 800, fontSize: '14px', color: replyLoading || !replyText.trim() ? '#f59e0b' : '#003b40', cursor: replyLoading || !replyText.trim() ? 'not-allowed' : 'pointer' }}>
+      {replyMsg && <div style={{ background: replyMsg.includes('✅') ? 'rgba(12,64,68,0.1)' : 'rgba(201,32,53,0.1)', border: `1px solid ${replyMsg.includes('✅') ? 'rgba(12,64,68,0.3)' : 'rgba(201,32,53,0.3)'}`, color: replyMsg.includes('✅') ? '#0C4044' : '#C92035', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', marginBottom: '16px' }}>{replyMsg}</div>}
+      <textarea value={replyText} onChange={e => setReplyText(e.target.value)} rows={4} placeholder="Type your wish..." style={{ width: '100%', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '10px', padding: '12px 14px', color: text, fontSize: '14px', outline: 'none', resize: 'vertical', fontFamily: 'inherit', lineHeight: '1.6', boxSizing: 'border-box' }} onFocus={e => e.target.style.borderColor = '#BB8958'} onBlur={e => e.target.style.borderColor = inpBorder} />
+      <button disabled={replyLoading || !replyText.trim()} onClick={submitReply} style={{ marginTop: '14px', width: '100%', padding: '13px', background: replyLoading || !replyText.trim() ? 'rgba(187,137,88,0.2)' : 'linear-gradient(90deg,#BB8958,#BDCFCE)', border: 'none', borderRadius: '12px', fontWeight: 800, fontSize: '14px', color: replyLoading || !replyText.trim() ? '#BB8958' : '#FDFDFC', cursor: replyLoading || !replyText.trim() ? 'not-allowed' : 'pointer' }}>
         {replyLoading ? '⏳ Sending...' : '💬 Send Wish'}
       </button>
     </div>
@@ -1386,8 +1385,8 @@ const handleSubmit = async e => {
       top: `${replyPopupPos.top}px`,
       left: `${replyPopupPos.left}px`,
       transform: 'translate(-50%, calc(-100% - 10px))',
-      background: dark ? 'rgba(5,10,20,0.97)' : 'rgba(248,250,252,0.98)',
-      border: '1px solid rgba(245,158,11,0.35)',
+      background: dark ? 'rgba(7,59,63,0.97)' : 'rgba(248,250,252,0.98)',
+      border: '1px solid rgba(187,137,88,0.35)',
       borderRadius: '16px',
       padding: '16px 18px',
       minWidth: '270px',
@@ -1395,34 +1394,34 @@ const handleSubmit = async e => {
       maxHeight: '280px',
       overflowY: 'auto',
       zIndex: 9999,
-      boxShadow: '0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(245,158,11,0.08)',
+      boxShadow: '0 20px 60px rgba(17,24,23,0.7), 0 0 0 1px rgba(187,137,88,0.08)',
       backdropFilter: 'blur(24px)',
       scrollbarWidth: 'thin',
-      scrollbarColor: 'rgba(245,158,11,0.5) rgba(245,158,11,0.03)',
+      scrollbarColor: 'rgba(187,137,88,0.5) rgba(187,137,88,0.03)',
       animation: 'wishPopupIn 0.25s cubic-bezier(0.22,1,0.36,1) both',
     }}
   >
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '10px', borderBottom: '1px solid rgba(245,158,11,0.15)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '10px', borderBottom: '1px solid rgba(187,137,88,0.15)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-        <div style={{ width: '22px', height: '22px', borderRadius: '6px', background: 'linear-gradient(135deg,rgba(245,158,11,0.25),rgba(34,211,238,0.15))', border: '1px solid rgba(245,158,11,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px' }}>💬</div>
-        <span style={{ fontSize: '10px', fontWeight: 800, color: '#f59e0b', letterSpacing: '1.5px' }}>WISHES</span>
+        <div style={{ width: '22px', height: '22px', borderRadius: '6px', background: 'linear-gradient(135deg,rgba(187,137,88,0.25),rgba(189,207,206,0.15))', border: '1px solid rgba(187,137,88,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px' }}>💬</div>
+        <span style={{ fontSize: '10px', fontWeight: 800, color: '#BB8958', letterSpacing: '1.5px' }}>WISHES</span>
       </div>
-      <div style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '20px', padding: '2px 10px', fontSize: '10px', color: '#f59e0b', fontWeight: 800 }}>
+      <div style={{ background: 'rgba(187,137,88,0.15)', border: '1px solid rgba(187,137,88,0.3)', borderRadius: '20px', padding: '2px 10px', fontSize: '10px', color: '#BB8958', fontWeight: 800 }}>
         {(annReplies[replyPopupAnnId] || []).length}
       </div>
     </div>
     {(annReplies[replyPopupAnnId] || []).length === 0 ? (
       <div style={{ color: subtext, fontSize: '12px', textAlign: 'center', padding: '20px 0' }}>No wishes yet</div>
     ) : (annReplies[replyPopupAnnId] || []).map(r => (
-      <div key={r.id} style={{ marginBottom: '8px', padding: '10px 12px', background: dark ? 'rgba(245,158,11,0.05)' : 'rgba(245,158,11,0.04)', borderRadius: '10px', border: '1px solid rgba(245,158,11,0.15)' }}>
+      <div key={r.id} style={{ marginBottom: '8px', padding: '10px 12px', background: dark ? 'rgba(187,137,88,0.05)' : 'rgba(187,137,88,0.04)', borderRadius: '10px', border: '1px solid rgba(187,137,88,0.15)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-          <span style={{ fontSize: '11px', fontWeight: 700, color: '#f59e0b' }}>{r.replied_by_name}</span>
+          <span style={{ fontSize: '11px', fontWeight: 700, color: '#BB8958' }}>{r.replied_by_name}</span>
           <span style={{ fontSize: '9px', color: subtext }}>{new Date(r.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
         </div>
-        <p style={{ margin: 0, fontSize: '12px', color: dark ? '#cbd5e1' : '#475569', lineHeight: '1.5' }}>{r.message}</p>
+        <p style={{ margin: 0, fontSize: '12px', color: dark ? '#111817' : '#7A8987', lineHeight: '1.5' }}>{r.message}</p>
       </div>
     ))}
-    <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid rgba(245,158,11,0.08)', textAlign: 'center', fontSize: '9px', color: dark ? '#334155' : '#cbd5e1', letterSpacing: '0.8px', fontWeight: 600 }}>
+    <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid rgba(187,137,88,0.08)', textAlign: 'center', fontSize: '9px', color: dark ? '#7A8987' : '#111817', letterSpacing: '0.8px', fontWeight: 600 }}>
       BitByte Network • Wishes
     </div>
   </div>
@@ -1439,39 +1438,39 @@ const handleSubmit = async e => {
       top: `${replyPopupPos.top}px`,
       left: `${replyPopupPos.left}px`,
       transform: 'translate(-50%, calc(-100% - 10px))',
-      background: dark ? 'rgba(5,10,20,0.97)' : 'rgba(248,250,252,0.98)',
-      border: '1px solid rgba(74,222,128,0.35)',
+      background: dark ? 'rgba(7,59,63,0.97)' : 'rgba(248,250,252,0.98)',
+      border: '1px solid rgba(12,64,68,0.35)',
       borderRadius: '16px', padding: '16px 18px',
       minWidth: '270px', maxWidth: '340px', maxHeight: '280px',
       overflowY: 'auto', zIndex: 9999,
-      boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
+      boxShadow: '0 20px 60px rgba(17,24,23,0.7)',
       backdropFilter: 'blur(24px)',
       scrollbarWidth: 'thin',
-      scrollbarColor: 'rgba(74,222,128,0.5) rgba(74,222,128,0.03)',
+      scrollbarColor: 'rgba(12,64,68,0.5) rgba(12,64,68,0.03)',
       animation: 'adWishIn 0.25s cubic-bezier(0.22,1,0.36,1) both',
     }}
   >
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '10px', borderBottom: '1px solid rgba(74,222,128,0.15)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '10px', borderBottom: '1px solid rgba(12,64,68,0.15)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-        <div style={{ width: '22px', height: '22px', borderRadius: '6px', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px' }}>💬</div>
-        <span style={{ fontSize: '10px', fontWeight: 800, color: '#4ade80', letterSpacing: '1.5px' }}>WISHES</span>
+        <div style={{ width: '22px', height: '22px', borderRadius: '6px', background: 'rgba(12,64,68,0.15)', border: '1px solid rgba(12,64,68,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px' }}>💬</div>
+        <span style={{ fontSize: '10px', fontWeight: 800, color: '#0C4044', letterSpacing: '1.5px' }}>WISHES</span>
       </div>
-      <div style={{ background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '20px', padding: '2px 10px', fontSize: '10px', color: '#4ade80', fontWeight: 800 }}>
+      <div style={{ background: 'rgba(12,64,68,0.15)', border: '1px solid rgba(12,64,68,0.3)', borderRadius: '20px', padding: '2px 10px', fontSize: '10px', color: '#0C4044', fontWeight: 800 }}>
         {(annReplies[replyPopupAnnId] || []).length}
       </div>
     </div>
     {(annReplies[replyPopupAnnId] || []).length === 0 ? (
       <div style={{ color: subtext, fontSize: '12px', textAlign: 'center', padding: '20px 0' }}>No wishes yet</div>
     ) : (annReplies[replyPopupAnnId] || []).map(r => (
-      <div key={r.id} style={{ marginBottom: '8px', padding: '10px 12px', background: dark ? 'rgba(74,222,128,0.05)' : 'rgba(74,222,128,0.04)', borderRadius: '10px', border: '1px solid rgba(74,222,128,0.15)' }}>
+      <div key={r.id} style={{ marginBottom: '8px', padding: '10px 12px', background: dark ? 'rgba(12,64,68,0.05)' : 'rgba(12,64,68,0.04)', borderRadius: '10px', border: '1px solid rgba(12,64,68,0.15)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-          <span style={{ fontSize: '11px', fontWeight: 700, color: '#4ade80' }}>{r.replied_by_name}</span>
+          <span style={{ fontSize: '11px', fontWeight: 700, color: '#0C4044' }}>{r.replied_by_name}</span>
           <span style={{ fontSize: '9px', color: subtext }}>{new Date(r.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
         </div>
-        <p style={{ margin: 0, fontSize: '12px', color: dark ? '#cbd5e1' : '#475569', lineHeight: '1.5' }}>{r.message}</p>
+        <p style={{ margin: 0, fontSize: '12px', color: dark ? '#111817' : '#7A8987', lineHeight: '1.5' }}>{r.message}</p>
       </div>
     ))}
-    <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid rgba(74,222,128,0.08)', textAlign: 'center', fontSize: '9px', color: dark ? '#334155' : '#cbd5e1', letterSpacing: '0.8px', fontWeight: 600 }}>
+    <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid rgba(12,64,68,0.08)', textAlign: 'center', fontSize: '9px', color: dark ? '#7A8987' : '#111817', letterSpacing: '0.8px', fontWeight: 600 }}>
       BitByte Network • Wishes
     </div>
   </div>
@@ -1481,45 +1480,45 @@ const handleSubmit = async e => {
 {showProfile && (
   <div
     onClick={() => setShowProfile(false)}
-    style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(10px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+    style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,23,0.82)', backdropFilter: 'blur(10px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
   >
     <div
       onClick={e => e.stopPropagation()}
-      style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '24px', width: '95%', maxWidth: '580px', maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.7)' }}
+      style={{ background: dark ? 'linear-gradient(145deg,#F3F3F0,#E7EDEC)' : '#FDFDFC', border: '1px solid rgba(187,137,88,0.3)', borderRadius: '24px', width: '95%', maxWidth: '580px', maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 32px 80px rgba(17,24,23,0.7)' }}
     >
-      <div style={{ flexShrink: 0, padding: '24px 28px', borderBottom: '1px solid rgba(245,158,11,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ flexShrink: 0, padding: '24px 28px', borderBottom: '1px solid rgba(187,137,88,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg,rgba(245,158,11,0.25),rgba(34,211,238,0.15))', border: '2px solid rgba(245,158,11,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🏪</div>
+          <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg,rgba(187,137,88,0.25),rgba(189,207,206,0.15))', border: '2px solid rgba(187,137,88,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🏪</div>
           <div>
-            <div style={{ color: '#f59e0b', fontWeight: 800, fontSize: '15px', letterSpacing: '0.05em' }}>MY PROFILE</div>
+            <div style={{ color: '#BB8958', fontWeight: 800, fontSize: '15px', letterSpacing: '0.05em' }}>MY PROFILE</div>
             <div style={{ color: subtext, fontSize: '11px', marginTop: '3px', fontFamily: 'monospace' }}>{myProfile?.dealer_id || '—'}</div>
           </div>
         </div>
 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
   <button
     onClick={openProfileEdit}
-    style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.35)', color: '#f59e0b', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px', fontWeight: 800 }}
+    style={{ background: 'rgba(187,137,88,0.12)', border: '1px solid rgba(187,137,88,0.35)', color: '#BB8958', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px', fontWeight: 800 }}
   >
     ✎ Edit
   </button>
 
   <button
     onClick={() => setShowProfile(false)}
-    style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px' }}
+    style={{ background: 'rgba(201,32,53,0.1)', border: '1px solid rgba(201,32,53,0.3)', color: '#C92035', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px' }}
   >
     ✕ Close
   </button>
 </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: '20px', scrollbarWidth: 'thin', scrollbarColor: 'rgba(245,158,11,0.4) transparent' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: '20px', scrollbarWidth: 'thin', scrollbarColor: 'rgba(187,137,88,0.4) transparent' }}>
         {!myProfile ? (
           <div style={{ textAlign: 'center', color: subtext, padding: '60px 0' }}>Loading...</div>
         ) : (
           <>
             {[
-              { title: 'ACCOUNT INFO', color: '#f59e0b', fields: [
-  { label: 'Dealer ID', value: myProfile.dealer_id, mono: true, color: '#f59e0b' },
+              { title: 'ACCOUNT INFO', color: '#BB8958', fields: [
+  { label: 'Dealer ID', value: myProfile.dealer_id, mono: true, color: '#BB8958' },
   { label: 'Initial', value: myProfile.initial },
   { label: 'First Name', value: myProfile.first_name },
   { label: 'Last Name', value: myProfile.last_name },
@@ -1532,7 +1531,7 @@ const handleSubmit = async e => {
     { label: 'Anniversary', value: myProfile.anniversary_date ? new Date(myProfile.anniversary_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—' }
   ] : []),
 ]},
-              { title: 'ADDRESS', color: '#22d3ee', fields: [
+              { title: 'ADDRESS', color: '#BDCFCE', fields: [
                 { label: 'Door No', value: myProfile.door_no },
                 { label: 'Street', value: myProfile.street_name },
                 { label: 'Town', value: myProfile.town_name },
@@ -1540,23 +1539,23 @@ const handleSubmit = async e => {
                 { label: 'District', value: myProfile.district },
                 { label: 'State', value: myProfile.state },
               ]},
-              { title: 'IDENTITY', color: '#a78bfa', fields: [
+              { title: 'IDENTITY', color: '#CCA881', fields: [
                 { label: 'Aadhaar No', value: myProfile.aadhaar_no, mask: true },
                 { label: 'PAN No', value: myProfile.pan_no, pan: true, mono: true },
               ]},
-              { title: 'OCCUPATION', color: '#f59e0b', fields: [
+              { title: 'OCCUPATION', color: '#BB8958', fields: [
                 { label: 'Type', value: myProfile.occupation ? myProfile.occupation.charAt(0).toUpperCase() + myProfile.occupation.slice(1) : '—' },
                 { label: 'Detail', value: myProfile.occupation_detail },
                 { label: 'Annual Salary', value: myProfile.annual_salary ? `₹ ${Number(myProfile.annual_salary).toLocaleString('en-IN')}` : '—' },
               ]},
-              { title: 'ADMIN INFO', color: '#4ade80', fields: [
-                { label: 'Admin ID', value: myProfile.admin_id, mono: true, color: '#4ade80' },
+              { title: 'ADMIN INFO', color: '#0C4044', fields: [
+                { label: 'Admin ID', value: myProfile.admin_id, mono: true, color: '#0C4044' },
                 { label: 'Admin Name', value: myProfile.admin_name },
                 { label: 'Admin Contact', value: myProfile.admin_contact_no },
                 { label: 'Member Since', value: myProfile.created_at ? new Date(myProfile.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—' },
               ]},
             ].map(section => (
-              <div key={section.title} style={{ background: dark ? `rgba(${section.color === '#f59e0b' ? '245,158,11' : section.color === '#22d3ee' ? '34,211,238' : section.color === '#a78bfa' ? '167,139,250' : '74,222,128'},0.04)` : 'rgba(0,0,0,0.02)', border: `1px solid rgba(${section.color === '#f59e0b' ? '245,158,11' : section.color === '#22d3ee' ? '34,211,238' : section.color === '#a78bfa' ? '167,139,250' : '74,222,128'},0.18)`, borderRadius: '16px', padding: '18px 20px' }}>
+              <div key={section.title} style={{ background: dark ? `rgba(${section.color === '#BB8958' ? '245,158,11' : section.color === '#BDCFCE' ? '34,211,238' : section.color === '#CCA881' ? '167,139,250' : '74,222,128'},0.04)` : 'rgba(17,24,23,0.02)', border: `1px solid rgba(${section.color === '#BB8958' ? '245,158,11' : section.color === '#BDCFCE' ? '34,211,238' : section.color === '#CCA881' ? '167,139,250' : '74,222,128'},0.18)`, borderRadius: '16px', padding: '18px 20px' }}>
                 <div style={{ color: section.color, fontSize: '10px', fontWeight: 800, letterSpacing: '1.5px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ width: 6, height: 6, borderRadius: '50%', background: section.color, display: 'inline-block' }} />
                   {section.title}
@@ -1581,12 +1580,12 @@ const handleSubmit = async e => {
 )}
 
 {showProfileEdit && (
-  <div onClick={() => setShowProfileEdit(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(12px)', zIndex: 1300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    <form onSubmit={submitProfileUpdate} onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: '1px solid rgba(245,158,11,0.35)', borderRadius: '24px', width: '96%', maxWidth: '1050px', maxHeight: '90vh', overflow: 'hidden', boxShadow: '0 32px 90px rgba(0,0,0,0.8)', display: 'flex', flexDirection: 'column' }}>
+  <div onClick={() => setShowProfileEdit(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,23,0.88)', backdropFilter: 'blur(12px)', zIndex: 1300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <form onSubmit={submitProfileUpdate} onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#F3F3F0,#E7EDEC)' : '#FDFDFC', border: '1px solid rgba(187,137,88,0.35)', borderRadius: '24px', width: '96%', maxWidth: '1050px', maxHeight: '90vh', overflow: 'hidden', boxShadow: '0 32px 90px rgba(17,24,23,0.8)', display: 'flex', flexDirection: 'column' }}>
       
-      <div style={{ padding: '22px 28px', borderBottom: '1px solid rgba(245,158,11,0.16)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ padding: '22px 28px', borderBottom: '1px solid rgba(187,137,88,0.16)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <div style={{ color: '#f59e0b', fontWeight: 900, fontSize: '15px', letterSpacing: '1px' }}>
+          <div style={{ color: '#BB8958', fontWeight: 900, fontSize: '15px', letterSpacing: '1px' }}>
             ✎ PROFILE UPDATE REQUEST
           </div>
           <div style={{ color: subtext, fontSize: '12px', marginTop: '4px' }}>
@@ -1594,7 +1593,7 @@ const handleSubmit = async e => {
           </div>
         </div>
 
-        <button type="button" onClick={() => setShowProfileEdit(false)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '7px 14px', cursor: 'pointer' }}>
+        <button type="button" onClick={() => setShowProfileEdit(false)} style={{ background: 'rgba(201,32,53,0.1)', border: '1px solid rgba(201,32,53,0.3)', color: '#C92035', borderRadius: '8px', padding: '7px 14px', cursor: 'pointer' }}>
           ✕ Close
         </button>
       </div>
@@ -1602,9 +1601,9 @@ const handleSubmit = async e => {
       <div style={{ flex: 1, overflow: 'auto', padding: '24px 28px' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
           <thead>
-            <tr style={{ background: 'rgba(245,158,11,0.08)' }}>
+            <tr style={{ background: 'rgba(187,137,88,0.08)' }}>
               {['Existing Details Description', 'Existing Details', 'Details To Updated'].map(h => (
-                <th key={h} style={{ padding: '14px', color: '#f59e0b', textAlign: 'left', border: '1px solid rgba(245,158,11,0.2)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                <th key={h} style={{ padding: '14px', color: '#BB8958', textAlign: 'left', border: '1px solid rgba(187,137,88,0.2)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                   {h}
                 </th>
               ))}
@@ -1614,15 +1613,15 @@ const handleSubmit = async e => {
           <tbody>
             {PROFILE_FIELDS.map(([key, label]) => (
               <tr key={key}>
-                <td style={{ padding: '12px 14px', border: '1px solid rgba(255,255,255,0.08)', color: '#fcd34d', fontWeight: 700 }}>
+                <td style={{ padding: '12px 14px', border: '1px solid rgba(253,253,252,0.08)', color: '#fcd34d', fontWeight: 700 }}>
                   {label}
                 </td>
 
-                <td style={{ padding: '12px 14px', border: '1px solid rgba(255,255,255,0.08)', color: text, wordBreak: 'break-all' }}>
+                <td style={{ padding: '12px 14px', border: '1px solid rgba(253,253,252,0.08)', color: text, wordBreak: 'break-all' }}>
                   {myProfile?.[key] || '—'}
                 </td>
 
-                <td style={{ padding: '10px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <td style={{ padding: '10px', border: '1px solid rgba(253,253,252,0.08)' }}>
                 {key === 'gender' ? (
   <select
     name={key}
@@ -1726,7 +1725,7 @@ const handleSubmit = async e => {
   />
 
   {proofDocument && (
-    <div style={{ color: '#4ade80', fontSize: '12px', marginTop: '8px' }}>
+    <div style={{ color: '#0C4044', fontSize: '12px', marginTop: '8px' }}>
       ✅ Selected: {proofDocument.name}
     </div>
   )}
@@ -1737,7 +1736,7 @@ const handleSubmit = async e => {
           </div>
 
           {updateDoc && (
-            <div style={{ color: '#f59e0b', fontSize: '12px', marginTop: '8px' }}>
+            <div style={{ color: '#BB8958', fontSize: '12px', marginTop: '8px' }}>
               Selected: {updateDoc.name}
             </div>
           )} */}
@@ -1745,12 +1744,12 @@ const handleSubmit = async e => {
         </div>
       </div>
 
-      <div style={{ padding: '18px 28px', borderTop: '1px solid rgba(245,158,11,0.14)', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+      <div style={{ padding: '18px 28px', borderTop: '1px solid rgba(187,137,88,0.14)', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
         <button type="button" onClick={() => setShowProfileEdit(false)} style={{ padding: '12px 22px', background: inpBg, border: `1px solid ${border}`, borderRadius: '12px', color: subtext, cursor: 'pointer' }}>
           Cancel
         </button>
 
-        <button type="submit" style={{ padding: '12px 30px', background: 'linear-gradient(90deg,#f59e0b,#22d3ee)', border: 'none', borderRadius: '12px', color: '#003b40', fontWeight: 900, cursor: 'pointer' }}>
+        <button type="submit" style={{ padding: '12px 30px', background: 'linear-gradient(90deg,#BB8958,#BDCFCE)', border: 'none', borderRadius: '12px', color: '#FDFDFC', fontWeight: 900, cursor: 'pointer' }}>
           Submit Request
         </button>
       </div>
@@ -1820,10 +1819,10 @@ const handleSubmit = async e => {
                     onChange={e => { setConfirmPassword(e.target.value); setPasswordError('') }}
                     required
                     className="dl-inp"
-                    style={{ ...inp, border: `1px solid ${passwordError ? '#f87171' : inpBorder}` }}
+                    style={{ ...inp, border: `1px solid ${passwordError ? '#C92035' : inpBorder}` }}
                   />
                   {passwordError && (
-                    <div style={{ color: '#f87171', fontSize: '12px', marginTop: '6px' }}>{passwordError}</div>
+                    <div style={{ color: '#C92035', fontSize: '12px', marginTop: '6px' }}>{passwordError}</div>
                   )}
                 </div>
               </div>
@@ -1848,8 +1847,8 @@ const handleSubmit = async e => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
                 <div><label style={lbl}>Occupation *</label>
                   <select name="occupation" value={form.occupation} onChange={handleChange} required className="dl-inp" style={{ ...inp, cursor: 'pointer' }}>
-                    <option value="" style={{ background: '#1a1f26' }}>Select</option>
-                    {OCCUPATIONS.map(o => <option key={o} value={o} style={{ background: '#1a1f26' }}>{o.charAt(0).toUpperCase() + o.slice(1)}</option>)}
+                    <option value="" style={{ background: '#F3F3F0' }}>Select</option>
+                    {OCCUPATIONS.map(o => <option key={o} value={o} style={{ background: '#F3F3F0' }}>{o.charAt(0).toUpperCase() + o.slice(1)}</option>)}
                   </select>
                 </div>
                 <div><label style={lbl}>Detail</label><input name="occupation_detail" value={form.occupation_detail} onChange={handleChange} maxLength={25} className="dl-inp" style={inp} /></div>
@@ -1860,8 +1859,8 @@ const handleSubmit = async e => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
                 <div><label style={lbl}>Dealer ID *</label>
                   <select onChange={handleDealerChange} className="dl-inp" style={{ ...inp, cursor: 'pointer' }}>
-                    <option value="" style={{ background: '#1a1f26' }}>Select Dealer ID</option>
-                    {dealers.map(d => <option key={d.id} value={d.id} style={{ background: '#1a1f26' }}>{d.dealer_id}</option>)}
+                    <option value="" style={{ background: '#F3F3F0' }}>Select Dealer ID</option>
+                    {dealers.map(d => <option key={d.id} value={d.id} style={{ background: '#F3F3F0' }}>{d.dealer_id}</option>)}
                   </select>
                 </div>
                 <div><label style={lbl}>Dealer Name</label>
@@ -1874,7 +1873,7 @@ const handleSubmit = async e => {
 
               <div style={{ display: 'flex', gap: '12px', marginTop: '6px' }}>
                 <button type="submit" className="dl-grad-btn"
-                  style={{ padding: '12px 28px', background: 'linear-gradient(90deg,#f59e0b,#22d3ee)', border: 'none', borderRadius: '12px', fontWeight: 800, color: '#003b40', fontSize: '14px', cursor: 'pointer' }}>
+                  style={{ padding: '12px 28px', background: 'linear-gradient(90deg,#BB8958,#BDCFCE)', border: 'none', borderRadius: '12px', fontWeight: 800, color: '#FDFDFC', fontSize: '14px', cursor: 'pointer' }}>
                   Create Sub Dealer
                 </button>
                 <button type="button" onClick={() => setShowForm(false)}
@@ -1904,7 +1903,7 @@ const handleSubmit = async e => {
                 <tbody>
                   {subDealers.map((s, i) => (
                     <tr key={i} className="dl-tr" style={{ borderBottom: `1px solid ${border}` }}>
-                      <td style={{ padding: '14px 16px', color: '#f59e0b', fontFamily: 'monospace', fontSize: '13px' }}>{s.sub_dealer_id}</td>
+                      <td style={{ padding: '14px 16px', color: '#BB8958', fontFamily: 'monospace', fontSize: '13px' }}>{s.sub_dealer_id}</td>
                       <td style={{ padding: '14px 16px', color: text }}>{s.first_name || ''}</td>
                       <td style={{ padding: '14px 16px', color: text }}>{s.last_name || ''}</td>
                       <td style={{ padding: '14px 16px', color: subtext }}>{s.email}</td>
@@ -1922,3 +1921,5 @@ const handleSubmit = async e => {
     </div>
   )
 }    
+
+

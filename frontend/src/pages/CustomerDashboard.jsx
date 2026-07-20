@@ -1,2229 +1,2121 @@
-import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
-import api from '../api'
-import CustomerNavbar from '../collection/CustomerNavbar'
-import goldCoin from '../assets/gold-coin-transparent.png'
-import silverCoin from '../assets/silver-coin-transparent.png'
-import coinPromote2 from '../assets/coin_promote2.png'
-import CustomerFooter from '../collection/CustomerFooter'
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../api";
+import CustomerFooter from "../collection/CustomerFooter";
+import CustomerNavbar from "../collection/CustomerNavbar";
 
+const API_ORIGIN = (api.defaults.baseURL || "").replace(/\/api\/?$/, "");
 
-// ── BANNER SLIDER COMPONENT ──
-function HomeBannerSlider() {
-  const [banners, setBanners] = useState([])
-  const [current, setCurrent] = useState(0)
-  const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
+const categoryRail = [
+  {
+    label: "Necklaces",
+    route: "/collection/necklaces",
+    image: "/diamond_necklas.jpg",
+  },
+  {
+    label: "Earrings",
+    route: "/collection/earrings",
+    image: "/diamond Earings.jpg",
+  },
+  { label: "Rings", route: "/collection/rings", image: "/diamond_ring.jpg" },
+  {
+    label: "Bracelets",
+    route: "/collection/bracelets",
+    image: "/wedding_bracelet.jpg",
+  },
+  {
+    label: "Pendants",
+    route: "/collection/all?category=pendants",
+    image: "/platinum_necklas.jpg",
+  },
+  {
+    label: "Silver",
+    route: "/collection/all?metal=silver",
+    image: "/silver-coin.jpg.jpeg",
+  },
+  {
+    label: "Kids",
+    route: "/collection/all?gender=kids",
+    image: "/Kids Jewllery.jpg",
+  },
+  { label: "Coins", route: "/collection/coins", image: "/gold-coin.jpg.jpeg" },
+  {
+    label: "Wedding",
+    route: "/collection/all?occasion=wedding",
+    image: "/wedding_necklaces.jpg",
+  },
+  {
+    label: "Bangles",
+    route: "/collection/bangles",
+    image: "/diamond bangales.jpg",
+  },
+  {
+    label: "Men's",
+    route: "/collection/all?gender=men",
+    image: "/Men's Jewellery.jpg",
+  },
+  { label: "Chains", route: "/collection/chains", image: "/dimand_chain.jpg" },
+  {
+    label: "Platinum",
+    route: "/collection/all?metal=platinum",
+    image: "/platinum_ring.jpg",
+  },
+];
 
-  const getUrl = img => {
-    if (!img) return null
-    if (img.startsWith('http://') || img.startsWith('https://')) return img
-    return `${API_BASE}/${img.replace(/^\/+/, '')}`
+const autoCategoryRail = Array.from({ length: 3 }, () => categoryRail).flat();
+
+const promises = [
+  ["BIS Hallmarked", "Certified jewellery"],
+  ["Secure Payments", "Safe checkout flow"],
+  ["Easy Returns", "15 days policy"],
+  ["Live Rate Logic", "Backend powered prices"],
+];
+
+const promoCards = [
+  {
+    title: "Gold Coin 100mg",
+    route: "/collection/coins?metal=gold&weight=100mg",
+    image: "/coin/100mg.gold.png",
+  },
+  {
+    title: "Gold Coin 200mg",
+    route: "/collection/coins?metal=gold&weight=200mg",
+    image: "/coin/200mg.gold.png",
+  },
+  {
+    title: "Gold Coin 250mg",
+    route: "/collection/coins?metal=gold&weight=250mg",
+    image: "/coin/250mg.gold.png",
+  },
+  {
+    title: "Silver Coin 100mg",
+    route: "/collection/coins?metal=silver&weight=100mg",
+    image: "/coin/100mg.silver.png",
+  },
+  {
+    title: "Silver Coin 150mg",
+    route: "/collection/coins?metal=silver&weight=150mg",
+    image: "/coin/150mg.silver.png",
+  },
+  {
+    title: "Silver Coin 200mg",
+    route: "/collection/coins?metal=silver&weight=200mg",
+    image: "/coin/200mg.silver.png",
+  },
+  {
+    title: "Silver Coin 250mg",
+    route: "/collection/coins?metal=silver&weight=250mg",
+    image: "/coin/250mg.silver.png",
+  },
+  {
+    title: "Silver Coin 500mg",
+    route: "/collection/coins?metal=silver&weight=500mg",
+    image: "/coin/500mg.silver.png",
+  },
+];
+
+const autoPromoCards = [...promoCards, ...promoCards];
+
+function coinSizeClass(route = "") {
+  const match = route.match(/weight=(\d+)mg/i);
+  return match ? `coin-size-${match[1]}` : "coin-size-default";
+}
+
+function coinMetalClass(card) {
+  const text = `${card?.route || ""} ${card?.title || ""}`.toLowerCase();
+  if (text.includes("silver")) return "coin-metal-silver";
+  return "coin-metal-gold";
+}
+
+const serviceItems = [
+  ["Free Insured Shipping", "On orders above Rs. 4,999"],
+  ["Easy Returns", "15 days return policy"],
+  ["Secure Payments", "100% safe checkout"],
+  ["Lifetime Exchange", "On gold jewellery"],
+  ["BIS Hallmarked", "Certified jewellery"],
+];
+
+const liveNewsItems = [];
+const heroGoldNewsItems = [
+  {
+    icon: "UP",
+    title: "Gold prices rise for the 3rd consecutive day in Tamil Nadu",
+    time: "2 mins ago",
+  },
+  {
+    icon: "RBI",
+    title: "RBI keeps interest rates unchanged - Impact on gold prices",
+    time: "1 hour ago",
+  },
+  {
+    icon: "BIS",
+    title: "Hallmarking rules updated by BIS - What you need to know",
+    time: "3 hours ago",
+  },
+  {
+    icon: "TN",
+    title: "Wedding season demand boosts gold sales in TN",
+    time: "5 hours ago",
+  },
+];
+function resolveImage(image) {
+  if (!image) return null;
+  if (typeof image === "object") {
+    image = image.image || image.url || image.src || "";
   }
+  if (typeof image !== "string") return null;
+  if (image.startsWith("http://") || image.startsWith("https://")) return image;
+  return `${API_ORIGIN}/${image.replace(/^\/+/, "")}`;
+}
+
+function productImage(product) {
+  const firstImage = Array.isArray(product?.images) ? product.images[0] : null;
+  return resolveImage(firstImage?.image || firstImage || product?.image);
+}
+
+function safeText(value, fallback = "") {
+  if (value == null) return fallback;
+  if (typeof value === "string" || typeof value === "number") {
+    return String(value);
+  }
+  if (typeof value === "object") {
+    return (
+      value.name ||
+      value.title ||
+      value.slug ||
+      value.label ||
+      value.value ||
+      fallback
+    );
+  }
+  return fallback;
+}
+
+function slugText(value, fallback = "all") {
+  return safeText(value, fallback)
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "") || fallback;
+}
+
+function money(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "Rs. 0";
+  return `Rs. ${n.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+}
+
+function shortDate(value) {
+  if (!value) return "";
+  return new Date(value).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+  });
+}
+
+function HomeBannerSlider() {
+  const [banners, setBanners] = useState([]);
+  const [active, setActive] = useState(0);
+  const [loaded, setLoaded] = useState(false);
+  const [newsPinned, setNewsPinned] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/home-banners/`)
-      .then(r => r.json())
-      .then(data => { if (Array.isArray(data) && data.length) setBanners(data) })
-      .catch(() => { })
-  }, [])
+    let alive = true;
+    api
+      .get("/home-banners/")
+      .then((res) => {
+        if (!alive || !Array.isArray(res.data)) return;
+        setBanners(
+          res.data
+            .filter((b) => b.is_active !== false)
+            .sort((a, b) => a.slot - b.slot),
+        );
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (alive) setLoaded(true);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
-    if (banners.length < 2) return
-    const timer = setInterval(() => {
-      setCurrent(c => (c + 1) % banners.length)
-    }, 3000)
-    return () => clearInterval(timer)
-  }, [banners])
+    if (banners.length < 2) return undefined;
+    const timer = setInterval(
+      () => setActive((i) => (i + 1) % banners.length),
+      4200,
+    );
+    return () => clearInterval(timer);
+  }, [banners.length]);
 
-  if (!banners.length) return null
+  // Always render the container to prevent layout shift.
+  // Show skeleton until loaded, then show banners (or nothing if none).
+  if (loaded && !banners.length) return null;
 
   return (
-    <div style={{ 
-  width: '100%', 
-  maxWidth: '1690px',   // ← add this
-  margin: '0 auto',     // ← center pannanum na
-  overflow: 'hidden', 
-  position: 'relative', 
-  height: '540px',      // ← height also change
-  background: '#f5f0e8' 
-}}>
-      <style>{`
-      @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@400;500;600;700&display=swap');
-
-body {
-  font-family: 'Montserrat', 'Inter', system-ui, sans-serif !important;
-}
-h1, h2, h3 {
-  font-family: 'Playfair Display', Georgia, serif !important;
-}
-        @keyframes slideLeft {
-          from { transform: translateX(0); }
-          to   { transform: translateX(-100%); }
-        }
-        @keyframes slideInRight {
-          from { transform: translateX(100%); }
-          to   { transform: translateX(0); }
-        }
-        .bb-banner-exit  { animation: slideLeft    0.6s ease forwards; position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        .bb-banner-enter { animation: slideInRight 0.6s ease forwards; position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-
-         /* ── SCROLLBAR STYLE ── */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #FDF5EE;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #c9a96e;
-    border-radius: 10px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #e28888;
-  }
-    
-      `}</style>
-
-      {banners.map((b, i) => {
-        const url = getUrl(b.image)
-        if (!url) return null
-        const isActive = i === current
-        const isPrev = i === (current - 1 + banners.length) % banners.length
-
-        return (
-          <div
-            key={b.id}
-            className={isActive ? 'bb-banner-enter' : isPrev ? 'bb-banner-exit' : ''}
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: (isActive || isPrev) ? 1 : 0, zIndex: isActive ? 2 : isPrev ? 1 : 0 }}
-          >
-            <img src={url} alt={`Banner ${b.slot}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+    <div className="store-banner">
+      {!loaded && <div className="store-banner-skeleton" />}
+      {banners.map((banner, index) => (
+        <img
+          key={banner.id || banner.slot}
+          src={resolveImage(banner.image)}
+          alt=""
+          className={index === active ? "active" : ""}
+        />
+      ))}
+      {banners.length > 1 && (
+        <div className="store-dots">
+          {banners.map((banner, index) => (
+            <button
+              key={banner.id || banner.slot}
+              type="button"
+              className={index === active ? "active" : ""}
+              onClick={() => setActive(index)}
+            />
+          ))}
+        </div>
+      )}
+      <div className={`hero-news-popover ${newsPinned ? "open" : ""}`}>
+        <button
+          className="hero-news-trigger"
+          type="button"
+          aria-expanded={newsPinned}
+          onClick={() => setNewsPinned((open) => !open)}
+        >
+          <span className="hero-news-trigger-dot" />
+          Gold News
+        </button>
+        <aside className="hero-news-card" aria-label="Gold news updates">
+          <div className="hero-news-card-top">
+            <span>
+              <i /> Live
+            </span>
+            <strong>Tamil Nadu</strong>
           </div>
-        )
-      })}
-
-      {/* Dots */}
-      <div style={{ position: 'absolute', bottom: '14px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', zIndex: 10 }}>
-        {banners.map((_, i) => (
-          <div key={i} onClick={() => setCurrent(i)}
-            style={{ width: i === current ? '24px' : '8px', height: '8px', borderRadius: '20px', background: i === current ? '#8B1A1A' : 'rgba(255,255,255,0.6)', cursor: 'pointer', transition: 'all 0.3s ease' }} />
-        ))}
-
-   
-
+          <h2>Gold News</h2>
+          <p>Stay updated with the latest gold market news from Tamil Nadu</p>
+          <div className="hero-news-card-list">
+            {heroGoldNewsItems.map((item) => (
+              <article className="hero-news-card-item" key={item.title}>
+                <span className="hero-news-card-icon">{item.icon}</span>
+                <span>
+                  <strong>{item.title}</strong>
+                  <em>{item.time}</em>
+                </span>
+              </article>
+            ))}
+          </div>
+          <button className="hero-news-view-all" type="button">
+            More Updates Stay Here
+          </button>
+        </aside>
       </div>
     </div>
-  )
+  );
+}
+
+function ProductCard({ product, wishIds, onWishlist, onOpen }) {
+  const name = safeText(product.name, "Jewellery Product");
+  const image = productImage(product);
+
+  return (
+    <article className="product-card" onClick={() => onOpen(product)}>
+      <div className="product-img">
+        {image ? (
+          <img src={image} alt={name} />
+        ) : (
+          <img
+            src="/logo.png"
+            alt={name}
+            style={{ objectFit: "contain", padding: 26 }}
+          />
+        )}
+        <button
+          className={`wish-btn ${wishIds.has(product.id) ? "active" : ""}`}
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onWishlist(product);
+          }}
+          aria-label="Wishlist"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill={wishIds.has(product.id) ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M20.8 5.6a5.1 5.1 0 0 0-7.2 0L12 7.2l-1.6-1.6a5.1 5.1 0 0 0-7.2 7.2L12 21l8.8-8.2a5.1 5.1 0 0 0 0-7.2Z" />
+          </svg>
+        </button>
+      </div>
+      <div className="product-body">
+        <h3>{name}</h3>
+        <div className="product-price-row">
+          <span className="product-price">{money(product.price)}</span>
+          <button
+            className="product-cart-btn"
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+            }}
+            aria-label="Add to cart"
+          >
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="9" cy="21" r="1" />
+              <circle cx="20" cy="21" r="1" />
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </article>
+  );
 }
 
 export default function CustomerDashboard() {
-  const navigate = useNavigate()
-  const [dark, setDark] = useState(false)
-  const [profile, setProfile] = useState(null)
-  const [showAnnouncements, setShowAnnouncements] = useState(false)
-  const [updateMessage, setUpdateMessage] = useState('')
-  const [proofDocument, setProofDocument] = useState(null)
-
-  const [announcements, setAnnouncements] = useState([])
-  const [unreadCount, setUnreadCount] = useState(0)
-  const [showProfile, setShowProfile] = useState(false)
-  const [showProfileEdit, setShowProfileEdit] = useState(false)
-  const [updateForm, setUpdateForm] = useState({})
-
-  const [metalPrices, setMetalPrices] = useState({ gold24k: null, gold22k: null, silver: null })
-  const [metalLoading, setMetalLoading] = useState(false)
-  const [usdToInr, setUsdToInr] = useState(null)
-  const [dbRateDate, setDbRateDate] = useState(null)
-
-
-  const [replyAnn, setReplyAnn] = useState(null)
-  const [replyText, setReplyText] = useState('')
-  const [replyLoading, setReplyLoading] = useState(false)
-  const [replyMsg, setReplyMsg] = useState('')
-  const [repliedIds, setRepliedIds] = useState(new Set())
-  const [annReplies, setAnnReplies] = useState({})
-  const [replyPopupAnnId, setReplyPopupAnnId] = useState(null)
-  const [replyPopupPos, setReplyPopupPos] = useState({ top: 0, left: 0 })
-  const wishTimerRef = useRef(null)
-
-  const [orderSummary, setOrderSummary] = useState(null)
-  const [summaryPeriod, setSummaryPeriod] = useState('today') // 'today'|'week'|'month'
-
-  // Place Order popup states — add these after existing useState lines
-  const [orderPopup, setOrderPopup] = useState(false)
-  const [orderMetal, setOrderMetal] = useState(null)  // 'gold_22k' | 'gold_24k' | 'silver_999'
-  const [orderWeight, setOrderWeight] = useState('')
-  const [orderCount, setOrderCount] = useState(1)
-  const [orderSubmitting, setOrderSubmitting] = useState(false)
-  const [orderMsg, setOrderMsg] = useState('')
-  const [msg, setMsg] = useState('')
-  const [msgType, setMsgType] = useState('')
-  const [hoveredJewel, setHoveredJewel] = useState(null)
-  const [showOrderSummary, setShowOrderSummary] = useState(false)
-  const [showTodayRate, setShowTodayRate] = useState(false)
-  const [showChatWidget, setShowChatWidget] = useState(true)
-
-  const bg = '#FDF5EE'
-  const text = dark ? '#f8fafc' : '#020617'
-  const subtext = dark ? '#94a3b8' : '#64748b'
-  const accent = dark ? '#22d3ee' : '#2563eb'
-  const border = dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-  const glass = dark ? 'rgba(15, 23, 42, 0.65)' : 'rgba(255, 255, 255, 0.7)'
-  const cardBg = dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'
-  const cardBorder = dark ? '1px solid rgba(103,232,249,0.1)' : '1px solid rgba(0,0,0,0.1)'
-  const inpBg = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
-  const inpBorder = dark ? '#374151' : '#d1d5db'
-  const optionBg = dark ? '#1a2035' : '#ffffff'
-  const selectInput = { width: '100%', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '10px', padding: '12px 16px', color: text, fontSize: '14px', outline: 'none', boxSizing: 'border-box', cursor: 'pointer' }
-
-  const WEIGHTS_SILVER = [
-    { label: '500 mg', grams: 0.50 },
-    { label: '1 gm', grams: 1 },
-    { label: '2 gm', grams: 2 },
-    { label: '5 gm', grams: 5 },
-    { label: '10 gm', grams: 10 },
-    { label: '20 gm', grams: 20 },
-    { label: '50 gm', grams: 50 },
-    { label: '100 gm', grams: 100 },
-  ]
-
-  const WEIGHTS_GOLD = [
-    { label: '100 mg', grams: 0.10 },
-    { label: '200 mg', grams: 0.20 },
-    { label: '500 mg', grams: 0.50 },
-    { label: '1 gm', grams: 1 },
-    { label: '2 gm', grams: 2 },
-    { label: '4 gm', grams: 4 },
-    { label: '8 gm', grams: 8 },
-    { label: '16 gm', grams: 16 },
-    { label: '40 gm', grams: 40 },
-  ]
-
-  const PROFILE_FIELDS = [
-    ['initial', 'Initial'],
-    ['first_name', 'First Name'],
-    ['last_name', 'Last Name'],
-    ['email', 'Email'],
-    ['mobile_number', 'Mobile Number'],
-    ['gender', 'Gender'],
-    ['dob', 'DOB'],
-    ['married_status', 'Married Status'],
-    ['anniversary_date', 'Anniversary Date'],
-    ['door_no', 'Door No'],
-    ['street_name', 'Street'],
-    ['town_name', 'Town'],
-    ['city_name', 'City'],
-    ['district', 'District'],
-    ['state', 'State'],
-    ['aadhaar_no', 'Aadhaar No'],
-    ['pan_no', 'PAN No'],
-    ['occupation', 'Type'],
-    ['occupation_detail', 'Detail'],
-    ['annual_salary', 'Annual Salary'],
-    ['customer_id', 'Customer ID'],
-    ['promotor_id', 'Promotor ID'],
-    ['promotor_name', 'Promotor Name'],
-    ['promotor_contact_no', 'Contact No'],
-  ]
-
-  const openProfileEdit = () => {
-    const next = {}
-    PROFILE_FIELDS.forEach(([key]) => {
-      next[key] = profile?.[key] || ''
-    })
-
-    setUpdateForm(next)
-    setUpdateMessage('')
-    setProofDocument(null)
-    setShowProfileEdit(true)
-  }
-
-  const handleUpdateChange = e => {
-    const { name, value } = e.target
-
-    if (name === 'married_status' && value !== 'married') {
-      setUpdateForm({ ...updateForm, married_status: value, anniversary_date: '' })
-      return
-    }
-
-    setUpdateForm({ ...updateForm, [name]: value })
-  }
-
-
-
-  const submitProfileUpdate = async e => {
-    e.preventDefault()
-
-    if (!updateMessage.trim()) {
-      alert('Please enter message / reason bro')
-      return
-    }
-
-    if (!proofDocument) {
-      alert('Please upload document proof bro')
-      return
-    }
-
-    const fd = new FormData()
-
-    PROFILE_FIELDS.forEach(([key]) => {
-      if (
-        !['email', 'admin_id', 'admin_name', 'admin_contact_no'].includes(key) &&
-        updateForm[key] !== null &&
-        updateForm[key] !== undefined
-      ) {
-        fd.append(key, updateForm[key])
-      }
-    })
-
-    fd.append('message', updateMessage)
-    fd.append('proof_document', proofDocument)
-
-    try {
-      await api.post('/profile-update-request/', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
-
-      setMsg('✅ Profile update request submitted successfully!')
-      setMsgType('success')
-      setShowProfileEdit(false)
-      setUpdateMessage('')
-      setProofDocument(null)
-    } catch (err) {
-      setMsg('❌ Error: ' + JSON.stringify(err.response?.data || err.message))
-      setMsgType('error')
-    }
-  }
-
-  const submitOrder = async () => {
-    if (!orderWeight) { alert('Weight select pannunga'); return }
-    if (!orderCount || orderCount < 1) { alert('Count enter pannunga'); return }
-
-    const weightsArr = orderMetal === 'silver_999' ? WEIGHTS_SILVER : WEIGHTS_GOLD
-    const w = weightsArr.find(x => x.label === orderWeight)
-    if (!w) return
-
-    const rateMap = {
-      gold_22k: metalPrices.gold22k,
-      gold_24k: metalPrices.gold24k,
-      silver_999: metalPrices.silver,
-    }
-    const rate = rateMap[orderMetal]
-
-    setOrderSubmitting(true)
-    try {
-      await api.post('/metal-orders/', {
-        metal_type: orderMetal,
-        weight_label: orderWeight,
-        weight_grams: w.grams,
-        count: orderCount,
-        rate_per_gram: rate,
-      })
-      setOrderMsg('✅ Order placed successfully!')
-    } catch (err) {
-      setOrderMsg('❌ Failed: ' + JSON.stringify(err.response?.data || err.message))
-    }
-    setOrderSubmitting(false)
-  }
-
-  const fetchMetalPrices = async () => {
-    setMetalLoading(true)
-    try {
-      const res = await api.get('/metal-rates/')
-      const d = res.data
-      setMetalPrices({
-        gold22k: parseFloat(d.gold_22k),
-        gold24k: parseFloat(d.gold_24k),
-        silver: parseFloat(d.silver_999),
-      })
-      setDbRateDate(d.date)
-    } catch (e) {
-      setMetalPrices({ gold22k: null, gold24k: null, silver: null })
-      setDbRateDate(null)
-    }
-    setMetalLoading(false)
-  }
-
-  const fetchOrderSummary = async () => {
-    try {
-      const res = await api.get('/metal-orders/summary/')
-      setOrderSummary(res.data)
-    } catch { }
-  }
-
-const addMetalToCart = async (metalType, metalLabel, weightObj, price, img) => {
-    // Coin cart click → Order popup திற
-    setOrderMetal(metalType)
-    setOrderWeight(weightObj.label)
-    setOrderCount(1)
-    setOrderMsg('')
-    setOrderPopup(true)
-  }
-
-  const goToCoinCheckout = (metalKey, label, grams, price) => {
-  const metal = metalKey.startsWith('gold') ? 'gold' : 'silver'
-  const grade = metalKey.includes('22k') ? '22k' : metalKey.includes('24k') ? '24k' : '999'
-  navigate('/order-confirm', {
-    state: {
-      product: { id: null, name: `${metal === 'gold' ? 'Gold' : 'Silver'} ${grade.toUpperCase()} Coin (${label})`, grade, net_weight: grams, images: [] },
-      qty: 1,
-      displayPrice: parseFloat(price),
-      metal,
-    }
-  })
-}
-
-
-  const fetchAnnouncements = async () => {
-    try {
-      const res = await api.get('/announcements/')
-      const sorted = res.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-      setAnnouncements(sorted)
-      const lastSeen = parseInt(localStorage.getItem('customerAnnouncementSeen') || '0')
-      setUnreadCount(sorted.filter(a => new Date(a.created_at).getTime() > lastSeen).length)
-    } catch { }
-  }
-
-
-
-  function extractIdsFromTitle(title) {
-    return title.match(/BB[A-Z]+\d+/g) || []
-  }
-
-  function isCurrentUserMentioned(title) {
-    const myId = profile?.customer_id
-    if (!myId) return false
-    return extractIdsFromTitle(title).includes(myId)
-  }
-
-  async function fetchReplies(annId) {
-    try {
-      const res = await api.get(`/announcements/${annId}/replies/`)
-      setAnnReplies(prev => ({ ...prev, [annId]: res.data }))
-    } catch { }
-  }
-
-  async function submitReply() {
-    if (!replyText.trim()) return
-    setReplyLoading(true)
-    try {
-      await api.post(`/announcements/${replyAnn.id}/replies/`, { message: replyText })
-      setRepliedIds(prev => new Set([...prev, replyAnn.id]))
-      setReplyMsg('✅ Wish sent!')
-      setReplyText('')
-    } catch (err) {
-      if (err.response?.data?.error === 'Already replied') {
-        setRepliedIds(prev => new Set([...prev, replyAnn.id]))
-        setReplyMsg('⚠️ Already sent!')
-      } else { setReplyMsg('❌ Failed.') }
-    }
-    setReplyLoading(false)
-  }
+  const navigate = useNavigate();
+  const catTrackRef = useRef(null);
+  const promoTrackRef = useRef(null);
+  const promoRafRef = useRef(null);
+  const promoLastTimeRef = useRef(0);
+  const promoAutoPausedRef = useRef(false);
+  const catAutoPausedRef = useRef(false);
+  const catRafRef = useRef(null);
+  const catOffsetRef = useRef(0);
+  const catLoopWidthRef = useRef(0);
+  const [profile, setProfile] = useState(null);
+  const [rates, setRates] = useState(null);
+  const [announcements, setAnnouncements] = useState([]);
+  const [featured, setFeatured] = useState([]);
+  const [wishIds, setWishIds] = useState(new Set());
 
   useEffect(() => {
-    api.get('/dashboard/').then(res => setProfile(res.data)).catch(() => { })
-    fetchAnnouncements()
-    fetchMetalPrices()
-    fetchOrderSummary() // ← ADD THIS
-    const interval = setInterval(() => {
-      fetchAnnouncements()
-      fetchMetalPrices()
-      fetchOrderSummary() // ← ADD THIS
-    }, 30000)
-    return () => clearInterval(interval)
-  }, [])
+    let alive = true;
 
-  const card = { background: cardBg, border: cardBorder, borderRadius: '20px', padding: '32px 36px', marginBottom: '20px' }
-  const sHead = { color: '#34d399', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 20px', paddingBottom: '14px', borderBottom: cardBorder }
-  const lbl = { color: subtext, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }
-  const val = { color: text, fontSize: '15px' }
-  const g2 = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }
-  const g3 = { display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '20px' }
+    async function load() {
+      const [profileRes, rateRes, annRes, productRes, wishRes] =
+        await Promise.allSettled([
+          api.get("/dashboard/"),
+          api.get("/metal-rates/"),
+          api.get("/announcements/"),
+          api.get("/jewelry-products/"),
+          api.get("/wishlist/"),
+        ]);
 
-  const Row = ({ label, value, mono }) => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-      <span style={lbl}>{label}</span>
-      <span style={{ ...val, ...(mono ? { fontFamily: 'monospace', letterSpacing: '0.05em' } : {}) }}>{value || '—'}</span>
-    </div>
-  )
+      if (!alive) return;
 
-  const Section = ({ title, children, grid }) => (
-    <div style={card}>
-      <p style={sHead}>{title}</p>
-      <div style={grid}>{children}</div>
-    </div>
-  )
+      if (profileRes.status === "fulfilled") setProfile(profileRes.value.data);
+      if (rateRes.status === "fulfilled") {
+        const data = Array.isArray(rateRes.value.data)
+          ? rateRes.value.data[0]
+          : rateRes.value.data;
+        setRates(data || null);
+      }
+      if (annRes.status === "fulfilled" && Array.isArray(annRes.value.data)) {
+        setAnnouncements(
+          annRes.value.data
+            .filter((a) => a.is_active !== false)
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            .slice(0, 2),
+        );
+      }
+      if (
+        productRes.status === "fulfilled" &&
+        Array.isArray(productRes.value.data)
+      ) {
+        const activeProducts = productRes.value.data.filter(
+          (p) => p.is_active !== false,
+        );
+        setFeatured(activeProducts.slice(0, 10));
+      }
+      if (wishRes.status === "fulfilled") {
+        const items = Array.isArray(wishRes.value.data?.items)
+          ? wishRes.value.data.items
+          : Array.isArray(wishRes.value.data)
+            ? wishRes.value.data
+            : [];
+        setWishIds(
+          new Set(items.map((item) => item.product_id || item.product)),
+        );
+      }
+    }
+
+    load();
+    const timer = setInterval(load, 30000);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+    };
+  }, []);
+
+  const setCategoryOffset = (value) => {
+    const track = catTrackRef.current;
+    const loopWidth = catLoopWidthRef.current;
+    if (!track || loopWidth <= 0) return;
+
+    let next = value;
+    while (next >= loopWidth * 2) next -= loopWidth;
+    while (next < loopWidth) next += loopWidth;
+
+    catOffsetRef.current = next;
+    track.style.transform = `translate3d(${-next}px, 0, 0)`;
+  };
+
+  const moveCategoryRail = (direction) => {
+    const track = catTrackRef.current;
+    if (!track || catLoopWidthRef.current <= 0) return;
+    setCategoryOffset(
+      catOffsetRef.current +
+        direction * Math.floor(track.parentElement.offsetWidth * 0.72),
+    );
+  };
+
+  const movePromoCarousel = (direction) => {
+    const viewport = promoTrackRef.current;
+    if (!viewport) return;
+    const card = viewport.querySelector(".coin-story-card");
+    if (!card) return;
+    const grid = viewport.querySelector(".coin-story-track");
+    const gap = parseFloat(getComputedStyle(grid || viewport).gap || "0") || 16;
+    viewport.scrollBy({
+      left: direction * (card.offsetWidth + gap),
+      behavior: "smooth",
+    });
+  };
+
+  useEffect(() => {
+    const viewport = promoTrackRef.current;
+    if (!viewport) return undefined;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches)
+      return undefined;
+
+    const pixelsPerSecond = 34;
+
+    const normalizeScroll = () => {
+      const loopWidth = viewport.scrollWidth / 2;
+      if (loopWidth <= 0) return;
+      if (viewport.scrollLeft >= loopWidth) viewport.scrollLeft -= loopWidth;
+      if (viewport.scrollLeft <= 0) viewport.scrollLeft += loopWidth;
+    };
+
+    const tick = (now) => {
+      if (!promoLastTimeRef.current) promoLastTimeRef.current = now;
+      const elapsed = Math.min(now - promoLastTimeRef.current, 80);
+      promoLastTimeRef.current = now;
+
+      if (
+        !promoAutoPausedRef.current &&
+        viewport.scrollWidth > viewport.clientWidth
+      ) {
+        viewport.scrollLeft += (pixelsPerSecond * elapsed) / 1000;
+        normalizeScroll();
+      }
+
+      promoRafRef.current = requestAnimationFrame(tick);
+    };
+
+    window.addEventListener("resize", normalizeScroll);
+    requestAnimationFrame(() => {
+      viewport.scrollLeft = 0;
+    });
+    promoRafRef.current = requestAnimationFrame(tick);
+    return () => {
+      window.removeEventListener("resize", normalizeScroll);
+      if (promoRafRef.current) cancelAnimationFrame(promoRafRef.current);
+      promoLastTimeRef.current = 0;
+    };
+  }, []);
+  useEffect(() => {
+    const track = catTrackRef.current;
+    if (!track) return undefined;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches)
+      return undefined;
+
+    let lastTime = performance.now();
+    const pixelsPerSecond = 24;
+
+    const measureLoop = () => {
+      const firstItem = track.children[0];
+      const secondSetItem = track.children[categoryRail.length];
+      if (!firstItem || !secondSetItem) return;
+
+      const loopWidth = secondSetItem.offsetLeft - firstItem.offsetLeft;
+      if (loopWidth <= 0) return;
+
+      catLoopWidthRef.current = loopWidth;
+      if (catOffsetRef.current <= 0) catOffsetRef.current = loopWidth;
+      setCategoryOffset(catOffsetRef.current);
+    };
+
+    const tick = (now) => {
+      const elapsed = Math.min(now - lastTime, 80);
+      lastTime = now;
+      if (catLoopWidthRef.current <= 0) measureLoop();
+
+      if (!catAutoPausedRef.current && catLoopWidthRef.current > 0) {
+        setCategoryOffset(
+          catOffsetRef.current + (pixelsPerSecond * elapsed) / 1000,
+        );
+      }
+
+      catRafRef.current = requestAnimationFrame(tick);
+    };
+
+    measureLoop();
+    window.addEventListener("resize", measureLoop);
+    catRafRef.current = requestAnimationFrame(tick);
+    return () => {
+      window.removeEventListener("resize", measureLoop);
+      if (catRafRef.current) cancelAnimationFrame(catRafRef.current);
+    };
+  }, []);
+
+  const rateLine = useMemo(() => {
+    if (!rates) return "Live rates loading";
+    return `Gold 22K ${money(rates.gold_22k)} / gm  |  Silver ${money(rates.silver_999)} / gm`;
+  }, [rates]);
+
+  const openProduct = (product) => {
+    navigate(
+      `/product-display?category=${slugText(product.category)}&metal=${slugText(product.metal)}&id=${product.id}`,
+    );
+  };
+
+  const toggleWishlist = async (product) => {
+    try {
+      await api.post("/wishlist/", { product: product.id });
+      setWishIds((prev) => new Set([...prev, product.id]));
+      window.dispatchEvent(new Event("bb_wishlist_update"));
+    } catch {
+      try {
+        await api.delete("/wishlist/", { data: { product: product.id } });
+        setWishIds((prev) => {
+          const next = new Set(prev);
+          next.delete(product.id);
+          return next;
+        });
+        window.dispatchEvent(new Event("bb_wishlist_update"));
+      } catch {}
+    }
+  };
 
   return (
-    <div style={{ minHeight: '100vh', background: bg, color: text, transition: 'background 0.8s ease, color 0.4s ease', fontFamily: '"Inter",system-ui,sans-serif', position: 'relative', }}>
+    <div className="storefront">
       <style>{`
-        @keyframes float-orb{0%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-50px) scale(1.1)}66%{transform:translate(-20px,20px) scale(0.9)}100%{transform:translate(0,0) scale(1)}}
-        @keyframes antigravity{0%{transform:translateY(110vh) rotate(0deg);opacity:0}10%{opacity:var(--op)}90%{opacity:var(--op)}100%{transform:translateY(-20vh) rotate(360deg);opacity:0}}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-        #sd-wish-popup::-webkit-scrollbar{width:5px}
-#sd-wish-popup::-webkit-scrollbar-track{background:rgba(167,139,250,0.05);border-radius:10px;margin:4px 0}
-#sd-wish-popup::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#a78bfa,#22d3ee);border-radius:10px}
-#sd-wish-popup{scrollbar-color:rgba(167,139,250,0.5) rgba(167,139,250,0.03)}
-@keyframes sdWishIn{from{opacity:0;transform:translate(-50%,calc(-100% + 8px)) scale(0.95)}to{opacity:1;transform:translate(-50%,calc(-100% - 10px)) scale(1)}}
-@keyframes jewelGlow{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.04)}}
-@keyframes shimmerSlide{0%{left:-80%}100%{left:120%}}
-.jewel-card-img{transition:transform 0.55s cubic-bezier(0.34,1.56,0.64,1);}
-.jewel-card:hover .jewel-card-img{transform:scale(1.10) translateY(-4px) !important;}
-.jewel-shine{position:absolute;top:0;left:-80%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);transform:skewX(-20deg);opacity:0;transition:opacity 0.3s;}
-.jewel-card:hover .jewel-shine{opacity:1;animation:shimmerSlide 0.65s ease;}
+        .storefront {
+          min-height: 100vh;
+          background: #FDFDFC;
+          color: #111817;
+          overflow-x: hidden;
+          width: 100%;
+        }
+
+        .store-shell {
+          width: calc(100% - 48px);
+          max-width: 1560px;
+          margin: 0 auto;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        .store-hero-actions {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-top: 28px;
+        }
+
+        .store-btn {
+          min-height: 48px;
+          border-radius: 999px;
+          border: 1px solid #073B3F;
+          padding: 0 28px;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 900;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          transition: transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        .store-btn:hover {
+          transform: translateY(-2px);
+        }
+
+        .store-btn.primary {
+          background: #073B3F;
+          color: #fff;
+          box-shadow: 0 18px 38px rgba(7,59,63,0.24);
+        }
+
+        .store-btn.secondary {
+          background: rgba(255,255,255,0.7);
+          color: #073B3F;
+        }
 
 
-        .cu-fade{animation:fadeIn .45s ease both}
-        input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+        /* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Category carousel animations ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */
+        @keyframes cat-fade-up {
+          from { opacity: 0; transform: translateY(22px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
 
-  /* ── GLOBAL TYPOGRAPHY FOR #FDF5EE BACKGROUND ── */
-  * { box-sizing: border-box; }
+        @keyframes cat-soft-glow {
+          0%, 100% {
+            box-shadow: 0 8px 24px rgba(7,59,63,0.13);
+            filter: saturate(1);
+          }
+          50% {
+            box-shadow: 0 16px 36px rgba(7,59,63,0.22);
+            filter: saturate(1.08);
+          }
+        }
 
-  body {
-    background: #FDF5EE;
-    font-family: 'Montserrat', 'Inter', system-ui, sans-serif;
-    color: #3d2b1f;
-    -webkit-font-smoothing: antialiased;
-  }
+        @keyframes ring-spin {
+          from { transform: translateX(-50%) rotate(0deg); }
+          to { transform: translateX(-50%) rotate(360deg); }
+        }
 
-  /* Headings */
-  h1, h2, h3, h4, h5, h6 {
-    color: #1a0a0a;
-    font-weight: 700;
-    font-family: 'Playfair Display', Georgia, serif;
-    letter-spacing: -0.01em;
-    line-height: 1.3;
-  }
+        @keyframes cat-shine {
+          from { transform: translateX(-150%) rotate(18deg); }
+          to { transform: translateX(150%) rotate(18deg); }
+        }
 
-  /* Body paragraphs */
-  p {
-    color: #3d2b1f;
-    line-height: 1.7;
-    font-size: 14px;
-  }
+        @keyframes arrow-pulse {
+          0%, 100% { box-shadow: 0 4px 14px rgba(7,59,63,0.14); }
+          50%       { box-shadow: 0 4px 22px rgba(7,59,63,0.34); }
+        }
 
-  /* Labels / captions */
-  label, .caption {
-    color: #7c5c4a;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-  }
+        .store-category-card {
+          --cat-img-size: clamp(88px, 7.3vw, 140px);
+          --cat-basis: calc((100% - 98px) / 8);
+          position: relative;
+          z-index: 4;
+          margin-top: 0;
+          border-radius: 0;
+          background: rgba(253,253,252,0.96);
+          border-top: 1px solid #D1DFDE;
+          border-bottom: 1px solid #D1DFDE;
+          box-shadow: 0 8px 32px rgba(7,59,63,0.08);
+          padding: clamp(14px, 1.8vw, 22px) clamp(42px, 4vw, 60px);
+          box-sizing: border-box;
+          width: 100%;
+          overflow: hidden;
+        }
 
-  /* Price / highlight text */
-  .price-text {
-    color: #b8860b;
-    font-weight: 800;
-    font-family: 'monospace';
-  }
+        .store-cat-track {
+          display: flex;
+          gap: clamp(6px, 0.8vw, 14px);
+          width: 100%;
+          overflow: visible;
+          will-change: transform;
+          transform: translate3d(0, 0, 0);
+          backface-visibility: hidden;
+        }
 
-  /* Primary button */
-  .btn-primary {
-    background: #8B1A1A;
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    padding: 12px 24px;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background 0.2s ease;
-  }
-  .btn-primary:hover {
-    background: #6b1212;
-  }
+        .store-cat-track::-webkit-scrollbar { display: none; }
 
-  /* Secondary/outline button */
-  .btn-secondary {
-    background: transparent;
-    color: #8B1A1A;
-    border: 1.5px solid #8B1A1A;
-    border-radius: 12px;
-    padding: 11px 24px;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .btn-secondary:hover {
-    background: #8B1A1A;
-    color: #fff;
-  }
+        .store-cat-arrow {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          border: 1.5px solid #073B3F;
+          background: #fff;
+          color: #073B3F;
+          font-size: 16px;
+          display: grid;
+          place-items: center;
+          cursor: pointer;
+          z-index: 5;
+          box-shadow: 0 4px 14px rgba(7,59,63,0.18);
+          transition: background 150ms ease, color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+        }
 
-  /* Card on cream bg */
-  .bb-card {
-    background: #fff;
-    border: 1px solid #e8ddd5;
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 2px 12px rgba(139,26,26,0.06);
-  }
+        .store-cat-arrow:hover {
+          background: #073B3F;
+          color: #fff;
+          transform: translateY(-50%) scale(1.1);
+          box-shadow: 0 6px 20px rgba(7,59,63,0.30);
+        }
 
-  /* Input fields */
-  input, textarea, select {
-    font-family: 'Inter', system-ui, sans-serif;
-    color: #3d2b1f;
-  }
-  input::placeholder, textarea::placeholder {
-    color: #b09080;
-  }
+        .store-cat-arrow.prev { left: 12px; }
+        .store-cat-arrow.next { right: 12px; }
 
-  /* Divider */
-  .bb-divider {
-    border: none;
-    border-top: 1px solid #e8ddd5;
-    margin: 16px 0;
-  }
+        .store-cat {
+          border: 0;
+          background: transparent;
+          border-radius: 16px;
+          padding: clamp(8px, 1vw, 12px) 4px;
+          cursor: pointer;
+          color: #073B3F;
+          flex: 0 0 var(--cat-basis);
+          position: relative;
+          animation: cat-fade-up 480ms ease both;
+          transition: background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+          min-width: 0;
+          box-sizing: border-box;
+          overflow: hidden;
+        }
 
-  /* Section heading style */
-  .section-title {
-    font-size: 13px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: #8B1A1A;
-    margin-bottom: 16px;
-  }
+        .store-cat::before {
+          content: '';
+          position: absolute;
+          top: 8px;
+          left: 50%;
+          width: calc(var(--cat-img-size) + 12px);
+          height: calc(var(--cat-img-size) + 12px);
+          border-radius: 50%;
+          background: conic-gradient(from 0deg, rgba(204,168,129,0), rgba(204,168,129,0.72), rgba(7,59,63,0.58), rgba(204,168,129,0));
+          opacity: 0;
+          transform: translateX(-50%);
+          transition: opacity 180ms ease;
+          animation: ring-spin 4.6s linear infinite;
+          z-index: 0;
+        }
 
-  /* Navbar stays white — no change needed */
+        .store-cat::after {
+          content: '';
+          position: absolute;
+          top: 12px;
+          left: 50%;
+          width: var(--cat-img-size);
+          height: var(--cat-img-size);
+          border-radius: 50%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.44), transparent);
+          opacity: 0;
+          pointer-events: none;
+          z-index: 2;
+          transform: translateX(-150%) rotate(18deg);
+        }
+
+        .store-cat:nth-child(1)  { animation-delay: 40ms; }
+        .store-cat:nth-child(2)  { animation-delay: 80ms; }
+        .store-cat:nth-child(3)  { animation-delay: 120ms; }
+        .store-cat:nth-child(4)  { animation-delay: 160ms; }
+        .store-cat:nth-child(5)  { animation-delay: 200ms; }
+        .store-cat:nth-child(6)  { animation-delay: 240ms; }
+        .store-cat:nth-child(7)  { animation-delay: 280ms; }
+        .store-cat:nth-child(8)  { animation-delay: 320ms; }
+        .store-cat:nth-child(9)  { animation-delay: 360ms; }
+        .store-cat:nth-child(10) { animation-delay: 400ms; }
+        .store-cat:nth-child(11) { animation-delay: 440ms; }
+        .store-cat:nth-child(12) { animation-delay: 480ms; }
+        .store-cat:nth-child(13) { animation-delay: 520ms; }
+
+        .store-cat:hover {
+          transform: translateY(-7px);
+        }
+
+        .store-cat:hover::before {
+          opacity: 1;
+        }
+
+        .store-cat:hover::after {
+          opacity: 1;
+          animation: cat-shine 760ms ease;
+        }
+
+        .store-cat img {
+          width: var(--cat-img-size);
+          height: var(--cat-img-size);
+          min-width: var(--cat-img-size);
+          min-height: var(--cat-img-size);
+          margin: 0 auto 12px;
+          border-radius: 50%;
+          object-fit: cover;
+          background: #F3E8DE;
+          display: block;
+          box-shadow: 0 6px 20px rgba(7,59,63,0.12);
+          position: relative;
+          z-index: 1;
+          animation: cat-soft-glow 3.8s ease-in-out infinite;
+          transition: transform 280ms ease, box-shadow 280ms ease, outline-color 280ms ease;
+          outline: 3px solid transparent;
+          outline-offset: 3px;
+          aspect-ratio: 1 / 1;
+        }
+
+        .store-cat:hover img {
+          transform: scale(1.08) rotate(-1.5deg);
+          box-shadow: 0 18px 42px rgba(7,59,63,0.22);
+          outline-color: rgba(204,168,129,0.42);
+        }
+
+        .store-cat span {
+          position: relative;
+          z-index: 1;
+          display: block;
+          font-size: 13px;
+          font-weight: 900;
+          text-align: center;
+          transition: color 160ms ease, transform 160ms ease;
+        }
+
+        .store-cat:hover span {
+          color: #9F6130;
+          transform: translateY(2px);
+        }
+
+        .store-section {
+          padding: 28px 0;
+        }
+
+        .store-heading {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 16px;
+          margin-bottom: 18px;
+          flex-wrap: wrap;
+        }
+
+        .store-heading h2 {
+          color: #1a1a1a;
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: 1.7rem;
+          font-weight: 600;
+          line-height: 1;
+        }
+
+        .store-kicker {
+          color: #0C4044;
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+        }
+
+        .store-heading .view-all-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          color: #073B3F;
+          font-size: 13px;
+          font-weight: 700;
+          background: none;
+          border: none;
+          cursor: pointer;
+          letter-spacing: 0.02em;
+        }
+
+        .store-heading .view-all-link:hover { text-decoration: underline; }
+
+        .store-promo-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+        }
+
+        .store-promo {min-height: 260px;
+          border: 0;
+          border-radius: 18px;
+          overflow: hidden;
+          text-align: left;
+          cursor: pointer;
+          position: relative;
+          background: #111;
+          box-shadow: 0 8px 30px rgba(7,59,63,0.18);
+          transition: transform 260ms ease, box-shadow 260ms ease;
+        }
+
+        .store-promo:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 20px 50px rgba(7,59,63,0.26);
+        }
+
+        .store-promo img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          opacity: 0.82;
+          transition: transform 440ms ease, opacity 260ms ease;
+        }
+
+        .store-promo:hover img {
+          transform: scale(1.06);
+          opacity: 0.72;
+        }
+
+        .store-promo::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            to top,
+            rgba(10,10,10,0.82) 0%,
+            rgba(10,10,10,0.28) 45%,
+            rgba(10,10,10,0.02) 100%
+          );
+        }
+
+        .store-promo-content {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          z-index: 1;
+          padding: 20px 22px;
+        }
+
+        .store-promo-content h3 {
+          margin: 4px 0 8px;
+          color: #fff;
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: 22px;
+          line-height: 1.15;
+          font-weight: 500;
+        }
+
+        .store-promo-content p {
+          color: rgba(255,255,255,0.82);
+          line-height: 1.5;
+          font-size: 13px;
+        }
+
+        .store-promo-content .store-kicker {
+          color: rgba(255,255,255,0.70);
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.10em;
+          text-transform: uppercase;
+        }
+
+        .store-link {
+          display: inline-flex;
+          margin-top: 14px;
+          gap: 6px;
+          color: #fff;
+          font-weight: 900;
+          font-size: 12px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          opacity: 0.88;
+        }
+
+        .store-link:hover {
+          opacity: 1;
+        }
+
+        /* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Product card animations ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */
+        @keyframes card-fade-up {
+          from { opacity: 0; transform: translateY(28px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shimmer-sweep {
+          0%   { transform: translateX(-100%) skewX(-12deg); }
+          100% { transform: translateX(220%) skewX(-12deg); }
+        }
+
+        @keyframes cart-pop {
+          0%   { transform: scale(1); }
+          40%  { transform: scale(1.28); }
+          70%  { transform: scale(0.92); }
+          100% { transform: scale(1); }
+        }
+
+        .product-grid {
+          display: grid;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 14px;
+        }
+
+        .product-card {
+          border-radius: 16px;
+          overflow: hidden;
+          background: #fff;
+          border: 1px solid #eef0ef;
+          box-shadow:
+            0 2px 8px rgba(7,59,63,0.06),
+            0 8px 24px rgba(7,59,63,0.08),
+            0 0 0 1px rgba(209,223,222,0.4);
+          cursor: pointer;
+          animation: card-fade-up 500ms ease both;
+          transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+        }
+
+        /* stagger each card */
+        .product-card:nth-child(1)  { animation-delay: 60ms; }
+        .product-card:nth-child(2)  { animation-delay: 110ms; }
+        .product-card:nth-child(3)  { animation-delay: 160ms; }
+        .product-card:nth-child(4)  { animation-delay: 210ms; }
+        .product-card:nth-child(5)  { animation-delay: 260ms; }
+        .product-card:nth-child(6)  { animation-delay: 310ms; }
+        .product-card:nth-child(7)  { animation-delay: 360ms; }
+        .product-card:nth-child(8)  { animation-delay: 410ms; }
+        .product-card:nth-child(9)  { animation-delay: 460ms; }
+        .product-card:nth-child(10) { animation-delay: 510ms; }
+
+        .product-card:hover {
+          transform: translateY(-6px);
+          box-shadow:
+            0 4px 12px rgba(7,59,63,0.08),
+            0 16px 40px rgba(7,59,63,0.16),
+            0 0 0 1px rgba(189,207,206,0.7);
+          border-color: #BDCFCE;
+        }
+
+        .product-img {
+          position: relative;
+          aspect-ratio: 1;
+          background: #f5f5f3;
+          overflow: hidden;
+        }
+
+        /* shimmer overlay on hover */
+        .product-img::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            105deg,
+            transparent 40%,
+            rgba(255,255,255,0.38) 50%,
+            transparent 60%
+          );
+          transform: translateX(-100%) skewX(-12deg);
+          pointer-events: none;
+        }
+
+        .product-card:hover .product-img::after {
+          animation: shimmer-sweep 650ms ease forwards;
+        }
+
+        .product-img img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 440ms ease;
+        }
+
+        .product-card:hover .product-img img {
+          transform: scale(1.07);
+        }
+
+        .wish-btn {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          width: 26px;
+          height: 26px;
+          border: 1px solid rgba(0,0,0,0.10);
+          border-radius: 50%;
+          background: #fff;
+          color: #555;
+          cursor: pointer;
+          display: grid;
+          place-items: center;
+          transition: color 160ms ease, border-color 160ms ease, transform 160ms ease;
+        }
+
+        .wish-btn:hover {
+          color: #C92035;
+          border-color: #C92035;
+          transform: scale(1.15);
+        }
+
+        .wish-btn.active {
+          background: #fff;
+          color: #C92035;
+          border-color: #C92035;
+        }
+
+        .product-body {
+          padding: 12px 13px 13px;
+        }
+
+        .product-body h3 {
+          color: #1a1a1a;
+          font-size: 13px;
+          line-height: 1.3;
+          font-weight: 600;
+          margin: 0 0 5px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          transition: color 180ms ease;
+        }
+
+        .product-price {
+          color: #1a1a1a;
+          font-size: 14px;
+          font-weight: 700;
+        }
+
+        .product-card:hover .product-body h3 { color: #073B3F; }
+
+        .product-price-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 6px;
+          margin-top: 3px;
+        }
+
+        .product-cart-btn {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          border: 1.5px solid #D1DFDE;
+          background: #fff;
+          color: #073B3F;
+          display: grid;
+          place-items: center;
+          cursor: pointer;
+          flex-shrink: 0;
+          transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+        }
+
+        .product-cart-btn:hover {
+          background: #073B3F;
+          border-color: #073B3F;
+          color: #fff;
+          animation: cart-pop 340ms ease forwards;
+        }
+
+        .product-stars {
+          display: flex;
+          align-items: center;
+          gap: 2px;
+          margin-top: 5px;
+          font-size: 12px;
+          color: #f5a623;
+        }
+
+        .product-stars span {
+          color: #7A8987;
+          font-size: 11px;
+          font-weight: 600;
+          margin-left: 3px;
+        }
+
+        .service-strip { display: none; }
+
+        .store-banner {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 16 / 6;
+          overflow: visible;
+          background: #D1DFDE;
+          contain: layout size;
+        }
+
+        .store-banner-skeleton {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            90deg,
+            #D1DFDE 25%,
+            #e8f0ef 50%,
+            #D1DFDE 75%
+          );
+          background-size: 200% 100%;
+          animation: skeleton-shimmer 1.6s ease-in-out infinite;
+        }
+
+        @keyframes skeleton-shimmer {
+          0%   { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+
+        .store-banner img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center center;
+          opacity: 0;
+          filter: none;
+          animation: none;
+          transform: none;
+          transition: opacity 700ms ease;
+          display: block;
+        }
+
+        .store-banner img.active {
+          opacity: 1;
+        }
+
+        .store-dots {
+          position: absolute;
+          left: 50%;
+          bottom: 18px;
+          transform: translateX(-50%);
+          display: flex;
+          gap: 8px;
+          z-index: 2;
+        }
+
+        .store-dots button {
+          width: 8px;
+          height: 8px;
+          border: 0;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.60);
+          cursor: pointer;
+          transition: width 200ms ease, background 200ms ease;
+        }
+
+
+        .hero-news-popover {
+          position: absolute;
+          top: clamp(18px, 2.4vw, 34px);
+          right: clamp(18px, 3vw, 52px);
+          z-index: 6;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 10px;
+        }
+
+        .hero-news-trigger {
+          display: inline-flex;
+          align-items: center;
+          gap: 9px;
+          min-height: 42px;
+          padding: 0 18px;
+          border: 1px solid rgba(7,59,63,0.24);
+          border-radius: 999px;
+          background: #064D4D;
+          color: #fff;
+          box-shadow: 0 14px 34px rgba(7,59,63,0.22);
+          font-size: 13px;
+          font-weight: 900;
+          letter-spacing: 0;
+          cursor: pointer;
+          transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+        }
+
+        .hero-news-trigger:hover,
+        .hero-news-popover.open .hero-news-trigger {
+          transform: translateY(-1px);
+          background: #073B3F;
+          box-shadow: 0 18px 42px rgba(7,59,63,0.28);
+        }
+
+        .hero-news-trigger-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: #24E985;
+          box-shadow: 0 0 0 6px rgba(36,233,133,0.14);
+        }
+
+        .hero-news-card {
+          width: clamp(300px, 23vw, 360px);
+          max-height: min(520px, calc(100vh - 220px));
+          overflow: auto;
+          padding: 22px 24px 20px;
+          border: 1px solid rgba(193, 134, 48, 0.72);
+          border-radius: 18px;
+          background: rgba(255, 251, 244, 0.96);
+          color: #101817;
+          box-shadow: 0 26px 70px rgba(7,59,63,0.20);
+          opacity: 0;
+          transform: translateY(-8px) scale(0.98);
+          pointer-events: none;
+          visibility: hidden;
+          transition: opacity 180ms ease, transform 180ms ease, visibility 180ms ease;
+          backdrop-filter: blur(10px);
+        }
+
+        .hero-news-popover:hover .hero-news-card,
+        .hero-news-popover:focus-within .hero-news-card,
+        .hero-news-popover.open .hero-news-card {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+          pointer-events: auto;
+          visibility: visible;
+        }
+
+        .hero-news-card-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 10px;
+          color: #11201F;
+          font-size: 13px;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+
+        .hero-news-card-top span {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          height: 27px;
+          padding: 0 12px;
+          border-radius: 6px;
+          background: #064D4D;
+          color: #fff;
+        }
+
+        .hero-news-card-top i {
+          width: 9px;
+          height: 9px;
+          border-radius: 50%;
+          background: #24E985;
+        }
+
+        .hero-news-card h2 {
+          margin: 0 0 8px;
+          color: #101817;
+          font-family: Georgia, 'Times New Roman', serif;
+          font-size: clamp(28px, 2vw, 36px);
+          line-height: 1;
+          text-transform: uppercase;
+          font-weight: 700;
+        }
+
+        .hero-news-card p {
+          margin: 0 0 15px;
+          color: #344542;
+          font-size: 14px;
+          line-height: 1.35;
+        }
+
+        .hero-news-card-list {
+          border-top: 1px solid rgba(193, 134, 48, 0.42);
+        }
+
+        .hero-news-card-item {
+          display: grid;
+          grid-template-columns: 52px 1fr;
+          gap: 14px;
+          align-items: center;
+          padding: 14px 0;
+          border-bottom: 1px solid rgba(193, 134, 48, 0.32);
+        }
+
+        .hero-news-card-icon {
+          width: 52px;
+          height: 52px;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          background: #064D4D;
+          color: #F4C86B;
+          font-size: 13px;
+          font-weight: 900;
+        }
+
+        .hero-news-card-item strong {
+          display: block;
+          color: #121A19;
+          font-size: 14px;
+          line-height: 1.18;
+          font-weight: 900;
+        }
+
+        .hero-news-card-item em {
+          display: block;
+          margin-top: 6px;
+          color: #63716F;
+          font-style: normal;
+          font-size: 12px;
+          font-weight: 800;
+        }
+
+        .hero-news-view-all {
+          width: 100%;
+          min-height: 48px;
+          margin-top: 16px;
+          border: 0;
+          border-radius: 999px;
+          background: #064D4D;
+          color: #fff;
+          font-size: 15px;
+          font-weight: 900;
+          cursor: pointer;
+          box-shadow: 0 12px 28px rgba(7,59,63,0.16);
+        }
+
+        .hero-news-view-all span {
+          margin-left: 6px;
+        }
+        .store-dots button.active {
+          width: 28px;
+          background: #fff;
+        }
+
+        .newsletter {
+          display: grid;
+          grid-template-columns: auto 1fr minmax(0, auto);
+          gap: clamp(14px, 2.5vw, 40px);
+          align-items: center;
+          border-radius: clamp(12px, 2vw, 20px);
+          padding: clamp(22px, 3vw, 40px) clamp(22px, 4vw, 52px);
+          background: #D1E8E4;
+          border: none;
+          position: relative;
+          overflow: hidden;
+          box-sizing: border-box;
+          width: 100%;
+        }
+
+        .newsletter-icon-wrap {
+          width: clamp(52px, 5vw, 68px);
+          height: clamp(52px, 5vw, 68px);
+          border-radius: 50%;
+          background: #fff;
+          display: grid;
+          place-items: center;
+          flex-shrink: 0;
+          box-shadow: 0 4px 16px rgba(7,59,63,0.12);
+        }
+
+        .newsletter h2 {
+          color: #073B3F;
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: clamp(1.4rem, 2.4vw, 2.2rem);
+          font-weight: 600;
+          margin: 0 0 6px;
+        }
+
+        .newsletter p {
+          margin: 0;
+          color: #2d5a5e;
+          font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+          font-size: clamp(12px, 1.1vw, 14px);
+          font-weight: 400;
+          line-height: 1.5;
+        }
+
+        .newsletter-form {
+          display: flex;
+          gap: 0;
+          background: #fff;
+          border-radius: 8px;
+          overflow: hidden;
+          border: 1px solid rgba(7,59,63,0.15);
+          width: clamp(260px, 30vw, 440px);
+          flex-shrink: 1;
+          min-width: 0;
+        }
+
+        .newsletter-form input {
+          flex: 1;
+          border: 0;
+          background: transparent;
+          outline: none;
+          padding: 0 18px;
+          color: #111817;
+          font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+          font-size: 14px;
+          min-height: 48px;
+        }
+
+        .newsletter-form input::placeholder {
+          color: #9bb5b2;
+          font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+        }
+
+        .newsletter-form button {
+          border: 0;
+          border-radius: 0;
+          background: #073B3F;
+          color: #fff;
+          min-height: 48px;
+          padding: 0 clamp(16px, 2vw, 28px);
+          font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800;
+          font-size: 13px;
+          letter-spacing: 0.06em;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: background 160ms ease;
+        }
+
+        .newsletter-form button:hover { background: #0C4044; }
+
+        .announcement-row {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 14px;
+          margin-top: 16px;
+        }
+
+        .announcement {
+          border-radius: 18px;
+          background: #fff;
+          border: 1px solid #D1DFDE;
+          padding: 18px;
+          box-shadow: 0 10px 28px rgba(7,59,63,0.06);
+        }
+
+        .announcement strong {
+          color: #073B3F;
+        }
+
+        .announcement p {
+          margin-top: 8px;
+          color: #7A8987;
+          font-size: 14px;
+          line-height: 1.55;
+        }
+
+        /* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Responsive ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */
+
+        @media (prefers-reduced-motion: reduce) {
+          .store-cat,
+          .store-cat::before,
+          .store-cat::after,
+          .store-cat img,
+          .store-cat-arrow {
+            animation: none !important;
+            transition: none !important;
+          }
+        }
+
+        @media (min-width: 1440px) {
+          .store-category-card { --cat-img-size: clamp(128px, 7vw, 150px); }
+          .store-promo { min-height: 300px; }
+          .store-promo-content h3 { font-size: 26px; }
+          .product-grid { grid-template-columns: repeat(5, 1fr); gap: 18px; }
+        }
+
+        @media (max-width: 1280px) {
+          .store-shell { width: calc(100% - 40px); }
+          .product-grid { grid-template-columns: repeat(5, 1fr); }
+        }
+
+        @media (max-width: 1100px) {
+          .store-shell { width: calc(100% - 36px); }
+          .product-grid { grid-template-columns: repeat(4, 1fr); }
+          .store-promo-grid {
+            display: flex;
+            gap: 16px;
+          }
+
+          .store-promo { min-height: 200px; }
+          .product-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+          .store-category-card { --cat-img-size: clamp(88px, 11vw, 104px); --cat-basis: calc((100% - 60px) / 6); padding-inline: 50px; }
+          .store-banner { aspect-ratio: 16 / 6.5; }
+          .hero-news-popover { top: 14px; right: 18px; }
+          .hero-news-card { width: min(340px, calc(100vw - 36px)); }
+        }
+
+        @media (max-width: 768px) {
+          .store-shell { width: calc(100% - 28px); }
+          .store-banner { aspect-ratio: 16 / 7; }
+          .product-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+          .newsletter {
+            grid-template-columns: 1fr;
+            text-align: center;
+          }
+          .newsletter-icon-wrap { margin: 0 auto; }
+          .newsletter-form { width: 100%; }
+          .announcement-row { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 680px) {
+          .store-shell { width: calc(100% - 24px); }
+          .store-banner { aspect-ratio: 16 / 8; }
+          .store-category-card { --cat-img-size: clamp(68px, 16vw, 82px); --cat-basis: calc((100% - 30px) / 4); padding: 14px 42px; }
+          .store-cat span { font-size: 11px; }
+          .store-promo-grid { display: flex; gap: 16px; }
+          .store-promo {
+            min-height: 190px;
+            flex: 0 0 min(80vw, 300px);
+          }
+          .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+          .newsletter { padding: 20px 16px; grid-template-columns: 1fr; text-align: center; }
+          .newsletter-icon-wrap { margin: 0 auto; }
+          .newsletter-form { width: 100%; }
+          .store-heading { flex-direction: column; align-items: flex-start; }
+          .store-section { padding: 18px 0; }
+          .store-heading h2 { font-size: 1.4rem; }
+          .announcement-row { grid-template-columns: 1fr; }
+          .hero-news-popover { top: 10px; right: 10px; align-items: flex-end; }
+          .hero-news-trigger { min-height: 36px; padding: 0 13px; font-size: 12px; }
+          .hero-news-card { width: calc(100vw - 24px); max-height: min(440px, 78vh); padding: 16px; border-radius: 14px; }
+          .hero-news-card h2 { font-size: 26px; }
+          .hero-news-card p { font-size: 13px; }
+          .hero-news-card-item { grid-template-columns: 44px 1fr; gap: 11px; padding: 11px 0; }
+          .hero-news-card-icon { width: 44px; height: 44px; font-size: 11px; }
+          .hero-news-card-item strong { font-size: 13px; }
+          .hero-news-view-all { min-height: 42px; font-size: 13px; }
+        }
+
+        @media (max-width: 480px) {
+          .store-shell { width: calc(100% - 16px); }
+          .store-category-card { --cat-img-size: clamp(58px, 18vw, 72px); --cat-basis: calc((100% - 18px) / 3); padding: 12px 36px; }
+          .store-cat span { font-size: 10px; }
+          .product-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+          .product-body { padding: 9px 10px 10px; }
+          .store-promo-content h3 { font-size: 17px; }
+          .store-heading h2 { font-size: 1.2rem; }
+          .store-promo { flex: 0 0 min(88vw, 280px); }
+          .newsletter h2 { font-size: 1.2rem; }
+        }
+
+        .promo-carousel-section {
+          position: relative;
+          width: 100vw;
+          margin-left: calc(50% - 50vw);
+          margin-right: calc(50% - 50vw);
+          padding: clamp(30px, 3.4vw, 54px) 0 clamp(28px, 3vw, 44px);
+          overflow: hidden;
+          background:
+            linear-gradient(90deg, rgba(253,253,252,1), rgba(243,243,240,0.72) 18%, rgba(243,232,222,0.34) 50%, rgba(243,243,240,0.72) 82%, rgba(253,253,252,1));
+          border-top: 1px solid rgba(189,207,206,0.55);
+          border-bottom: 1px solid rgba(189,207,206,0.55);
+        }
+
+        .promo-carousel-head {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 16px;
+          margin-bottom: clamp(18px, 2.2vw, 30px);
+          padding: 0 clamp(24px, 8.8vw, 176px);
+          box-sizing: border-box;
+        }
+
+        .promo-carousel-head h2 {
+          color: #073B3F;
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: clamp(26px, 2vw, 34px);
+          font-weight: 600;
+          line-height: 1;
+          margin: 4px 0 0;
+        }
+
+        .promo-carousel-controls {
+          display: none;
+        }
+
+        .promo-carousel-viewport {
+          position: relative;
+          overflow-x: auto;
+          scrollbar-width: none;
+          width: 100%;
+          overscroll-behavior-inline: contain;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .promo-carousel-viewport::-webkit-scrollbar {
+          display: none;
+        }
+
+        .coin-story-track {
+          --promo-gap: clamp(18px, 3.8vw, 84px);
+          display: flex;
+          align-items: flex-start;
+          gap: var(--promo-gap);
+          width: max-content;
+          padding: 8px clamp(24px, 8.8vw, 176px) 20px;
+        }
+
+        .coin-story-card {
+          --shine-core: rgba(255,255,255,1);
+          --shine-mid: rgba(255,235,166,0.9);
+          --shine-edge: rgba(229,160,24,0.78);
+          --shine-soft: rgba(187,137,88,0.1);
+          --shine-glow-strong: rgba(229,160,24,0.82);
+          --shine-glow-mid: rgba(255,235,166,0.58);
+          --shine-glow-soft: rgba(204,168,129,0.26);
+          flex: 0 0 auto;
+          width: clamp(136px, 13vw, 214px);
+          border: 0;
+          background: transparent;
+          color: #111817;
+          cursor: pointer;
+          text-align: center;
+          padding: 0;
+          animation: coin-wave-float 7.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+          will-change: transform;
+        }
+
+        .coin-story-card.coin-metal-silver {
+          --shine-core: rgba(255,255,255,1);
+          --shine-mid: rgba(235,244,246,0.95);
+          --shine-edge: rgba(189,207,206,0.88);
+          --shine-soft: rgba(122,137,135,0.14);
+          --shine-glow-strong: rgba(235,244,246,0.9);
+          --shine-glow-mid: rgba(209,223,222,0.68);
+          --shine-glow-soft: rgba(122,137,135,0.3);
+        }
+
+        .coin-story-card:nth-child(2n) {
+          animation-delay: -0.9s;
+        }
+
+        .coin-story-card:nth-child(3n) {
+          animation-delay: -1.8s;
+        }
+
+        .coin-story-card:nth-child(4n) {
+          animation-delay: -2.7s;
+        }
+
+        .coin-story-card:nth-child(5n) {
+          animation-delay: -3.6s;
+        }
+
+        .coin-story-card:nth-child(6n) {
+          animation-delay: -4.5s;
+        }
+
+        @keyframes coin-wave-float {
+          0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+          20% { transform: translate3d(3px, -10px, 0) rotate(-0.7deg); }
+          42% { transform: translate3d(0, -16px, 0) rotate(0.4deg); }
+          64% { transform: translate3d(-3px, -8px, 0) rotate(0.7deg); }
+          82% { transform: translate3d(0, 3px, 0) rotate(-0.25deg); }
+        }
+
+        .coin-story-image {
+          position: relative;
+          width: clamp(124px, 11.8vw, 194px);
+          aspect-ratio: 1;
+          margin: 10px auto 18px;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          background:
+            radial-gradient(circle at 50% 48%, rgba(255,255,255,0.08) 0 10%, transparent 38%),
+            radial-gradient(circle at 50% 50%, #0b0b0a 0 58%, #000 72%, #000 100%);
+          box-shadow:
+            0 20px 34px rgba(12,64,68,0.13),
+            inset 0 0 26px rgba(204,168,129,0.13);
+          overflow: hidden;
+          transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+
+        .coin-story-image::before {
+          content: "";
+          position: absolute;
+          width: 190%;
+          height: 16px;
+          left: -145%;
+          top: 18%;
+          border-radius: 50%;
+          background:
+            radial-gradient(circle at 50% 50%, var(--shine-core) 0 2px, var(--shine-mid) 3px, transparent 9px),
+            linear-gradient(90deg, transparent 0%, var(--shine-soft) 20%, var(--shine-mid) 44%, var(--shine-core) 50%, var(--shine-edge) 56%, var(--shine-soft) 80%, transparent 100%);
+          box-shadow:
+            0 0 12px var(--shine-glow-strong),
+            0 0 28px var(--shine-glow-mid),
+            0 0 46px var(--shine-glow-soft);
+          opacity: 0;
+          z-index: 6;
+          pointer-events: none;
+          transform: rotate(43deg) translate3d(0, 0, 0);
+          transform-origin: center;
+          animation: coin-sun-streak 5.4s ease-in-out infinite;
+        }
+
+        @keyframes coin-sun-streak {
+          0%, 58%, 100% {
+            left: -150%;
+            top: 20%;
+            opacity: 0;
+          }
+          64% {
+            opacity: 0.95;
+          }
+          72% {
+            left: 70%;
+            top: 66%;
+            opacity: 1;
+          }
+          78% {
+            left: 118%;
+            top: 82%;
+            opacity: 0;
+          }
+        }
+
+        .coin-story-image img {
+          width: var(--coin-img-size, 92%);
+          height: var(--coin-img-size, 92%);
+          object-fit: contain;
+          object-position: center;
+          border-radius: 50%;
+          display: block;
+          position: relative;
+          z-index: 4;
+          transform: translateY(calc(var(--coin-offset-y, 18px) + 15px)) scale(1);
+          filter:
+            drop-shadow(0 10px 12px rgba(0,0,0,0.28))
+            drop-shadow(0 0 8px rgba(204,168,129,0.22));
+          transition: transform 220ms ease, filter 220ms ease;
+        }
+
+        .coin-story-card.coin-size-100 {
+          --coin-img-size: 44%;
+          --coin-offset-y: 40px;
+        }
+
+        .coin-story-card.coin-size-150 {
+          --coin-img-size: 54%;
+          --coin-offset-y: 34px;
+        }
+
+        .coin-story-card.coin-size-200 {
+          --coin-img-size: 66%;
+          --coin-offset-y: 26px;
+        }
+
+        .coin-story-card.coin-size-250 {
+          --coin-img-size: 76%;
+          --coin-offset-y: 18px;
+        }
+
+        .coin-story-card.coin-size-500 {
+          --coin-img-size: 92%;
+          --coin-offset-y: 8px;
+        }
+
+        .coin-story-card:hover .coin-story-image {
+          transform: translateY(-6px) scale(1.03);
+          box-shadow:
+            0 26px 46px rgba(12,64,68,0.18),
+            0 0 0 1px rgba(204,168,129,0.22),
+            0 0 34px rgba(229,160,24,0.28),
+            inset 0 0 34px rgba(204,168,129,0.2);
+        }
+
+        .coin-story-card:hover .coin-story-image img {
+          transform: translateY(calc(var(--coin-offset-y, 18px) + 15px)) scale(1.06);
+          filter:
+            drop-shadow(0 12px 16px rgba(0,0,0,0.34))
+            drop-shadow(0 0 16px rgba(229,160,24,0.42));
+        }
+
+        .coin-story-card span {
+          display: block;
+          color: #000;
+          font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+          font-size: clamp(13px, 0.94vw, 16px);
+          font-weight: 800;
+          letter-spacing: 0.04em;
+          line-height: 1.35;
+          text-transform: uppercase;
+        }
+
+        @media (max-width: 680px) {
+          .promo-carousel-section { padding: 30px 0 24px; }
+          .promo-carousel-head { margin-bottom: 18px; }
+          .promo-carousel-head { padding-inline: 22px; }
+          .coin-story-track {
+            --promo-gap: clamp(18px, 5vw, 28px);
+            padding-inline: 22px;
+            padding-bottom: 12px;
+          }
+          .coin-story-card { width: clamp(118px, 35vw, 146px); }
+          .coin-story-image { width: clamp(108px, 32vw, 132px); margin-bottom: 12px; }
+          .coin-story-card.coin-size-100 { --coin-img-size: 44%; --coin-offset-y: 28px; }
+          .coin-story-card.coin-size-150 { --coin-img-size: 54%; --coin-offset-y: 24px; }
+          .coin-story-card.coin-size-200 { --coin-img-size: 66%; --coin-offset-y: 18px; }
+          .coin-story-card.coin-size-250 { --coin-img-size: 76%; --coin-offset-y: 13px; }
+          .coin-story-card.coin-size-500 { --coin-img-size: 92%; --coin-offset-y: 6px; }
+          .coin-story-card span { font-size: 11px; letter-spacing: 0.03em; }
+        }
+
+        @media (min-width: 681px) and (max-width: 1024px) {
+          .coin-story-track {
+            --promo-gap: clamp(28px, 4vw, 52px);
+            padding-inline: 46px;
+          }
+          .promo-carousel-head { padding-inline: 46px; }
+          .coin-story-card { width: clamp(146px, 17vw, 176px); }
+          .coin-story-image { width: clamp(134px, 15.8vw, 164px); }
+        }
+
+        @media (min-width: 1440px) {
+          .coin-story-track {
+            --promo-gap: clamp(58px, 5vw, 104px);
+            padding-inline: clamp(96px, 8vw, 180px);
+          }
+          .promo-carousel-head { padding-inline: clamp(96px, 8vw, 180px); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .coin-story-card {
+            animation: none;
+          }
+        }
       `}</style>
 
-
-<CustomerNavbar />
-
+      <CustomerNavbar />
       <HomeBannerSlider />
-
-      <div style={{ position: 'relative', zIndex: 10, padding: '28px 40px', maxWidth: '1400px', margin: '0 auto' }}>
-
-
-
-
-
-        {/* ── CUSTOMER PROFILE MODAL ── */}
-        {showProfile && (
-          <div onClick={() => setShowProfile(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(10px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: '1px solid rgba(52,211,153,0.3)', borderRadius: '24px', width: '95%', maxWidth: '580px', maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.7)' }}>
-              <div style={{ flexShrink: 0, padding: '24px 28px', borderBottom: '1px solid rgba(52,211,153,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg,rgba(52,211,153,0.25),rgba(34,211,238,0.15))', border: '2px solid rgba(52,211,153,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>👤</div>
-                  <div>
-                    <div style={{ color: '#34d399', fontWeight: 800, fontSize: '15px' }}>MY PROFILE</div>
-                    <div style={{ color: subtext, fontSize: '11px', fontFamily: 'monospace' }}>{profile?.customer_id || '—'}</div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-
-                  <button
-                    onClick={openProfileEdit}
-                    style={{
-                      background: 'rgba(52,211,153,0.12)',
-                      border: '1px solid rgba(52,211,153,0.35)',
-                      color: '#34d399',
-                      borderRadius: '8px',
-                      padding: '6px 14px',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      fontWeight: 800
-                    }}
-                  >
-                    ✎ Edit
-                  </button>
-
-                  <button
-                    onClick={() => setShowProfile(false)}
-                    style={{
-                      background: 'rgba(239,68,68,0.1)',
-                      border: '1px solid rgba(239,68,68,0.3)',
-                      color: '#f87171',
-                      borderRadius: '8px',
-                      padding: '6px 14px',
-                      cursor: 'pointer',
-                      fontSize: '12px'
-                    }}
-                  >
-                    ✕ Close
-                  </button>
-
-                </div>
-              </div>
-              <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: '20px', scrollbarWidth: 'thin' }}>
-                {!profile ? <div style={{ textAlign: 'center', color: subtext, padding: '60px 0' }}>Loading...</div> : (
-                  <>
-                    {[
-                      // REPLACE WITH:
-                      {
-                        title: 'ACCOUNT INFO', color: '#34d399', fields: [
-                          { label: 'Customer ID', value: profile.customer_id, mono: true, color: '#34d399' },
-                          { label: 'Initial', value: profile.initial },
-                          { label: 'First Name', value: profile.first_name },
-                          { label: 'Last Name', value: profile.last_name },
-                          { label: 'Email', value: profile.email },
-                          { label: 'Mobile', value: profile.mobile_number },
-                          { label: 'Gender', value: profile.gender ? profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1) : '—' },
-                          { label: 'DOB', value: profile.dob ? new Date(profile.dob + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—' },
-                          { label: 'Married Status', value: profile.married_status ? profile.married_status.charAt(0).toUpperCase() + profile.married_status.slice(1) : '—' },
-                          { label: 'Anniversary', value: profile.anniversary_date ? new Date(profile.anniversary_date + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—' },
-                        ]
-                      },
-                      {
-                        title: 'ADDRESS', color: '#22d3ee', fields: [
-                          { label: 'Door No', value: profile.door_no },
-                          { label: 'Street', value: profile.street_name },
-                          { label: 'Town', value: profile.town_name },
-                          { label: 'City', value: profile.city_name },
-                          { label: 'District', value: profile.district },
-                          { label: 'State', value: profile.state },
-                        ]
-                      },
-                      {
-                        title: 'IDENTITY', color: '#a78bfa', fields: [
-                          { label: 'Aadhaar No', value: profile.aadhaar_no, mask: true },
-                          { label: 'PAN No', value: profile.pan_no, pan: true, mono: true },
-                        ]
-                      },
-                      {
-                        title: 'OCCUPATION', color: '#f59e0b', fields: [
-                          { label: 'Type', value: profile.occupation ? profile.occupation.charAt(0).toUpperCase() + profile.occupation.slice(1) : '—' },
-                          { label: 'Detail', value: profile.occupation_detail },
-                          { label: 'Annual Salary', value: profile.annual_salary ? `₹ ${Number(profile.annual_salary).toLocaleString('en-IN')}` : '—' },
-                        ]
-                      },
-                      {
-                        title: 'PROMOTOR INFO', color: '#f472b6', fields: [
-                          { label: 'Promotor ID', value: profile.promotor_id, mono: true, color: '#f472b6' },
-                          { label: 'Promotor Name', value: profile.promotor_name },
-                          { label: 'Promotor Contact', value: profile.promotor_contact_no },
-                          { label: 'Member Since', value: profile.created_at ? new Date(profile.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—' },
-                        ]
-                      },
-                    ].map(section => (
-                      <div key={section.title} style={{ background: `rgba(${section.color === '#34d399' ? '52,211,153' : section.color === '#22d3ee' ? '34,211,238' : section.color === '#a78bfa' ? '167,139,250' : section.color === '#f59e0b' ? '245,158,11' : '244,114,182'},0.04)`, border: `1px solid rgba(${section.color === '#34d399' ? '52,211,153' : section.color === '#22d3ee' ? '34,211,238' : section.color === '#a78bfa' ? '167,139,250' : section.color === '#f59e0b' ? '245,158,11' : '244,114,182'},0.18)`, borderRadius: '16px', padding: '18px 20px' }}>
-                        <div style={{ color: section.color, fontSize: '10px', fontWeight: 800, letterSpacing: '1.5px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: section.color, display: 'inline-block' }} />{section.title}
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: section.fields.length === 3 ? '1fr 1fr 1fr' : '1fr 1fr', gap: '12px' }}>
-                          {section.fields.map(f => (
-                            <div key={f.label}>
-                              <div style={{ color: subtext, fontSize: '10px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '4px' }}>{f.label}</div>
-                              <div style={{ color: f.color || text, fontSize: '13px', fontWeight: f.mono ? 700 : 500, fontFamily: f.mono ? 'monospace' : 'inherit', wordBreak: 'break-all' }}>
-                                {f.mask && f.value ? `XXXX-XXXX-${f.value.slice(-4)}` : f.pan && f.value ? `XXXXXXX${f.value.slice(-4)}` : (f.value || '—')}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {showProfileEdit && (
-          <div onClick={() => setShowProfileEdit(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(12px)', zIndex: 1300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <form onSubmit={submitProfileUpdate} onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: '1px solid rgba(52,211,153,0.35)', borderRadius: '24px', width: '96%', maxWidth: '1050px', maxHeight: '90vh', overflow: 'hidden', boxShadow: '0 32px 90px rgba(0,0,0,0.8)', display: 'flex', flexDirection: 'column' }}>
-
-              <div style={{ padding: '22px 28px', borderBottom: '1px solid rgba(52,211,153,0.16)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ color: '#34d399', fontWeight: 900, fontSize: '15px', letterSpacing: '1px' }}>✎ PROFILE UPDATE REQUEST</div>
-                  <div style={{ color: subtext, fontSize: '12px', marginTop: '4px' }}>Existing details compare pannitu correct details full ah enter pannunga</div>
-                </div>
-                <button type="button" onClick={() => setShowProfileEdit(false)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '7px 14px', cursor: 'pointer' }}>✕ Close</button>
-              </div>
-
-              <div style={{ flex: 1, overflow: 'auto', padding: '24px 28px' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                  <thead>
-                    <tr style={{ background: 'rgba(52,211,153,0.08)' }}>
-                      {['Existing Details Description', 'Existing Details', 'Details To Updated'].map(h => (
-                        <th key={h} style={{ padding: '14px', color: '#34d399', textAlign: 'left', border: '1px solid rgba(52,211,153,0.2)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {PROFILE_FIELDS.map(([key, label]) => (
-                      <tr key={key}>
-                        <td style={{ padding: '12px 14px', border: '1px solid rgba(255,255,255,0.08)', color: '#6ee7b7', fontWeight: 700 }}>{label}</td>
-
-                        <td style={{ padding: '12px 14px', border: '1px solid rgba(255,255,255,0.08)', color: text, wordBreak: 'break-all' }}>
-                          {profile?.[key] || '—'}
-                        </td>
-
-                        <td style={{ padding: '10px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                          {key === 'gender' ? (
-                            <select
-                              name={key}
-                              value={updateForm[key] || 'male'}
-                              onChange={handleUpdateChange}
-                              style={{ width: '100%', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '9px', padding: '10px 12px', color: text, outline: 'none', boxSizing: 'border-box' }}
-                            >
-                              <option value="male" style={{ background: optionBg, color: text }}>Male</option>
-                              <option value="female" style={{ background: optionBg, color: text }}>Female</option>
-                              <option value="other" style={{ background: optionBg, color: text }}>Other</option>
-                            </select>
-                          ) : key === 'married_status' ? (
-                            <select
-                              name={key}
-                              value={updateForm[key] || 'single'}
-                              onChange={handleUpdateChange}
-                              style={{ width: '100%', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '9px', padding: '10px 12px', color: text, outline: 'none', boxSizing: 'border-box' }}
-                            >
-                              <option value="single" style={{ background: optionBg, color: text }}>Single</option>
-                              <option value="married" style={{ background: optionBg, color: text }}>Married</option>
-                              <option value="other" style={{ background: optionBg, color: text }}>Other</option>
-                            </select>
-                          ) : key === 'dob' ? (
-                            <input
-                              type="date"
-                              name={key}
-                              value={updateForm[key] || ''}
-                              onChange={handleUpdateChange}
-                              style={{ width: '100%', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '9px', padding: '10px 12px', color: text, outline: 'none', boxSizing: 'border-box' }}
-                            />
-                          ) : key === 'anniversary_date' ? (
-                            updateForm.married_status === 'married' ? (
-                              <input
-                                type="date"
-                                name={key}
-                                value={updateForm[key] || ''}
-                                onChange={handleUpdateChange}
-                                style={{ width: '100%', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '9px', padding: '10px 12px', color: text, outline: 'none', boxSizing: 'border-box' }}
-                              />
-                            ) : (
-                              <span style={{ color: subtext, fontSize: '12px' }}>Only married select panna show aagum</span>
-                            )
-                          ) : (
-                            <input
-                              name={key}
-                              value={updateForm[key] || ''}
-                              onChange={handleUpdateChange}
-                              required
-                              style={{ width: '100%', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '9px', padding: '10px 12px', color: text, outline: 'none', boxSizing: 'border-box' }}
-                            />
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                <div style={{ marginTop: '16px' }}>
-                  <label style={{ display: 'block', color: subtext, fontSize: '12px', marginBottom: '8px', fontWeight: 700 }}>
-                    Message / Reason
-                  </label>
-
-                  <textarea
-                    value={updateMessage}
-                    onChange={e => setUpdateMessage(e.target.value)}
-                    placeholder="Example: My mobile number is wrong, please update it..."
-                    rows={3}
-                    style={{
-                      width: '100%',
-                      background: inpBg,
-                      border: `1px solid ${inpBorder}`,
-                      borderRadius: '10px',
-                      padding: '12px 14px',
-                      color: text,
-                      outline: 'none',
-                      resize: 'vertical',
-                      boxSizing: 'border-box',
-                      fontFamily: 'inherit'
-                    }}
-                  />
-                </div>
-
-                <div style={{ marginTop: '16px' }}>
-                  <label style={{ display: 'block', color: subtext, fontSize: '12px', marginBottom: '8px', fontWeight: 700 }}>
-                    Upload Proof Document
-                  </label>
-
-                  <input
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={e => setProofDocument(e.target.files[0])}
-                    style={{
-                      width: '100%',
-                      background: inpBg,
-                      border: `1px solid ${inpBorder}`,
-                      borderRadius: '10px',
-                      padding: '10px 12px',
-                      color: text,
-                      boxSizing: 'border-box'
-                    }}
-                  />
-
-                  {proofDocument && (
-                    <div style={{ color: '#4ade80', fontSize: '12px', marginTop: '8px' }}>
-                      ✅ Selected: {proofDocument.name}
-                    </div>
-                  )}
-
-
-
-                </div>
-              </div>
-
-              <div style={{ padding: '18px 28px', borderTop: '1px solid rgba(52,211,153,0.14)', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                <button type="button" onClick={() => setShowProfileEdit(false)} style={{ padding: '12px 22px', background: inpBg, border: `1px solid ${border}`, borderRadius: '12px', color: subtext, cursor: 'pointer' }}>
-                  Cancel
-                </button>
-
-                <button type="submit" style={{ padding: '12px 30px', background: 'linear-gradient(90deg,#34d399,#22d3ee)', border: 'none', borderRadius: '12px', color: '#003b40', fontWeight: 900, cursor: 'pointer' }}>
-                  Submit Request
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* ── ANNOUNCEMENT VIEW MODAL (Customer) ── */}
-
-        {showAnnouncements && (
-          <div onClick={() => setShowAnnouncements(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(10px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: '1px solid rgba(52,211,153,0.3)', borderRadius: '24px', width: '95%', maxWidth: '560px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.6)', animation: 'fadeIn 0.3s cubic-bezier(0.22,1,0.36,1)' }}>
-              <div style={{ flexShrink: 0, padding: '24px 28px', borderBottom: '1px solid rgba(52,211,153,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'linear-gradient(135deg,rgba(52,211,153,0.25),rgba(34,211,238,0.15))', border: '1px solid rgba(52,211,153,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>📢</div>
-                  <div>
-                    <div style={{ color: '#34d399', fontWeight: 800, fontSize: '14px' }}>ANNOUNCEMENTS</div>
-                    <div style={{ color: subtext, fontSize: '11px', marginTop: '2px' }}>{announcements.length} total from Super Admin</div>
-                  </div>
-                </div>
-                <button onClick={() => setShowAnnouncements(false)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px' }}>✕ Close</button>
-              </div>
-              <div style={{ flex: 1, overflowY: 'auto', padding: '20px 28px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {announcements.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: subtext, padding: '60px 0', fontSize: '15px' }}>No announcements yet.</div>
-                ) : announcements.map((ann, idx) => {
-                  const isMentioned = isCurrentUserMentioned(ann.title)
-                  const alreadyReplied = repliedIds.has(ann.id)
-                  const replies = annReplies[ann.id] || []
-                  return (
-                    <div key={ann.id} style={{ background: idx === 0 ? (dark ? 'rgba(52,211,153,0.07)' : 'rgba(52,211,153,0.05)') : (dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'), border: `1px solid ${idx === 0 ? 'rgba(52,211,153,0.35)' : (dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)')}`, borderRadius: '14px', padding: '16px 18px', position: 'relative' }}>
-
-                      {/* Title row */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          {idx === 0 && <span style={{ fontSize: '9px', fontWeight: 800, padding: '2px 8px', borderRadius: '20px', background: 'rgba(52,211,153,0.15)', color: '#34d399', border: '1px solid rgba(52,211,153,0.3)' }}>● NEW</span>}
-                          <span style={{ color: idx === 0 ? '#34d399' : text, fontWeight: 700, fontSize: '14px' }}>{ann.title}</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ color: subtext, fontSize: '10px', whiteSpace: 'nowrap' }}>{new Date(ann.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                          <button
-                            disabled={alreadyReplied}
-                            onClick={() => { setReplyAnn(ann); setReplyMsg(''); setReplyText('') }}
-                            style={{ padding: '4px 12px', fontSize: '10px', fontWeight: 700, borderRadius: '20px', cursor: alreadyReplied ? 'not-allowed' : 'pointer', background: alreadyReplied ? 'rgba(255,255,255,0.05)' : 'rgba(52,211,153,0.15)', border: `1px solid ${alreadyReplied ? 'rgba(255,255,255,0.1)' : 'rgba(52,211,153,0.4)'}`, color: alreadyReplied ? subtext : '#34d399', whiteSpace: 'nowrap', transition: 'all 0.2s ease' }}
-                          >{alreadyReplied ? '✓ Wished' : '💬 Reply'}</button>
-                        </div>
-                      </div>
-
-                      {/* Message */}
-                      <p style={{ color: dark ? '#cbd5e1' : '#475569', fontSize: '13px', lineHeight: '1.6', margin: 0 }}>{ann.message}</p>
-
-                      {/* Hover popup — only if mentioned */}
-                      {isMentioned && (
-                        <div
-                          onMouseEnter={e => {
-                            clearTimeout(wishTimerRef.current)
-                            const rect = e.currentTarget.getBoundingClientRect()
-                            let left = rect.left + rect.width / 2
-                            if (left - 160 < 12) left = 172
-                            if (left + 160 > window.innerWidth - 12) left = window.innerWidth - 172
-                            setReplyPopupPos({ top: rect.top, left })
-                            setReplyPopupAnnId(ann.id)
-                            fetchReplies(ann.id)
-                          }}
-                          onMouseLeave={() => { wishTimerRef.current = setTimeout(() => setReplyPopupAnnId(null), 220) }}
-                          style={{ marginTop: '10px', display: 'flex', justifyContent: 'center' }}
-                        >
-                          <div style={{ fontSize: '10px', color: '#4ade80', padding: '3px 14px', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '20px', cursor: 'default', background: 'rgba(74,222,128,0.06)', fontWeight: 600 }}>
-                            🎂 You are mentioned · {replies.length} wish{replies.length !== 1 ? 'es' : ''} — hover to see
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── REPLY MODAL — Customer ── */}
-        {replyAnn && (
-          <div onClick={() => { setReplyAnn(null); setReplyMsg(''); setReplyText('') }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: '1px solid rgba(52,211,153,0.3)', borderRadius: '20px', padding: '28px', width: '95%', maxWidth: '460px', boxShadow: '0 32px 80px rgba(0,0,0,0.7)', animation: 'fadeIn 0.25s ease' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-                <div>
-                  <div style={{ color: '#34d399', fontWeight: 800, fontSize: '14px', letterSpacing: '0.05em' }}>💬 SEND YOUR WISH</div>
-                  <div style={{ color: subtext, fontSize: '11px', marginTop: '4px' }}>Replying to: <span style={{ color: text, fontWeight: 600 }}>{replyAnn.title}</span></div>
-                </div>
-                <button onClick={() => setReplyAnn(null)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '5px 12px', cursor: 'pointer', fontSize: '12px' }}>✕</button>
-              </div>
-              {replyMsg && (
-                <div style={{ background: replyMsg.includes('✅') ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${replyMsg.includes('✅') ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.3)'}`, color: replyMsg.includes('✅') ? '#4ade80' : '#f87171', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', marginBottom: '16px' }}>{replyMsg}</div>
-              )}
-              <textarea value={replyText} onChange={e => setReplyText(e.target.value)} rows={4} placeholder="Type your wish or message..." style={{ width: '100%', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '10px', padding: '12px 14px', color: text, fontSize: '14px', outline: 'none', resize: 'vertical', fontFamily: 'inherit', lineHeight: '1.6', boxSizing: 'border-box' }} onFocus={e => e.target.style.borderColor = '#34d399'} onBlur={e => e.target.style.borderColor = inpBorder} />
-              <button disabled={replyLoading || !replyText.trim()} onClick={submitReply} style={{ marginTop: '14px', width: '100%', padding: '13px', background: replyLoading || !replyText.trim() ? 'rgba(52,211,153,0.2)' : 'linear-gradient(90deg,#34d399,#22d3ee)', border: 'none', borderRadius: '12px', fontWeight: 800, fontSize: '14px', color: replyLoading || !replyText.trim() ? '#34d399' : '#003b40', cursor: replyLoading || !replyText.trim() ? 'not-allowed' : 'pointer', transition: 'all 0.3s ease' }}>
-                {replyLoading ? '⏳ Sending...' : '💬 Send Wish'}
+      <div
+        className="store-category-card"
+        onMouseEnter={() => {
+          catAutoPausedRef.current = true;
+        }}
+        onMouseLeave={() => {
+          catAutoPausedRef.current = false;
+        }}
+        onFocus={() => {
+          catAutoPausedRef.current = true;
+        }}
+        onBlur={() => {
+          catAutoPausedRef.current = false;
+        }}
+      >
+        <button
+          className="store-cat-arrow prev"
+          type="button"
+          onClick={() => moveCategoryRail(-1)}
+        >
+          {"<"}
+        </button>
+        <div className="store-cat-track" ref={catTrackRef}>
+          {autoCategoryRail.map((item, index) => {
+            const isDuplicate =
+              index < categoryRail.length || index >= categoryRail.length * 2;
+            return (
+              <button
+                className="store-cat"
+                type="button"
+                key={`${item.label}-${index}`}
+                tabIndex={isDuplicate ? -1 : 0}
+                aria-hidden={isDuplicate ? "true" : undefined}
+                onClick={() => navigate(item.route)}
+              >
+                <img src={item.image} alt={isDuplicate ? "" : item.label} />
+                <span>{item.label}</span>
               </button>
-            </div>
-          </div>
-        )}
-
-
-
-        {/* ── TODAY RATE POPUP ── */}
-        {showTodayRate && (
-          <div
-            onClick={() => setShowTodayRate(false)}
-            style={{
-              position: 'fixed', inset: 0,
-              background: 'rgba(0,0,0,0.75)',
-              backdropFilter: 'blur(8px)',
-              zIndex: 1100,
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}
-          >
-            <div
-              onClick={e => e.stopPropagation()}
-              style={{
-                background: '#fdf5ee',
-                borderRadius: 24,
-                width: '95%', maxWidth: 400,
-                overflow: 'hidden',
-                boxShadow: '0 32px 80px rgba(0,0,0,0.45)',
-                animation: 'fadeIn 0.3s ease'
-              }}
-            >
-              {/* Header */}
-              <div style={{
-                background: 'linear-gradient(135deg,#8B1A1A,#b91c1c)',
-                padding: '20px 24px',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-              }}>
-                <div>
-                  <div style={{ color: '#fff', fontWeight: 800, fontSize: 16 }}>📅 Today's Rate</div>
-                  <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11, marginTop: 3 }}>
-                    📍 Chennai, India • ₹ per gram
-                    {dbRateDate && <span style={{ marginLeft: 8, color: '#ffd700' }}>
-                      {new Date(dbRateDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
-                    </span>}
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowTodayRate(false)}
-                  style={{
-                    background: 'rgba(255,255,255,0.15)',
-                    border: '1px solid rgba(255,255,255,0.3)',
-                    color: '#fff', borderRadius: 8,
-                    padding: '5px 12px', cursor: 'pointer', fontSize: 12
-                  }}
-                >✕</button>
-              </div>
-
-              {/* Rate Cards */}
-              <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-
-                {/* Silver 1g */}
-                <div style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  background: 'rgba(192,192,192,0.08)',
-                  border: '1px solid rgba(192,192,192,0.3)',
-                  borderRadius: 14, padding: '14px 18px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ fontSize: 28 }}>🥈</span>
-                    <div>
-                      <div style={{ color: '#9ca3af', fontWeight: 800, fontSize: 13 }}>SILVER 999</div>
-                      <div style={{ color: '#7c5c4a', fontSize: 11, marginTop: 2 }}>1 gram rate</div>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ color: '#9ca3af', fontWeight: 900, fontSize: 22, fontFamily: 'monospace' }}>
-                      {metalPrices.silver ? `₹${metalPrices.silver.toFixed(2)}` : '—'}
-                    </div>
-                    <div style={{ color: '#7c5c4a', fontSize: 10 }}>per gram</div>
-                  </div>
-                </div>
-
-                {/* Gold 22K 1g */}
-                <div style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  background: 'rgba(251,191,36,0.08)',
-                  border: '1px solid rgba(251,191,36,0.4)',
-                  borderRadius: 14, padding: '14px 18px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ fontSize: 28 }}>🏅</span>
-                    <div>
-                      <div style={{ color: '#fbbf24', fontWeight: 800, fontSize: 13 }}>GOLD 22K</div>
-                      <div style={{ color: '#7c5c4a', fontSize: 11, marginTop: 2 }}>1 gram rate</div>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ color: '#fbbf24', fontWeight: 900, fontSize: 22, fontFamily: 'monospace' }}>
-                      {metalPrices.gold22k ? `₹${metalPrices.gold22k.toFixed(2)}` : '—'}
-                    </div>
-                    <div style={{ color: '#7c5c4a', fontSize: 10 }}>per gram</div>
-                  </div>
-                </div>
-
-                {/* Gold 24K 1g */}
-                <div style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  background: 'rgba(255,215,0,0.08)',
-                  border: '1px solid rgba(255,215,0,0.4)',
-                  borderRadius: 14, padding: '14px 18px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ fontSize: 28 }}>🥇</span>
-                    <div>
-                      <div style={{ color: '#ffd700', fontWeight: 800, fontSize: 13 }}>GOLD 24K</div>
-                      <div style={{ color: '#7c5c4a', fontSize: 11, marginTop: 2 }}>1 gram rate</div>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ color: '#ffd700', fontWeight: 900, fontSize: 22, fontFamily: 'monospace' }}>
-                      {metalPrices.gold24k ? `₹${metalPrices.gold24k.toFixed(2)}` : '—'}
-                    </div>
-                    <div style={{ color: '#7c5c4a', fontSize: 10 }}>per gram</div>
-                  </div>
-                </div>
-
-                <div style={{ textAlign: 'center', fontSize: 10, color: '#b09080', marginTop: 4 }}>
-                  Rates update every 30 seconds • BitByte Jewels
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── ORDER SUMMARY POPUP ── */}
-        {showOrderSummary && (
-          <div
-            onClick={() => setShowOrderSummary(false)}
-            style={{
-              position: 'fixed', inset: 0,
-              background: 'rgba(0,0,0,0.82)',
-              backdropFilter: 'blur(10px)',
-              zIndex: 1100,
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}
-          >
-            <div
-              onClick={e => e.stopPropagation()}
-              style={{
-                background: '#fdf5ee',
-                borderRadius: 24,
-                width: '95%', maxWidth: 480,
-                maxHeight: '88vh',
-                display: 'flex', flexDirection: 'column',
-                overflow: 'hidden',
-                boxShadow: '0 32px 80px rgba(0,0,0,0.5)',
-                animation: 'fadeIn 0.3s ease'
-              }}
-            >
-              {/* Header */}
-              <div style={{
-                padding: '20px 24px',
-                borderBottom: '1px solid #e8ddd5',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                background: '#fff'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 20 }}>🏆</span>
-                  <span style={{ color: '#8B1A1A', fontWeight: 800, fontSize: 15, letterSpacing: '0.5px' }}>
-                    ORDER SUMMARY
-                  </span>
-                </div>
-                <button
-                  onClick={() => setShowOrderSummary(false)}
-                  style={{
-                    background: 'rgba(239,68,68,0.1)',
-                    border: '1px solid rgba(239,68,68,0.3)',
-                    color: '#f87171', borderRadius: 8,
-                    padding: '5px 14px', cursor: 'pointer', fontSize: 12
-                  }}
-                >✕ Close</button>
-              </div>
-
-              {/* Period Tabs */}
-              <div style={{ display: 'flex', gap: 8, padding: '16px 24px 0', background: '#fff' }}>
-                {['today', 'week', 'month'].map(p => (
-                  <button
-                    key={p}
-                    onClick={() => setSummaryPeriod(p)}
-                    style={{
-                      flex: 1, padding: '10px 0', borderRadius: 10,
-                      border: summaryPeriod === p ? 'none' : '1px solid #e8ddd5',
-                      background: summaryPeriod === p ? 'linear-gradient(90deg,#34d399,#22d3ee)' : 'transparent',
-                      color: summaryPeriod === p ? '#003b40' : '#7c5c4a',
-                      fontWeight: 800, fontSize: 12,
-                      textTransform: 'uppercase', letterSpacing: '0.5px',
-                      cursor: 'pointer', transition: 'all 0.2s ease'
-                    }}
-                  >
-                    {p === 'today' ? 'Today' : p === 'week' ? 'Week' : 'Month'}
-                  </button>
-                ))}
-              </div>
-
-              {/* Title */}
-              <div style={{
-                padding: '12px 24px 0', background: '#fff',
-                display: 'flex', alignItems: 'center', gap: 8
-              }}>
-                <span style={{ fontSize: 14 }}>📦</span>
-                <span style={{ color: '#8B1A1A', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                  {summaryPeriod === 'today' ? "Today's" : summaryPeriod === 'week' ? "This Week's" : "This Month's"} Orders
-                </span>
-              </div>
-
-              {/* Cards */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {[
-                  { key: 'gold_22k', label: 'GOLD 22K', icon: '🥇', color: '#fbbf24', rgba: '251,191,36' },
-                  { key: 'gold_24k', label: 'GOLD 24K', icon: '🥇', color: '#ffd700', rgba: '255,215,0' },
-                  { key: 'silver_999', label: 'SILVER 999', icon: '🥈', color: '#9ca3af', rgba: '156,163,175' },
-                ].map(({ key, label, icon, color, rgba }) => {
-                  const data = orderSummary?.[summaryPeriod]?.[key]
-                  return (
-                    <div key={key} style={{
-                      background: `rgba(${rgba},0.08)`,
-                      border: `1px solid rgba(${rgba},0.35)`,
-                      borderRadius: 16, padding: '16px 20px'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                        <span style={{ fontSize: 18 }}>{icon}</span>
-                        <span style={{ color, fontWeight: 800, fontSize: 13, letterSpacing: '1px' }}>{label}</span>
-                      </div>
-                      {[
-                        { label: 'Orders', value: data ? `${data.orders}` : '0' },
-                        { label: 'Grams', value: data ? (data.grams >= 1 ? `${data.grams.toFixed(2)} gm` : `${(data.grams * 1000).toFixed(2)} mg`) : '0.00 mg' },
-                        { label: 'Total Amount', value: data ? `₹${Number(data.amount).toLocaleString('en-IN')}` : '₹0', highlight: true },
-                      ].map(({ label: l, value, highlight }) => (
-                        <div key={l} style={{
-                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                          padding: '7px 0',
-                          borderBottom: l !== 'Total Amount' ? `1px solid rgba(${rgba},0.15)` : 'none'
-                        }}>
-                          <span style={{ color: '#7c5c4a', fontSize: 13 }}>{l}</span>
-                          <span style={{
-                            color: highlight ? '#16a34a' : color,
-                            fontWeight: highlight ? 800 : 700,
-                            fontSize: highlight ? 15 : 13,
-                            fontFamily: 'monospace'
-                          }}>{value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )
-                })}
-
-                <button
-                  onClick={fetchOrderSummary}
-                  style={{
-                    width: '100%', padding: 10,
-                    background: 'rgba(139,26,26,0.06)',
-                    border: '1px solid rgba(139,26,26,0.2)',
-                    borderRadius: 12, color: '#8B1A1A',
-                    fontSize: 12, fontWeight: 700, cursor: 'pointer', marginTop: 4
-                  }}
-                >🔄 Refresh</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-
-        {/* ── PLACE ORDER POPUP ── */}
-        {orderPopup && (() => {
-          const metalLabels = { gold_22k: '🏅 Gold 22K', gold_24k: '🥇 Gold 24K', silver_999: '🥈 Silver 999' }
-          const metalColors = { gold_22k: '#fbbf24', gold_24k: '#ffd700', silver_999: '#c0c0c0' }
-          const rateMap = { gold_22k: metalPrices.gold22k, gold_24k: metalPrices.gold24k, silver_999: metalPrices.silver }
-
-          const selectedW = (orderMetal === 'silver_999' ? WEIGHTS_SILVER : WEIGHTS_GOLD).find(x => x.label === orderWeight)
-          const rate = rateMap[orderMetal] || 0
-          const unitPrice = selectedW ? (selectedW.grams * rate) : 0
-          const totalAmt = unitPrice * (orderCount || 0)
-          const col = metalColors[orderMetal]
-
-          return (
-            <div onClick={() => setOrderPopup(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(12px)', zIndex: 1400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: `1px solid ${col}55`, borderRadius: '24px', width: '95%', maxWidth: '480px', padding: '28px', boxShadow: '0 32px 90px rgba(0,0,0,0.8)', animation: 'fadeIn 0.25s ease' }}>
-
-                {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                  <div>
-                    <div style={{ color: col, fontWeight: 900, fontSize: '16px' }}>{metalLabels[orderMetal]}</div>
-                    <div style={{ color: subtext, fontSize: '11px', marginTop: '3px' }}>Rate: ₹{rate?.toFixed(2)}/gm</div>
-                  </div>
-                  <button onClick={() => setOrderPopup(false)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px' }}>✕ Close</button>
-                </div>
-
-                {/* Weight Dropdown + Display */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
-                  <div>
-                    <label style={{ color: subtext, fontSize: '11px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>SELECT WEIGHT</label>
-                    <select
-                      value={orderWeight}
-                      onChange={e => setOrderWeight(e.target.value)}
-                      style={{ width: '100%', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '10px', padding: '12px 14px', color: text, fontSize: '14px', outline: 'none', cursor: 'pointer' }}
-                    >
-                      <option value="" style={{ background: optionBg }}>-- Select --</option>
-                      {(orderMetal === 'silver_999' ? WEIGHTS_SILVER : WEIGHTS_GOLD).map(w => (
-                        <option key={w.label} value={w.label} style={{ background: optionBg }}>{w.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ color: subtext, fontSize: '11px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>WEIGHT (DISPLAY)</label>
-                    <div style={{ background: inpBg, border: `1px solid ${col}44`, borderRadius: '10px', padding: '12px 14px', color: col, fontWeight: 700, fontSize: '14px', fontFamily: 'monospace', minHeight: '46px', display: 'flex', alignItems: 'center' }}>
-                      {orderWeight || '—'}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Count Input + Display */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px' }}>
-                  <div>
-                    <label style={{ color: subtext, fontSize: '11px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>COUNT</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={orderCount}
-                      onChange={e => setOrderCount(e.target.value)}
-                      style={{ width: '100%', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '10px', padding: '12px 14px', color: text, fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ color: subtext, fontSize: '11px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>COUNT (DISPLAY)</label>
-                    <div style={{ background: inpBg, border: `1px solid ${col}44`, borderRadius: '10px', padding: '12px 14px', color: col, fontWeight: 700, fontSize: '14px', fontFamily: 'monospace', minHeight: '46px', display: 'flex', alignItems: 'center' }}>
-                      {orderCount || '—'}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Price Summary */}
-                <div style={{ background: `rgba(${orderMetal === 'silver_999' ? '192,192,192' : '251,191,36'},0.06)`, border: `1px solid ${col}33`, borderRadius: '14px', padding: '16px 18px', marginBottom: '20px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                    <div>
-                      <div style={{ color: subtext, fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', marginBottom: '4px' }}>Unit Price</div>
-                      <div style={{ color: col, fontWeight: 700, fontSize: '15px', fontFamily: 'monospace' }}>
-                        {unitPrice > 0 ? `₹${unitPrice.toFixed(2)}` : '—'}
-                      </div>
-                      <div style={{ color: subtext, fontSize: '10px', marginTop: '2px' }}>{orderWeight} × ₹{rate?.toFixed(2)}/gm</div>
-                    </div>
-                    <div>
-                      <div style={{ color: subtext, fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', marginBottom: '4px' }}>Total Amount</div>
-                      <div style={{ color: '#4ade80', fontWeight: 800, fontSize: '18px', fontFamily: 'monospace' }}>
-                        {totalAmt > 0 ? `₹${totalAmt.toFixed(2)}` : '—'}
-                      </div>
-                      <div style={{ color: subtext, fontSize: '10px', marginTop: '2px' }}>₹{unitPrice.toFixed(2)} × {orderCount}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Message */}
-                {orderMsg && (
-                  <div style={{ background: orderMsg.includes('✅') ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${orderMsg.includes('✅') ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.3)'}`, color: orderMsg.includes('✅') ? '#4ade80' : '#f87171', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', marginBottom: '16px' }}>
-                    {orderMsg}
-                  </div>
-                )}
-
-                {/* Confirm Button */}
-                <button
-                  disabled={orderSubmitting || !orderWeight || !orderCount}
-                  onClick={submitOrder}
-                  style={{ width: '100%', padding: '14px', background: orderSubmitting || !orderWeight ? 'rgba(52,211,153,0.2)' : `linear-gradient(90deg,${col},${col}cc)`, border: 'none', borderRadius: '12px', fontWeight: 900, fontSize: '14px', color: '#000', cursor: orderSubmitting || !orderWeight ? 'not-allowed' : 'pointer', transition: 'all 0.3s ease' }}
-                >
-                  {orderSubmitting ? '⏳ Placing Order...' : '✅ Confirm Order'}
-                </button>
-              </div>
-            </div>
-          )
-        })()}
-
-        {/* ── WISH HOVER POPUP — Admin ── */}
-        {replyPopupAnnId && (
-          <div
-            id="ad-wish-popup"
-            onMouseEnter={() => clearTimeout(wishTimerRef.current)}
-            onMouseLeave={() => { wishTimerRef.current = setTimeout(() => setReplyPopupAnnId(null), 220) }}
-            style={{
-              position: 'fixed',
-              top: `${replyPopupPos.top}px`,
-              left: `${replyPopupPos.left}px`,
-              transform: 'translate(-50%, calc(-100% - 10px))',
-              background: dark ? 'rgba(5,10,20,0.97)' : 'rgba(248,250,252,0.98)',
-              border: '1px solid rgba(74,222,128,0.35)',
-              borderRadius: '16px', padding: '16px 18px',
-              minWidth: '270px', maxWidth: '340px', maxHeight: '280px',
-              overflowY: 'auto', zIndex: 9999,
-              boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
-              backdropFilter: 'blur(24px)',
-              scrollbarWidth: 'thin',
-              scrollbarColor: 'rgba(74,222,128,0.5) rgba(74,222,128,0.03)',
-              animation: 'adWishIn 0.25s cubic-bezier(0.22,1,0.36,1) both',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '10px', borderBottom: '1px solid rgba(74,222,128,0.15)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                <div style={{ width: '22px', height: '22px', borderRadius: '6px', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px' }}>💬</div>
-                <span style={{ fontSize: '10px', fontWeight: 800, color: '#4ade80', letterSpacing: '1.5px' }}>WISHES</span>
-              </div>
-              <div style={{ background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '20px', padding: '2px 10px', fontSize: '10px', color: '#4ade80', fontWeight: 800 }}>
-                {(annReplies[replyPopupAnnId] || []).length}
-              </div>
-            </div>
-            {(annReplies[replyPopupAnnId] || []).length === 0 ? (
-              <div style={{ color: subtext, fontSize: '12px', textAlign: 'center', padding: '20px 0' }}>No wishes yet</div>
-            ) : (annReplies[replyPopupAnnId] || []).map(r => (
-              <div key={r.id} style={{ marginBottom: '8px', padding: '10px 12px', background: dark ? 'rgba(74,222,128,0.05)' : 'rgba(74,222,128,0.04)', borderRadius: '10px', border: '1px solid rgba(74,222,128,0.15)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#4ade80' }}>{r.replied_by_name}</span>
-                  <span style={{ fontSize: '9px', color: subtext }}>{new Date(r.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
-                </div>
-                <p style={{ margin: 0, fontSize: '12px', color: dark ? '#cbd5e1' : '#475569', lineHeight: '1.5' }}>{r.message}</p>
-              </div>
-            ))}
-            <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid rgba(74,222,128,0.08)', textAlign: 'center', fontSize: '9px', color: dark ? '#334155' : '#cbd5e1', letterSpacing: '0.8px', fontWeight: 600 }}>
-              BitByte Network • Wishes
-            </div>
-          </div>
-        )}
-
-        {/* Main wrapper - 2 column layout */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px', alignItems: 'start' }}>
-
-          {/* ── LEFT COLUMN: Metal Rates ── */}
-          <div>
-            {(() => {
-              return (
-                <div style={{ background: cardBg, border: cardBorder, borderRadius: '20px', padding: '28px 32px', marginBottom: '24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '22px' }}>⚖️</span>
-                      <div>
-                        <div style={{ color: '#a5f3fc', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Today's Gold & Silver Rates</div>
-                        <div style={{ color: subtext, fontSize: '11px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span>📍 Chennai, India</span>
-                          <span style={{ opacity: 0.4 }}>•</span>
-                          <span>₹ per gram</span>
-                          <span style={{ opacity: 0.4 }}>•</span>
-                          {dbRateDate ? (
-                            <span style={{ color: '#4ade80', fontSize: '10px', fontWeight: 700 }}>
-                              📅 {new Date(dbRateDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
-                            </span>
-                          ) : (
-                            <span style={{ color: '#f87171', fontSize: '9px', fontWeight: 700 }}>No rate entered yet</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-
-                  {/* SILVER 999 */}
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                      <span style={{ fontSize: '16px' }}>🥈</span>
-                      <span style={{ color: '#c0c0c0', fontWeight: 800, fontSize: '12px', letterSpacing: '1px' }}>SILVER 999</span>
-                      {metalPrices.silver && <span style={{ color: 'rgba(192,192,192,0.55)', fontSize: '11px' }}>₹{metalPrices.silver.toFixed(2)}/gm</span>}
-                    </div>
-                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap' }}>
-                      {WEIGHTS_SILVER.map(w => {
-                        const priceSilver = metalPrices.silver != null ? (w.grams * metalPrices.silver).toFixed(2) : null
-                        const hoveredSilver = hoveredJewel === `sv_${w.label}`
-                        return (
-                          <div key={w.label}
-                            onMouseEnter={() => setHoveredJewel(`sv_${w.label}`)}
-                            onMouseLeave={() => setHoveredJewel(null)}
-                            style={{ flex: 1, minWidth: 0, position: 'relative', background: hoveredSilver ? 'rgba(192,192,192,0.18)' : (dark ? 'rgba(192,192,192,0.04)' : 'rgba(192,192,192,0.07)'), border: hoveredSilver ? '1px solid rgba(192,192,192,0.85)' : '1px solid rgba(192,192,192,0.25)', borderRadius: '14px', overflow: 'hidden', transition: 'all 0.25s ease', transform: hoveredSilver ? 'translateY(-6px) scale(1.04)' : 'translateY(0) scale(1)', boxShadow: hoveredSilver ? '0 12px 32px rgba(192,192,192,0.3)' : 'none', cursor: 'pointer' }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 0' }}>
-                              <img src={silverCoin} alt="Silver 999" style={{ width: hoveredSilver ? '115px' : '70px', height: hoveredSilver ? '115px' : '70px', objectFit: 'contain', background: 'transparent', display: 'block', filter: hoveredSilver ? 'drop-shadow(0 6px 18px rgba(192,192,192,1)) brightness(1.4) contrast(1.1)' : 'drop-shadow(0 2px 6px rgba(192,192,192,0.45))', transition: 'all 0.3s ease' }} />
-                            </div>
-                            <div style={{ padding: '4px 6px 6px', textAlign: 'center' }}>
-                              <div style={{ display: 'inline-block', fontSize: '9px', fontWeight: 800, color: hoveredSilver ? '#000' : '#c0c0c0', background: hoveredSilver ? '#c0c0c0' : 'rgba(192,192,192,0.1)', border: '1px solid rgba(192,192,192,0.25)', borderRadius: '20px', padding: '2px 6px', marginBottom: '4px', transition: 'all 0.2s' }}>{w.label}</div>
-                              <div style={{ color: hoveredSilver ? '#e8e8e8' : '#c0c0c0', fontWeight: 900, fontSize: hoveredSilver ? '12px' : '11px', fontFamily: 'monospace', transition: 'all 0.2s' }}>
-                                {priceSilver ? `₹${priceSilver}` : '—'}
-                              </div>
-                            </div>
-                            {hoveredSilver && (
-                              <div style={{ display: 'flex', gap: '4px', padding: '0 6px 8px', animation: 'fadeIn 0.2s ease' }}>
-                                <button
-                                  onClick={e => {
-                                    e.stopPropagation()
-                                    addMetalToCart(
-                                      'silver_999',
-                                      'Silver 999',
-                                      w,
-                                      priceSilver,
-                                      silverCoin
-                                    )
-                                  }}
-                                  style={{ flex: 1, padding: '5px 0', background: 'rgba(192,192,192,0.15)', border: '1px solid rgba(192,192,192,0.45)', borderRadius: '8px', color: '#c0c0c0', fontSize: '9px', fontWeight: 800, cursor: 'pointer' }}
-                                >🪙 Cart</button>
-                                <button
-                                 onClick={e => { e.stopPropagation(); goToCoinCheckout('silver_999', w.label, w.grams, priceSilver) }}
-                                  style={{ flex: 1, padding: '5px 0', background: 'linear-gradient(90deg,#9ca3af,#e5e7eb)', border: 'none', borderRadius: '8px', color: '#000', fontSize: '9px', fontWeight: 900, cursor: 'pointer' }}
-                                >🛒 Buy</button>
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
-                      <button onClick={() => { setOrderMetal('silver_999'); setOrderWeight(''); setOrderCount(''); setOrderMsg(''); setOrderPopup(true) }}
-                        style={{ padding: '10px 32px', background: 'linear-gradient(90deg,#9ca3af,#e5e7eb)', border: 'none', borderRadius: '20px', color: '#000', fontWeight: 800, fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 16px rgba(192,192,192,0.2)' }}>
-                        🛒 Place Order — Silver 999
-                      </button>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                    {/* GOLD 22K */}
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                        <span style={{ fontSize: '16px' }}>🏅</span>
-                        <span style={{ color: '#fbbf24', fontWeight: 800, fontSize: '12px', letterSpacing: '1px' }}>GOLD 22K</span>
-                        {metalPrices.gold22k && <span style={{ color: 'rgba(251,191,36,0.55)', fontSize: '11px' }}>₹{metalPrices.gold22k.toFixed(2)}/gm</span>}
-                      </div>
-                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap' }}>
-                        {WEIGHTS_GOLD.map(w => {
-                          const price22k = metalPrices.gold22k != null ? (w.grams * metalPrices.gold22k).toFixed(2) : null
-                          const hovered22k = hoveredJewel === `g22_${w.label}`
-                          return (
-                            <div key={w.label}
-                              onMouseEnter={() => setHoveredJewel(`g22_${w.label}`)}
-                              onMouseLeave={() => setHoveredJewel(null)}
-                              style={{ flex: 1, minWidth: 0, position: 'relative', background: hovered22k ? 'rgba(251,191,36,0.15)' : (dark ? 'rgba(251,191,36,0.05)' : 'rgba(251,191,36,0.07)'), border: hovered22k ? '1px solid rgba(251,191,36,0.8)' : '1px solid rgba(251,191,36,0.3)', borderRadius: '14px', overflow: 'hidden', transition: 'all 0.25s ease', transform: hovered22k ? 'translateY(-6px) scale(1.04)' : 'translateY(0) scale(1)', boxShadow: hovered22k ? '0 12px 32px rgba(251,191,36,0.35)' : 'none', cursor: 'pointer' }}
-                            >
-                              {/* Coin image */}
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 0' }}>
-                                <img src={goldCoin} alt="Gold 22K" style={{ width: hovered22k ? '115px' : '70px', height: hovered22k ? '115px' : '70px', objectFit: 'contain', background: 'transparent', display: 'block', filter: hovered22k ? 'drop-shadow(0 6px 20px rgba(251,191,36,1)) brightness(1.3) saturate(1.4)' : 'drop-shadow(0 2px 6px rgba(251,191,36,0.5))', transition: 'all 0.3s ease' }} />
-                              </div>
-
-                              {/* Weight + Rate — highlight on hover */}
-                              <div style={{ padding: '4px 6px 6px', textAlign: 'center' }}>
-                                <div style={{ display: 'inline-block', fontSize: '9px', fontWeight: 800, color: hovered22k ? '#000' : '#fbbf24', background: hovered22k ? '#fbbf24' : 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '20px', padding: '2px 6px', marginBottom: '4px', transition: 'all 0.2s' }}>{w.label}</div>
-                                <div style={{ color: hovered22k ? '#ffd700' : '#fbbf24', fontWeight: 900, fontSize: hovered22k ? '12px' : '11px', fontFamily: 'monospace', transition: 'all 0.2s' }}>
-                                  {price22k ? `₹${price22k}` : '—'}
-                                </div>
-                              </div>
-
-                              {/* Two buttons — visible on hover */}
-                              {hovered22k && (
-                                <div style={{ display: 'flex', gap: '4px', padding: '0 6px 8px', animation: 'fadeIn 0.2s ease' }}>
-                                  <button
-                                    onClick={e => {
-                                      e.stopPropagation()
-                                      addMetalToCart(
-                                        'gold_22k',
-                                        'Gold 22K',
-                                        w,
-                                        price22k,
-                                        goldCoin
-                                      )
-                                    }}
-                                    style={{ flex: 1, padding: '5px 0', background: 'rgba(251,191,36,0.2)', border: '1px solid rgba(251,191,36,0.5)', borderRadius: '8px', color: '#fbbf24', fontSize: '9px', fontWeight: 800, cursor: 'pointer' }}
-                                  >🪙 Cart</button>
-                                  <button
-                                    onClick={e => { e.stopPropagation(); goToCoinCheckout('gold_22k', w.label, w.grams, price22k) }}
-                                    style={{ flex: 1, padding: '5px 0', background: 'linear-gradient(90deg,#f59e0b,#fbbf24)', border: 'none', borderRadius: '8px', color: '#000', fontSize: '9px', fontWeight: 900, cursor: 'pointer' }}
-                                  >🛒 Buy</button>
-                                </div>
-                              )}
-                            </div>
-                          )
-                        })}
-
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
-                        <button onClick={() => { setOrderMetal('gold_22k'); setOrderWeight(''); setOrderCount(''); setOrderMsg(''); setOrderPopup(true) }}
-                          style={{ padding: '10px 32px', background: 'linear-gradient(90deg,#f59e0b,#fbbf24)', border: 'none', borderRadius: '20px', color: '#000', fontWeight: 800, fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 16px rgba(251,191,36,0.3)' }}>
-                          🛒 Place Order — Gold 22K
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* GOLD 24K */}
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                        <span style={{ fontSize: '16px' }}>🥇</span>
-                        <span style={{ color: '#ffd700', fontWeight: 800, fontSize: '12px', letterSpacing: '1px' }}>GOLD 24K</span>
-                        {metalPrices.gold24k && <span style={{ color: 'rgba(255,215,0,0.55)', fontSize: '11px' }}>₹{metalPrices.gold24k.toFixed(2)}/gm</span>}
-                      </div>
-                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap' }}>
-                        {WEIGHTS_GOLD.map(w => {
-                          const price24k = metalPrices.gold24k != null ? (w.grams * metalPrices.gold24k).toFixed(2) : null
-                          const hovered24k = hoveredJewel === `g24_${w.label}`
-                          return (
-                            <div key={w.label}
-                              onMouseEnter={() => setHoveredJewel(`g24_${w.label}`)}
-                              onMouseLeave={() => setHoveredJewel(null)}
-                              style={{ flex: 1, minWidth: 0, position: 'relative', background: hovered24k ? 'rgba(255,215,0,0.15)' : (dark ? 'rgba(255,215,0,0.05)' : 'rgba(255,215,0,0.07)'), border: hovered24k ? '1px solid rgba(255,215,0,0.8)' : '1px solid rgba(255,215,0,0.3)', borderRadius: '14px', overflow: 'hidden', transition: 'all 0.25s ease', transform: hovered24k ? 'translateY(-6px) scale(1.04)' : 'translateY(0) scale(1)', boxShadow: hovered24k ? '0 12px 32px rgba(255,215,0,0.35)' : 'none', cursor: 'pointer' }}
-                            >
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 0' }}>
-                                <img src={goldCoin} alt="Gold 24K" style={{ width: hovered24k ? '115px' : '70px', height: hovered24k ? '115px' : '70px', objectFit: 'contain', background: 'transparent', display: 'block', filter: hovered24k ? 'drop-shadow(0 6px 20px rgba(255,215,0,1)) brightness(1.3) saturate(1.5)' : 'drop-shadow(0 2px 6px rgba(255,215,0,0.5))', transition: 'all 0.3s ease' }} />
-                              </div>
-                              <div style={{ padding: '4px 6px 6px', textAlign: 'center' }}>
-                                <div style={{ display: 'inline-block', fontSize: '9px', fontWeight: 800, color: hovered24k ? '#000' : '#ffd700', background: hovered24k ? '#ffd700' : 'rgba(255,215,0,0.12)', border: '1px solid rgba(255,215,0,0.3)', borderRadius: '20px', padding: '2px 6px', marginBottom: '4px', transition: 'all 0.2s' }}>{w.label}</div>
-                                <div style={{ color: hovered24k ? '#ffe44d' : '#ffd700', fontWeight: 900, fontSize: hovered24k ? '12px' : '11px', fontFamily: 'monospace', transition: 'all 0.2s' }}>
-                                  {price24k ? `₹${price24k}` : '—'}
-                                </div>
-                              </div>
-                              {hovered24k && (
-                                <div style={{ display: 'flex', gap: '4px', padding: '0 6px 8px', animation: 'fadeIn 0.2s ease' }}>
-                                  <button
-                                    onClick={e => {
-                                      e.stopPropagation()
-                                      addMetalToCart(
-                                        'gold_24k',
-                                        'Gold 24K',
-                                        w,
-                                        price24k,
-                                        goldCoin
-                                      )
-                                    }}
-                                    style={{ flex: 1, padding: '5px 0', background: 'rgba(255,215,0,0.2)', border: '1px solid rgba(255,215,0,0.5)', borderRadius: '8px', color: '#ffd700', fontSize: '9px', fontWeight: 800, cursor: 'pointer' }}
-                                  >🪙 Cart</button>
-                                  <button
-                                    onClick={e => { e.stopPropagation(); goToCoinCheckout('gold_24k', w.label, w.grams, price24k) }}
-                                    style={{ flex: 1, padding: '5px 0', background: 'linear-gradient(90deg,#d97706,#ffd700)', border: 'none', borderRadius: '8px', color: '#000', fontSize: '9px', fontWeight: 900, cursor: 'pointer' }}
-                                  >🛒 Buy</button>
-                                </div>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
-                        <button onClick={() => { setOrderMetal('gold_24k'); setOrderWeight(''); setOrderCount(''); setOrderMsg(''); setOrderPopup(true) }}
-                          style={{ padding: '10px 32px', background: 'linear-gradient(90deg,#d97706,#ffd700)', border: 'none', borderRadius: '20px', color: '#000', fontWeight: 800, fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 16px rgba(255,215,0,0.3)' }}>
-                          🛒 Place Order — Gold 24K
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )
-            })()}
-          </div>
+            );
+          })}
         </div>
-
- 
-
-{/* ── COIN PROMOTE BANNER ── */}
-<div style={{ marginBottom: '40px', marginTop: '40px', padding: '0 40px' }}>
-
-  {/* Heading */}
-  <div style={{ fontSize: 22, fontWeight: 800, color: '#1a0a0a', marginBottom: 6 }}>
-    Easy to buy Gold with our Latest Gold Purchase Plan & Advances !
-  </div>
-
-  {/* 2 Banners side by side */}
-<div style={{
-  display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
-  gap: 35,
-  width: '100%',
-  margin: '24px auto 0',
-  padding: '0'
-}}>
-
-    {/* LEFT BANNER */}
-    
-    <div 
-    onClick={() => navigate('/gold-coins')}
-    style={{
-      position: 'relative',
-      borderRadius: 16,
-      overflow: 'hidden',
-      height: '520px',
-      cursor: 'pointer',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-      marginLeft: '-100px',
-    }}
-      onMouseEnter={e => e.currentTarget.querySelector('.cp-img').style.transform = 'scale(1.03)'}
-      onMouseLeave={e => e.currentTarget.querySelector('.cp-img').style.transform = 'scale(1)'}
-    >
-      <img
-        className="cp-img"
-        src="/coin_promote.png"
-        alt="Gold Purchase Plans"
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          display: 'block',
-          transition: 'transform 0.4s ease',
-        }}
-      />
-      {/* Bottom button */}
-      <div style={{
-        position: 'absolute',
-        bottom: 28,
-        left: '50%',
-        transform: 'translateX(-50%)'
-      }}>
-     <button 
-  onClick={() => navigate('/gold-coins')}
-  style={{
-  background: '#e91e8c',
-  color: '#fff',
-  border: 'none',
-  borderRadius: 24,
-  padding: '12px 32px',
-  fontSize: 14,
-  fontWeight: 700,
-  cursor: 'pointer',
-  boxShadow: '0 4px 16px rgba(233,30,140,0.4)',
-  whiteSpace: 'nowrap'
-}}>
-  Start Now
-</button>
-      </div>
-    </div>
-
-    {/* RIGHT BANNER */}
-    <div 
-      onClick={() => navigate('/silver-coins')}
-      style={{      
-      position: 'relative',
-      borderRadius: 16,
-      overflow: 'hidden',
-      height: '520px',
-      cursor: 'pointer',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-      marginRight: '-110px',
-    }}
-      onMouseEnter={e => e.currentTarget.querySelector('.cp-img2').style.transform = 'scale(1.03)'}
-      onMouseLeave={e => e.currentTarget.querySelector('.cp-img2').style.transform = 'scale(1)'}
-    >
-      <img
-        className="cp-img2"
-        src={coinPromote2}
-        alt="Advance Booking"
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          display: 'block',
-          transition: 'transform 0.4s ease'
-        }}
-      />
-      {/* Bottom button */}
-      <div style={{
-        position: 'absolute',
-        bottom: 28,
-        left: '50%',
-        transform: 'translateX(-50%)'
-      }}>
-        <button 
-        onClick={() => navigate('/silver-coins')}
-        style={{
-          background: '#e91e8c',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 24,
-          padding: '12px 32px',
-          fontSize: 14,
-          fontWeight: 700,
-          cursor: 'pointer',
-          boxShadow: '0 4px 16px rgba(233,30,140,0.4)',
-          whiteSpace: 'nowrap'
-        }}>
-          Book Advance
+        <button
+          className="store-cat-arrow next"
+          type="button"
+          onClick={() => moveCategoryRail(1)}
+        >
+          {">"}
         </button>
       </div>
-    </div>
 
-  </div>
-</div>
-{/* ── END COIN PROMOTE BANNER ── */}
-
-
-
-        {/* ── BHARATHY WORLD SECTION ── */}
-        <div style={{ marginBottom: '40px', marginTop: '40px', textAlign: 'center' }}>
-
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#1a0a0a', marginBottom: 6 }}>
-            Team 369 Wolrd
-          </div>
-          <div style={{ fontSize: 14, color: '#7c5c4a', marginBottom: 32 }}>
-            A companion for every occasion
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, maxWidth: 1300, margin: '0 auto', padding: '0 40px' }}>
-
-            {/* LEFT COLUMN — 2 stacked */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-{/* Wedding */}
-<div
-  onClick={() => navigate('/collection/all?wedding=true')}
-  style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: '300px', cursor: 'pointer' }}
-  onMouseEnter={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1.04)'}
-  onMouseLeave={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1)'}
->
-  <img className="bw-img" src="/wedding.png" alt="Wedding"
-    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }} />
-  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,  transparent 55%)' }} />
-  <div style={{ position: 'absolute', bottom: 24, left: 24 }}>
-    <div style={{ color: '#fff', fontWeight: 700, fontSize: 22 }}>Wedding</div>
-  </div>
-</div>
-
-{/* Gold */}
-<div
-  onClick={() => navigate('/collection/all?metal=gold')}
-  style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: '420px', cursor: 'pointer' }}
-  onMouseEnter={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1.04)'}
-  onMouseLeave={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1)'}
->
-  <img className="bw-img" src="/gold_Woman.jpg" alt="Gold"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,  transparent 55%)' }} />
-                <div style={{ position: 'absolute', bottom: 24, left: 24 }}>
-                  <div style={{ color: '#fff', fontWeight: 700, fontSize: 22 }}>Gold</div>
-                </div>
-              </div>
-
-            </div>
-
-            {/* RIGHT COLUMN — 2 stacked */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-{/* Diamond */}
-<div
-  onClick={() => navigate('/collection/all?metal=diamond')}
-  style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: '420px', cursor: 'pointer' }}
-  onMouseEnter={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1.04)'}
-  onMouseLeave={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1)'}
->
-  <img className="bw-img" src="/diamond_woman.jpg" alt="Diamond"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,  transparent 55%)' }} />
-                <div style={{ position: 'absolute', bottom: 24, left: 24 }}>
-                  <div style={{ color: '#fff', fontWeight: 700, fontSize: 22 }}>Diamond</div>
-                </div>
-              </div>
-
-{/* Dailywear */}
-<div
-  onClick={() => navigate('/collection/all?dailywear=true')}
-  style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: '300px', cursor: 'pointer' }}
-  onMouseEnter={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1.04)'}
-  onMouseLeave={e => e.currentTarget.querySelector('.bw-img').style.transform = 'scale(1)'}
->
-  <img className="bw-img" src="/dailywera.png" alt="Dailywear"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,  transparent 55%)' }} />
-                <div style={{ position: 'absolute', bottom: 24, left: 24 }}>
-                  <div style={{ color: '#fff', fontWeight: 700, fontSize: 22 }}>Dailywear</div>
-                </div>
-              </div>
-
+      <div className="store-shell">
+        <section className="store-section promo-carousel-section">
+          <div className="promo-carousel-head">
+            <div>
+              <span className="store-kicker">Curated Collections</span>
+              <h2>Shop Coins by Moment</h2>
             </div>
           </div>
-        </div>
-        {/* ── END BHARATHY WORLD ── */}
-
-        {/* ── JEWELRY SHOWCASE ── */}
-        <div style={{ marginBottom: '28px', marginTop: '28px' }}>
-          <div style={{ color: '#a5f3fc', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>💍</span> Our Collections
+          <div
+            className="promo-carousel-viewport"
+            ref={promoTrackRef}
+            onMouseEnter={() => {
+              promoAutoPausedRef.current = true;
+            }}
+            onMouseLeave={() => {
+              promoAutoPausedRef.current = false;
+            }}
+            onFocus={() => {
+              promoAutoPausedRef.current = true;
+            }}
+            onBlur={() => {
+              promoAutoPausedRef.current = false;
+            }}
+          >
+            <div className="coin-story-track">
+              {autoPromoCards.map((card, index) => (
+                <button
+                  className={`coin-story-card ${coinSizeClass(card.route)} ${coinMetalClass(card)}`}
+                  type="button"
+                  key={`${card.title}-${index}`}
+                  onClick={() => navigate(card.route)}
+                >
+                  <span className="coin-story-image">
+                    <img src={card.image} alt="" />
+                  </span>
+                  <span>{card.title}</span>
+                </button>
+              ))}
+            </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gridTemplateRows: '270px 270px', gap: '12px' }}>
+        </section>
 
-            {/* Big left card - Signature Rings */}
-            <div
-              className="jewel-card"
-              onClick={() => navigate('/collection/rings')}
-              onMouseEnter={() => setHoveredJewel('rings')}
-              onMouseLeave={() => setHoveredJewel(null)}
-              style={{
-                gridRow: 'span 2', position: 'relative', borderRadius: '20px', overflow: 'hidden', cursor: 'pointer',
-                border: hoveredJewel === 'rings' ? '1px solid rgba(251,191,36,0.6)' : cardBorder,
-                minHeight: '400px',
-                transform: hoveredJewel === 'rings' ? 'scale(1.015)' : 'scale(1)',
-                boxShadow: hoveredJewel === 'rings' ? '0 20px 60px rgba(251,191,36,0.25)' : 'none',
-                transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
-              }}
+        <section className="store-section">
+          <div className="store-heading">
+            <h2>Featured Jewellery</h2>
+            <button
+              className="view-all-link"
+              type="button"
+              onClick={() => navigate("/collection/all")}
             >
-              <div className="jewel-shine" />
-              <img src="/img/gold/gold-ring-1.png" alt="Signature Rings" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              <div style={{ position: 'absolute', inset: 0, background: hoveredJewel === 'rings' ? 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 55%)' : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)', transition: 'background 0.4s ease' }} />
-              <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px' }}>
-                <div style={{ color: hoveredJewel === 'rings' ? '#fbbf24' : '#fff', fontWeight: 800, fontSize: '18px', transition: 'color 0.3s ease' }}>Signature Rings</div>
-                <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '12px', marginTop: '3px' }}>Bridal & Everyday</div>
-                {hoveredJewel === 'rings' && (
-                  <div style={{ marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(251,191,36,0.2)', border: '1px solid rgba(251,191,36,0.5)', borderRadius: '20px', padding: '4px 14px', color: '#fbbf24', fontSize: '11px', fontWeight: 800, animation: 'fadeIn 0.3s ease' }}>
-                    → Explore Collection
-                  </div>
-                )}
-              </div>
-              {hoveredJewel === 'rings' && (
-                <div style={{ position: 'absolute', top: '14px', right: '14px', width: '36px', height: '36px', borderRadius: '50%', border: '2px solid rgba(251,191,36,0.6)', animation: 'jewelGlow 1.5s ease infinite' }} />
-              )}
-            </div>
-
-            {/* Heritage Necklaces */}
-            <div
-              className="jewel-card"
-              onClick={() => navigate('/collection/necklaces')}
-              onMouseEnter={() => setHoveredJewel('necklaces')}
-              onMouseLeave={() => setHoveredJewel(null)}
-              style={{
-                position: 'relative',
-                borderRadius: '20px',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                border: hoveredJewel === 'necklaces' ? '1px solid rgba(251,191,36,0.6)' : cardBorder,
-                transform: hoveredJewel === 'necklaces' ? 'scale(1.02)' : 'scale(1)',
-                boxShadow: hoveredJewel === 'necklaces' ? '0 16px 48px rgba(251,191,36,0.22)' : 'none',
-                transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
-              }}
-            >
-              <div className="jewel-shine" />
-              <img src="/img/silver/silver-necklace-2.png" alt="Heritage Necklaces" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              <div style={{ position: 'absolute', inset: 0, background: hoveredJewel === 'necklaces' ? 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 55%)' : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)', transition: 'background 0.4s ease' }} />
-              <div style={{ position: 'absolute', bottom: '14px', left: '16px', right: '16px' }}>
-                <div style={{ color: hoveredJewel === 'necklaces' ? '#22d3ee' : '#fff', fontWeight: 800, fontSize: '14px', transition: 'color 0.3s ease' }}>Heritage Necklaces</div>
-                <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '11px' }}>Antique & Modern</div>
-                {hoveredJewel === 'necklaces' && (
-                  <div style={{ marginTop: '8px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(34,211,238,0.15)', border: '1px solid rgba(34,211,238,0.4)', borderRadius: '20px', padding: '3px 12px', color: '#22d3ee', fontSize: '10px', fontWeight: 800, animation: 'fadeIn 0.3s ease' }}>
-                    → Explore
-                  </div>
-                )}
-              </div>
-              {hoveredJewel === 'necklaces' && (
-                <div style={{ position: 'absolute', top: '10px', right: '10px', width: '28px', height: '28px', borderRadius: '50%', border: '2px solid rgba(34,211,238,0.6)', animation: 'jewelGlow 1.5s ease infinite' }} />
-              )}
-            </div>
-
-            {/* Eternal Bangles */}
-            <div
-              className="jewel-card"
-              onClick={() => navigate('/collection/bangles')}
-              onMouseEnter={() => setHoveredJewel('bangles')}
-              onMouseLeave={() => setHoveredJewel(null)}
-              style={{
-                position: 'relative', borderRadius: '20px', overflow: 'hidden', cursor: 'pointer',
-                border: hoveredJewel === 'bangles' ? '1px solid rgba(251,191,36,0.6)' : cardBorder,
-                minHeight: '200px',
-                transform: hoveredJewel === 'bangles' ? 'scale(1.02)' : 'scale(1)',
-                boxShadow: hoveredJewel === 'bangles' ? '0 16px 48px rgba(251,191,36,0.2)' : 'none',
-                transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
-              }}
-            >
-              <div className="jewel-shine" />
-              <img src="/img/gold/gold-bangles-1.png" alt="Eternal Bangles" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              <div style={{ position: 'absolute', inset: 0, background: hoveredJewel === 'bangles' ? 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 55%)' : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)', transition: 'background 0.4s ease' }} />
-              <div style={{ position: 'absolute', bottom: '14px', left: '16px', right: '16px' }}>
-                <div style={{ color: hoveredJewel === 'bangles' ? '#fbbf24' : '#fff', fontWeight: 800, fontSize: '14px', transition: 'color 0.3s ease' }}>Eternal Bangles</div>
-                <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '11px' }}>Kangan & Bracelets</div>
-                {hoveredJewel === 'bangles' && (
-                  <div style={{ marginTop: '8px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', borderRadius: '20px', padding: '3px 12px', color: '#fbbf24', fontSize: '10px', fontWeight: 800, animation: 'fadeIn 0.3s ease' }}>
-                    → Explore
-                  </div>
-                )}
-              </div>
-              {hoveredJewel === 'bangles' && (
-                <div style={{ position: 'absolute', top: '10px', right: '10px', width: '28px', height: '28px', borderRadius: '50%', border: '2px solid rgba(251,191,36,0.6)', animation: 'jewelGlow 1.5s ease infinite' }} />
-              )}
-            </div>
-
-            {/* Diamond Earrings */}
-            <div
-              className="jewel-card"
-              onClick={() => navigate('/collection/earrings')}
-              onMouseEnter={() => setHoveredJewel('earrings')}
-              onMouseLeave={() => setHoveredJewel(null)}
-              style={{
-                position: 'relative',
-                borderRadius: '20px',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                border: hoveredJewel === 'earrings' ? '1px solid rgba(167,139,250,0.6)' : cardBorder,
-                minHeight: '200px',
-                transform: hoveredJewel === 'earrings' ? 'scale(1.02)' : 'scale(1)',
-                boxShadow: hoveredJewel === 'earrings' ? '0 16px 48px rgba(167,139,250,0.2)' : 'none',
-                transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
-              }}
-            >
-
-              <div className="jewel-shine" />
-              <img src="/img/silver/silver-Earrings-4.png" alt="Diamond Earrings" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              <div style={{ position: 'absolute', inset: 0, background: hoveredJewel === 'earrings' ? 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 55%)' : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)', transition: 'background 0.4s ease' }} />
-              <div style={{ position: 'absolute', bottom: '14px', left: '16px', right: '16px' }}>
-                <div style={{ color: hoveredJewel === 'earrings' ? '#a78bfa' : '#fff', fontWeight: 800, fontSize: '14px', transition: 'color 0.3s ease' }}>Diamond Earrings</div>
-                <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '11px' }}>Studs & Drops</div>
-                {hoveredJewel === 'earrings' && (
-                  <div style={{ marginTop: '8px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(167,139,250,0.15)', border: '1px solid rgba(167,139,250,0.4)', borderRadius: '20px', padding: '3px 12px', color: '#a78bfa', fontSize: '10px', fontWeight: 800, animation: 'fadeIn 0.3s ease' }}>
-                    → Explore
-                  </div>
-                )}
-              </div>
-              {hoveredJewel === 'earrings' && (
-                <div style={{ position: 'absolute', top: '10px', right: '10px', width: '28px', height: '28px', borderRadius: '50%', border: '2px solid rgba(167,139,250,0.6)', animation: 'jewelGlow 1.5s ease infinite' }} />
-              )}
-            </div>
-
-            {/* Gold Chains */}
-            <div
-              className="jewel-card"
-              onClick={() => navigate('/collection/chains')}
-              onMouseEnter={() => setHoveredJewel('chains')}
-              onMouseLeave={() => setHoveredJewel(null)}
-              style={{
-                position: 'relative',
-                borderRadius: '20px',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                border: hoveredJewel === 'chains' ? '1px solid rgba(251,191,36,0.6)' : cardBorder,
-                transform: hoveredJewel === 'chains' ? 'scale(1.02)' : 'scale(1)',
-                boxShadow: hoveredJewel === 'chains' ? '0 16px 48px rgba(251,191,36,0.22)' : 'none',
-                transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
-              }}
-            >
-              <div className="jewel-shine" />
-              <img src="/img/gold/gold chain-1.png" alt="Gold Chains" className="jewel-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              <div style={{ position: 'absolute', inset: 0, background: hoveredJewel === 'chains' ? 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 55%)' : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)', transition: 'background 0.4s ease' }} />
-              <div style={{ position: 'absolute', bottom: '14px', left: '16px', right: '16px' }}>
-                <div style={{ color: hoveredJewel === 'chains' ? '#ffd700' : '#fff', fontWeight: 800, fontSize: '14px', transition: 'color 0.3s ease' }}>Gold Chains</div>
-                <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '11px' }}>Minimal & Premium</div>
-                {hoveredJewel === 'chains' && (
-                  <div style={{ marginTop: '8px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.4)', borderRadius: '20px', padding: '3px 12px', color: '#ffd700', fontSize: '10px', fontWeight: 800, animation: 'fadeIn 0.3s ease' }}>
-                    → Explore
-                  </div>
-                )}
-              </div>
-              {hoveredJewel === 'chains' && (
-                <div style={{ position: 'absolute', top: '10px', right: '10px', width: '28px', height: '28px', borderRadius: '50%', border: '2px solid rgba(255,215,0,0.6)', animation: 'jewelGlow 1.5s ease infinite' }} />
-              )}
-            </div>
-
+              VIEW ALL PRODUCTS {">"}
+            </button>
           </div>
-        </div>
-        {/* ── END JEWELRY SHOWCASE ── */}
 
-
-
-
-
-        {/* ── SHOP BY GENDER SECTION ── */}
-        <div style={{ marginBottom: '40px', marginTop: '40px', textAlign: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 8 }}>
-            <div style={{ height: 1, width: 80, background: 'linear-gradient(90deg,transparent,#b8860b)' }} />
-            <span style={{ fontSize: 18, color: '#b8860b' }}>💎</span>
-            <div style={{ height: 1, width: 80, background: 'linear-gradient(90deg,#b8860b,transparent)' }} />
-          </div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#1a0a0a', letterSpacing: 2, marginBottom: 6 }}>SHOP BY GENDER</div>
-          <div style={{ fontSize: 14, color: '#7c5c4a', marginBottom: 28 }}>Find Jewelry for Women, Men, and Kids</div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 24, maxWidth: 1300, margin: '0 auto', padding: '0 40px', alignItems: 'start' }}>
-            {[
-              { label: "Women's Jewellery", img: "/Woman's Jewlley.jpg", gender: 'women' },
-              { label: "Men's Jewellery", img: "/Men's Jewellery.jpg", gender: 'men' },
-              { label: "Kid's Jewellery", img: "/Kids Jewllery.jpg", gender: 'kids' },
-            ].map((item, i) => (
-              <div
-                key={item.label}
-                style={{ cursor: 'pointer', textAlign: 'center' }}
-                onClick={() => navigate(`/collection/all?gender=${item.gender}`)}
-                onMouseEnter={e => {
-                  e.currentTarget.querySelector('.sbg-img').style.transform = 'scale(1.03)'
-                  e.currentTarget.querySelector('.sbg-label').style.color = '#8B1A1A'
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.querySelector('.sbg-img').style.transform = 'scale(1)'
-                  e.currentTarget.querySelector('.sbg-label').style.color = '#b8860b'
-                }}
-              >
-                <div style={{
-                  borderRadius: 16, overflow: 'hidden',
-                  border: '1px solid #e8ddd5',
-                  boxShadow: '0 4px 16px rgba(139,26,26,0.08)',
-                  marginBottom: 12,
-                  height: i === 1 ? '460px' : '420px',
-                  width: '100%',
-                  marginTop: i === 1 ? '0px' : '40px',
-                }}>
-                  <img
-                    className="sbg-img"
-                    src={item.img}
-                    alt={item.label}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.3s ease' }}
-                  />
-                </div>
-                <div className="sbg-label" style={{ fontSize: 14, fontWeight: 700, color: '#b8860b', transition: 'color 0.2s' }}>
-                  {item.label}
-                </div>
-              </div>
+          <div className="product-grid">
+            {featured.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                wishIds={wishIds}
+                onWishlist={toggleWishlist}
+                onOpen={openProduct}
+              />
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* ── FEATURED JEWELLERY COLLECTIONS ── */}
-        <div style={{ marginBottom: '40px', marginTop: '40px', textAlign: 'center' }}>
-
-          {/* Heading */}
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#1a0a0a', letterSpacing: 1, marginBottom: 6, fontStyle: 'italic' }}>
-            Featured Jewellery Collections
-          </div>
-          <div style={{ fontSize: 14, color: '#7c5c4a', marginBottom: 32 }}>
-            A selection of jewellery designs across categories
-          </div>
-
-          {/* Layout: Left big + Right 2 stacked */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, maxWidth: 1300, margin: '0 auto', padding: '0 40px', alignItems: 'stretch' }}>
-
-            {/* LEFT — big tall image */}
-            <div style={{
-              position: 'relative', borderRadius: 16, overflow: 'hidden',
-              height: '680px', cursor: 'pointer',
-            }}>
-              <img
-                src="/black_woman.png"
-                alt="Layered Luxe"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }}
-                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
-                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-              />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 50%)' }} />
-              <div style={{ position: 'absolute', bottom: 28, right: 28, textAlign: 'right' }}>
-                <div style={{ color: '#fff', fontWeight: 800, fontSize: 22, fontStyle: 'italic', letterSpacing: 1 }}>Layered Luxe</div>
-                <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13, marginTop: 4, fontStyle: 'italic' }}>Stack it. Style it. Own it.</div>
-              </div>
+        <section className="store-section">
+          <div className="newsletter">
+            <div className="newsletter-icon-wrap">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#073B3F"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                <polyline points="22,6 12,13 2,6" />
+              </svg>
             </div>
-
-            {/* RIGHT — 2 stacked images */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '680px' }}>
-
-              {/* Top right image */}
-              <div style={{
-                position: 'relative', borderRadius: 16, overflow: 'hidden',
-                flex: 1, cursor: 'pointer',
-              }}>
-                <img
-                  src="/black_necklaces.png"
-                  alt="Ethnic Glow"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 50%)' }} />
-                <div style={{ position: 'absolute', bottom: 20, right: 20, textAlign: 'right' }}>
-                  <div style={{ color: '#fff', fontWeight: 800, fontSize: 18, fontStyle: 'italic', letterSpacing: 1 }}>Ethnic Glow</div>
-                  <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12, marginTop: 3, fontStyle: 'italic' }}>Tradition with a twist.</div>
-                </div>
-              </div>
-
-              {/* Bottom right image */}
-              <div style={{
-                position: 'relative', borderRadius: 16, overflow: 'hidden',
-                flex: 1, cursor: 'pointer',
-              }}>
-                <img
-                  src="/black_daimond.png"
-                  alt="Diamond Whisper"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 50%)' }} />
-                <div style={{ position: 'absolute', bottom: 20, right: 20, textAlign: 'right' }}>
-                  <div style={{ color: '#fff', fontWeight: 800, fontSize: 18, fontStyle: 'italic', letterSpacing: 1 }}>Diamond Whisper</div>
-                  <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12, marginTop: 3, fontStyle: 'italic' }}>Delicate shine. Big impression.</div>
-                </div>
-              </div>
-
+            <div>
+              <h2>Join The Luxiva Circle</h2>
+              <p>
+                Be the first to know about new collections, exclusive offers
+                &amp; more.
+              </p>
             </div>
+            <form
+              className="newsletter-form"
+              onSubmit={(event) => event.preventDefault()}
+            >
+              <input placeholder="Enter your email address" />
+              <button type="submit">SUBSCRIBE</button>
+            </form>
           </div>
-        </div>
-        {/* ── END FEATURED JEWELLERY ── */}
-
-
+        </section>
       </div>
 
-      {/* ── FLOATING CHAT WIDGET ── */}
-      {showChatWidget && (
-        <div style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          zIndex: 9999,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-end',
-          gap: '8px',
-        }}>
-          {/* Bubble */}
-          <div style={{
-            background: '#fff',
-            border: '1px solid #e8ddd5',
-            borderRadius: '20px 20px 4px 20px',
-            padding: '10px 16px',
-            fontSize: '13px',
-            fontWeight: 600,
-            color: '#3d2b1f',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            whiteSpace: 'nowrap',
-          }}>
-            How can I help you?
-            <button
-              onClick={() => setShowChatWidget(false)}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: '#9ca3af',
-                fontSize: '14px',
-                fontWeight: 700,
-                padding: '0 0 0 4px',
-                lineHeight: 1,
-              }}
-            >✕</button>
-          </div>
-
-          {/* Woman image - round */}
-          <img
-            src="/greating_woman.png"
-            alt="Help"
-            style={{
-              width: '120px',
-              height: '120px',
-              borderRadius: '50%',
-              objectFit: 'cover',
-              border: '2px solid #8B1A1A',
-              boxShadow: '0 4px 16px rgba(139,26,26,0.25)',
-              cursor: 'pointer',
-            }}
-          />
-        </div>
-      )}
-
-                {/* ── FOOTER ── */}
       <CustomerFooter />
-
     </div>
-
-
-
-  )
+  );
 }
 

@@ -1,19 +1,184 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import logo from '../assets/logo.png'
+import api from '../api'
 import goldCoin from '../assets/gold-coin-transparent.png'
 import silverCoin from '../assets/silver-coin-transparent.png'
 import CustomerNavbar from './CustomerNavbar'
 import CustomerFooter from '../collection/CustomerFooter'
 
-const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
+const API_ORIGIN = (api.defaults.baseURL || '').replace(/\/api\/?$/, '')
 
-const getImageUrl = img => {
+function getImageUrl(img) {
   if (!img) return null
-  let p = typeof img === 'object' ? (img.image || img.url || '') : img
-  if (!p) return null
-  if (p.startsWith('http://') || p.startsWith('https://')) return p
-  return `${API_BASE}/${p.replace(/^\/+/, '')}`
+  const path = typeof img === 'object' ? (img.image || img.url || '') : img
+  if (!path) return null
+  if (path.startsWith('http://') || path.startsWith('https://')) return path
+  return `${API_ORIGIN}/${path.replace(/^\/+/, '')}`
+}
+
+function formatMoney(value) {
+  const n = Number(value)
+  if (!Number.isFinite(n) || n <= 0) return '-'
+  return `Rs. ${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+}
+
+function normalizeProductList(data) {
+  if (Array.isArray(data)) return data
+  if (Array.isArray(data?.results)) return data.results
+  if (Array.isArray(data?.data)) return data.data
+  if (Array.isArray(data?.items)) return data.items
+  if (Array.isArray(data?.products)) return data.products
+  return []
+}
+
+function textValue(value) {
+  if (value == null) return ''
+  if (typeof value === 'string' || typeof value === 'number') return String(value)
+  if (typeof value === 'object') {
+    return String(value.name || value.title || value.slug || value.label || value.value || '')
+  }
+  return ''
+}
+
+function productIsCoin(product) {
+  const category = textValue(product.category).toLowerCase()
+  const name = textValue(product.name).toLowerCase()
+  const tag = textValue(product.tag).toLowerCase()
+  return category.includes('coin') || name.includes('coin') || tag.includes('coin')
+}
+
+function productMatchesMetal(product, metalFilter) {
+  if (!metalFilter) return true
+  const metal = textValue(product.metal).toLowerCase()
+  const name = textValue(product.name).toLowerCase()
+  return metal === metalFilter || metal.includes(metalFilter) || name.includes(metalFilter)
+}
+
+function coinMatchesWeight(product, weightFilter) {
+  if (!weightFilter) return true
+
+  const compactFilter = String(weightFilter).toLowerCase().replace(/\s+/g, '')
+  const numeric = parseFloat(compactFilter)
+  const targetGrams = compactFilter.includes('mg')
+    ? numeric / 1000
+    : compactFilter.includes('g')
+      ? numeric
+      : null
+
+  const text = [
+    product.name,
+    product.tag,
+    product.grade,
+    product.net_weight,
+    product.cross_weight,
+  ].filter(Boolean).join(' ').toLowerCase().replace(/\s+/g, '')
+
+  if (text.includes(compactFilter)) return true
+
+  const productWeight = Number(product.net_weight || product.cross_weight)
+  if (!Number.isFinite(productWeight) || !Number.isFinite(numeric)) return false
+
+  if (targetGrams !== null && Math.abs(productWeight - targetGrams) < 0.0001) return true
+  if (Math.abs(productWeight - numeric) < 0.0001) return true
+  if (compactFilter.includes('mg') && Math.abs((productWeight * 1000) - numeric) < 0.1) return true
+
+  return false
+}
+
+function getCoinPrice(product, rates) {
+  const metal = textValue(product.metal).toLowerCase()
+  const grade = textValue(product.grade).toLowerCase()
+  const rate = metal === 'silver'
+    ? Number(rates.silver_999)
+    : grade === '24k'
+      ? Number(rates.gold_24k)
+      : Number(rates.gold_22k)
+
+  const netWeight = Number(product.net_weight) || 0
+  const makingPct = Number(product.making_charge) || 0
+  const discountPct = Number(product.wastage_charge) || 0
+  const stoneValue = Number(product.stone_value) || 0
+
+  if (!rate || !netWeight) {
+    return {
+      price: Number(product.price) || 0,
+      original: Number(product.original_price) || 0,
+      rate,
+      discountPct,
+    }
+  }
+
+  const making = rate * (makingPct / 100)
+  const rateWithMaking = rate + making
+  const discount = rateWithMaking * (discountPct / 100)
+  const price = Math.round(((netWeight * (rateWithMaking - discount)) + stoneValue) * 1.03)
+  const original = Math.round(((netWeight * rateWithMaking) + stoneValue) * 1.03)
+
+  return { price, original, rate, discountPct }
+}
+
+function CoinCard({ product, rates, navigate, wishlisted, onWishlist }) {
+  const [hovered, setHovered] = useState(false)
+  const images = product.images?.map(getImageUrl).filter(Boolean) || []
+  const image = hovered && images[1] ? images[1] : images[0]
+  const metal = textValue(product.metal).toLowerCase()
+  const isGold = metal.includes('gold')
+  const { price, original, rate, discountPct } = getCoinPrice(product, rates)
+  const hasDiscount = discountPct > 0 && original > price && price > 0
+
+  const openProduct = () => {
+    navigate(`/product-display?category=coins&metal=${isGold ? 'gold' : 'silver'}&id=${product.id}`)
+  }
+
+  return (
+    <article
+      className={`coin-premium-card ${isGold ? 'gold' : 'silver'}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={openProduct}
+    >
+      <div className="coin-premium-image">
+        {image ? <img src={image} alt={product.name} /> : <img className="coin-placeholder" src={isGold ? goldCoin : silverCoin} alt="" />}
+
+        <div className="coin-badges">
+          <span>{isGold ? (textValue(product.grade).toLowerCase() === '24k' ? 'Gold 24K' : 'Gold 22K') : 'Silver 999'}</span>
+          {product.tag && <span>{product.tag}</span>}
+          {hasDiscount && <span>{Math.round(discountPct)}% Off</span>}
+        </div>
+
+        <button
+          className={`coin-wish ${wishlisted ? 'active' : ''}`}
+          type="button"
+          onClick={event => {
+            event.stopPropagation()
+            onWishlist(product.id)
+          }}
+          aria-label="Wishlist"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill={wishlisted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8">
+            <path d="M20.8 5.6a5.1 5.1 0 0 0-7.2 0L12 7.2l-1.6-1.6a5.1 5.1 0 0 0-7.2 7.2L12 21l8.8-8.2a5.1 5.1 0 0 0 0-7.2Z" />
+          </svg>
+        </button>
+
+        <button className="coin-view" type="button" onClick={openProduct}>View Coin</button>
+      </div>
+
+      <div className="coin-premium-info">
+        <div className="coin-meta">
+          <span>{product.net_weight ? `${product.net_weight}g` : 'Certified Coin'}</span>
+          <span>Incl. 3% GST</span>
+        </div>
+        <h3>{product.name}</h3>
+        <div className="coin-price-row">
+          <strong>{formatMoney(price)}</strong>
+          {hasDiscount && <del>{formatMoney(original)}</del>}
+        </div>
+        <div className="coin-rate-line">
+          {rate ? `${formatMoney(rate)} / gm` : 'Rate from backend'}
+        </div>
+      </div>
+    </article>
+  )
 }
 
 export default function CoinsCollection() {
@@ -23,276 +188,617 @@ export default function CoinsCollection() {
   const gradeFilter = searchParams.get('grade')
   const weightFilter = searchParams.get('weight')
 
-const [products, setProducts] = useState([])
-const [loading, setLoading] = useState(true)
-const [metalPrices, setMetalPrices] = useState({ gold22k: null, gold24k: null, silver: null })
-const [hoveredId, setHoveredId] = useState(null)
-
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [rates, setRates] = useState({})
+  const [wishlistedIds, setWishlistedIds] = useState(new Set())
+  const [sortBy, setSortBy] = useState('featured')
 
   const isGold = metalFilter === 'gold'
-  const coinImg = isGold ? goldCoin : silverCoin
-  const accentColor = isGold ? '#fbbf24' : '#c0c0c0'
-  const accentGrad = isGold ? 'linear-gradient(90deg,#f59e0b,#fbbf24)' : 'linear-gradient(90deg,#9ca3af,#e5e7eb)'
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/metal-rates/`)
-      .then(r => r.json())
-      .then(d => setMetalPrices({ gold22k: parseFloat(d.gold_22k), gold24k: parseFloat(d.gold_24k), silver: parseFloat(d.silver_999) }))
+    api.get('/metal-rates/')
+      .then(res => {
+        const d = Array.isArray(res.data) ? res.data[0] : res.data
+        setRates({
+          gold_22k: Number(d?.gold_22k) || 0,
+          gold_24k: Number(d?.gold_24k) || 0,
+          silver_999: Number(d?.silver_999) || 0,
+        })
+      })
+      .catch(() => {})
+
+    api.get('/wishlist/')
+      .then(res => {
+        const items = Array.isArray(res.data?.items) ? res.data.items : Array.isArray(res.data) ? res.data : []
+        setWishlistedIds(new Set(items.map(item => item.product_id || item.product)))
+      })
       .catch(() => {})
   }, [])
 
   useEffect(() => {
-    setLoading(true)
-    let url = `${API_BASE}/api/jewelry-products/?category=coins&metal=${metalFilter}`
-    if (gradeFilter) url += `&grade=${gradeFilter}`
-    fetch(url)
-      .then(r => r.json())
-      .then(data => {
-        let list = Array.isArray(data) ? data : []
-        // Weight filter — match by product name containing weight
-        if (weightFilter) {
-          list = list.filter(p => p.name?.toLowerCase().includes(weightFilter.toLowerCase()) || p.tag?.toLowerCase().includes(weightFilter.toLowerCase()))
+    const loadCoins = async () => {
+      setLoading(true)
+      try {
+        let url = `/jewelry-products/?category=coins&metal=${encodeURIComponent(metalFilter)}`
+        if (gradeFilter) url += `&grade=${encodeURIComponent(gradeFilter)}`
+        const res = await api.get(url)
+        let list = normalizeProductList(res.data)
+
+        if (!list.length) {
+          const fallbackRes = await api.get('/jewelry-products/')
+          list = normalizeProductList(fallbackRes.data)
         }
+
+        list = list.filter(product => productIsCoin(product) && productMatchesMetal(product, metalFilter))
+
+        if (gradeFilter) {
+          const grade = gradeFilter.toLowerCase()
+          list = list.filter(product => textValue(product.grade).toLowerCase().includes(grade))
+        }
+
+        if (weightFilter) {
+          list = list.filter(product => coinMatchesWeight(product, weightFilter))
+        }
+
         setProducts(list)
+      } catch {
+        setProducts([])
+      } finally {
         setLoading(false)
-      })
-      .catch(() => { setProducts([]); setLoading(false) })
-  }, [metalFilter, gradeFilter, weightFilter])
-
-  const getRate = (grade) => {
-    if (!isGold) return metalPrices.silver
-    if (grade === '24k') return metalPrices.gold24k
-    return metalPrices.gold22k
-  }
-
-  return (
-   <div style={{ minHeight: '100vh', background: '#FDF5EE', fontFamily: '"Montserrat", sans-serif' }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@400;500;600;700&display=swap');
-
-        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes spin { to{transform:rotate(360deg)} }
-        @keyframes goldShimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
-        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
-        .coin-card:hover { transform: translateY(-8px) scale(1.02) !important; }
-      `}</style>
-
-      {/* NAVBAR */}
-  <CustomerNavbar />
-
-      {/* HEADER BANNER */}
-      <div style={{
-        background: isGold
-          ? 'linear-gradient(135deg, #1a0a00 0%, #3d1f00 50%, #1a0a00 100%)'
-          : 'linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0a0a1a 100%)',
-        padding: '40px 40px 36px',
-        textAlign: 'center',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        {/* Background coin images */}
-        {[...Array(6)].map((_, i) => (
-          <img key={i} src={coinImg} alt="" style={{
-            position: 'absolute',
-            width: 80, height: 80, objectFit: 'contain', opacity: 0.06,
-            left: `${10 + i * 16}%`, top: `${10 + (i % 2) * 40}%`,
-            animation: `float ${3 + i * 0.5}s ease-in-out infinite`,
-            animationDelay: `${i * 0.4}s`,
-          }} />
-        ))}
-
-        <div style={{ position: 'relative', zIndex: 2 }}>
-          <img src={coinImg} alt="coin" style={{
-            width: 100, height: 100, objectFit: 'contain',
-            filter: `drop-shadow(0 8px 24px ${accentColor}88)`,
-            animation: 'float 3s ease-in-out infinite',
-            marginBottom: 16,
-          }} />
-          <div style={{
-  fontSize: 36, fontWeight: 900, letterSpacing: -1,
-  background: isGold
-    ? 'linear-gradient(90deg,#f59e0b,#fbbf24,#ffd700,#fbbf24)'
-    : 'linear-gradient(90deg,#9ca3af,#c0c0c0,#e2e8f0,#c0c0c0)',
-  backgroundSize: '200% auto',
-  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-  animation: 'goldShimmer 3s linear infinite',
-  marginBottom: 8,
-  fontFamily: '"Playfair Display", Georgia, serif',
-  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
-}}>
-  <svg width="36" height="36" viewBox="0 0 32 32" fill="none" stroke="#b8860b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="16" cy="16" r="11"/>
-    <circle cx="16" cy="16" r="7"/>
-    <path d="M16 9v2"/><path d="M16 21v2"/>
-    <path d="M9 16h2"/><path d="M21 16h2"/>
-  </svg>
-  {isGold ? 'Gold Coins' : 'Silver Coins'}
-</div>
-          <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>
-            {loading ? 'Loading...' : `${products.length} products`}
-            {weightFilter && <span style={{ color: accentColor, fontWeight: 700, marginLeft: 8 }}>• {weightFilter}</span>}
-          </div>
-
-          {/* Live rates */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
-            {!isGold && metalPrices.silver && (
-              <div style={{ background: 'rgba(192,192,192,0.15)', border: '1px solid rgba(192,192,192,0.4)', borderRadius: 20, padding: '6px 18px', color: '#c0c0c0', fontSize: 13, fontWeight: 700, fontFamily: 'monospace' }}>
-                🥈 Silver 999: ₹{metalPrices.silver.toFixed(2)}/gm
-              </div>
-            )}
-            {isGold && metalPrices.gold22k && (
-              <div style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', borderRadius: 20, padding: '6px 18px', color: '#fbbf24', fontSize: 13, fontWeight: 700, fontFamily: 'monospace' }}>
-                🏅 22K: ₹{metalPrices.gold22k.toFixed(2)}/gm
-              </div>
-            )}
-            {isGold && metalPrices.gold24k && (
-              <div style={{ background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.4)', borderRadius: 20, padding: '6px 18px', color: '#ffd700', fontSize: 13, fontWeight: 700, fontFamily: 'monospace' }}>
-                🥇 24K: ₹{metalPrices.gold24k.toFixed(2)}/gm
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* FILTER TABS */}
-      <div style={{ background: '#fff', borderBottom: '1px solid #e8ddd5', padding: '14px 40px', display: 'flex', gap: 10, alignItems: 'center', overflowX: 'auto' }}>
-        <span style={{ color: '#7c5c4a', fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' }}>Metal:</span>
-        {[
-          { label: '🥈 Silver', metal: 'silver', grade: null },
-          { label: '🏅 Gold 22K', metal: 'gold', grade: '22k' },
-          { label: '🥇 Gold 24K', metal: 'gold', grade: '24k' },
-        ].map(opt => {
-          const isActive = metalFilter === opt.metal && (!opt.grade || gradeFilter === opt.grade)
-          return (
-            <button key={opt.label}
-              onClick={() => {
-                let url = `/collection/coins?metal=${opt.metal}`
-                if (opt.grade) url += `&grade=${opt.grade}`
-                if (weightFilter) url += `&weight=${weightFilter}`
-                navigate(url)
-              }}
-              style={{
-                padding: '8px 18px', borderRadius: 20, fontWeight: 700, fontSize: 13, cursor: 'pointer', border: 'none',
-                background: isActive ? '#8B1A1A' : '#f5f0e8',
-                color: isActive ? '#fff' : '#7c5c4a',
-                transition: 'all 0.2s',
-                whiteSpace: 'nowrap',
-              }}
-            >{opt.label}</button>
-          )
-        })}
-
-        {weightFilter && (
-          <>
-            <span style={{ color: '#e8ddd5' }}>|</span>
-            <span style={{ background: '#fce8e8', color: '#8B1A1A', border: '1px solid #f3a0a0', borderRadius: 20, padding: '6px 14px', fontSize: 12, fontWeight: 700 }}>
-              ⚖️ {weightFilter}
-            </span>
-            <button
-              onClick={() => {
-                let url = `/collection/coins?metal=${metalFilter}`
-                if (gradeFilter) url += `&grade=${gradeFilter}`
-                navigate(url)
-              }}
-              style={{ background: 'transparent', border: '1px solid #8B1A1A', color: '#8B1A1A', borderRadius: 20, padding: '6px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
-            >✕ Clear weight</button>
-          </>
-        )}
-      </div>
-
-      {/* PRODUCTS */}
-      <div style={{ maxWidth: 1300, margin: '0 auto', padding: '32px 40px 60px' }}>
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '80px 0' }}>
-            <div style={{ width: 44, height: 44, border: `3px solid ${accentColor}33`, borderTop: `3px solid ${accentColor}`, borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
-            <div style={{ color: '#7c5c4a' }}>Loading coins...</div>
-          </div>
-        ) : products.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '80px 0' }}>
-            <img src={coinImg} alt="" style={{ width: 80, height: 80, objectFit: 'contain', opacity: 0.3, marginBottom: 16 }} />
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#1a0a0a', marginBottom: 8 }}>No coins found</div>
-            <div style={{ fontSize: 14, color: '#7c5c4a', marginBottom: 24 }}>
-              {weightFilter ? `${weightFilter} weight coins not added yet` : 'No coins available yet'}
-            </div>
-            <button onClick={() => navigate('/customer')}
-              style={{ padding: '12px 28px', background: '#8B1A1A', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, cursor: 'pointer' }}>
-              ← Go Back
-            </button>
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20, animation: 'fadeIn 0.4s ease' }}>
-            {products.map(p => {
-              const firstImg = p.images?.[0] ? getImageUrl(p.images[0]) : null
-              const rate = getRate(p.grade)
-const netWt = parseFloat(p.net_weight) || 0
-const makingPct = parseFloat(p.making_charge) || 0
-const discPct = parseFloat(p.wastage_charge) || 0
-const stoneVal = parseFloat(p.stone_value) || 0
-const making = rate * (makingPct / 100)
-const rateWithMaking = rate + making
-const disc = rateWithMaking * (discPct / 100)
-const price = (rate && netWt)
-  ? Math.round(((netWt * (rateWithMaking - disc)) + stoneVal) * 1.03)
-  : parseFloat(p.price) || 0
-              const isHovered = hoveredId === p.id
-
-              return (
-                <div key={p.id}
-  className="coin-card"
-  onClick={() => navigate(`/product-display?category=coins&metal=${metalFilter}&id=${p.id}`)}
-  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'; e.currentTarget.querySelector('img')?.style && (e.currentTarget.querySelector('img').style.transform = 'scale(1.08)') }}
-  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; e.currentTarget.querySelector('img')?.style && (e.currentTarget.querySelector('img').style.transform = 'scale(1)') }}
-  style={{
-    background: '#fff',
-    border: '1px solid #e8e8e8',
-    borderRadius: 10,
-    overflow: 'hidden',
-    cursor: 'pointer',
-    transition: 'all 0.25s ease', marginBottom: '75px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-  }}
->
-  {/* Image */}
-  <div style={{ height: 280, background: '#f0f0f0', position: 'relative', overflow: 'hidden' }}>
-    {firstImg
-      ? <img src={firstImg} alt={p.name}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
-          onError={e => e.currentTarget.style.display = 'none'} />
-      : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 44 }}>🪙</div>
+      }
     }
 
-    {p.tag && (
-      <div style={{ position: 'absolute', top: 12, left: 0, background: '#2ecc71', color: '#fff', padding: '5px 12px 5px 10px', fontSize: 11, fontWeight: 700, clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)', zIndex: 2 }}>
-        {p.tag}
-      </div>
-    )}
+    loadCoins()
+  }, [metalFilter, gradeFilter, weightFilter])
 
-    <div style={{ position: 'absolute', bottom: 10, right: 10, fontSize: 16, color: '#999', zIndex: 2 }}>🔗</div>
-  </div>
+  const sortedProducts = useMemo(() => {
+    const list = [...products]
+    if (sortBy === 'price-low') {
+      list.sort((a, b) => getCoinPrice(a, rates).price - getCoinPrice(b, rates).price)
+    }
+    if (sortBy === 'price-high') {
+      list.sort((a, b) => getCoinPrice(b, rates).price - getCoinPrice(a, rates).price)
+    }
+    if (sortBy === 'weight-low') {
+      list.sort((a, b) => (Number(a.net_weight) || 0) - (Number(b.net_weight) || 0))
+    }
+    if (sortBy === 'weight-high') {
+      list.sort((a, b) => (Number(b.net_weight) || 0) - (Number(a.net_weight) || 0))
+    }
+    return list
+  }, [products, rates, sortBy])
 
-  {/* Info */}
-<div style={{ padding: '12px 14px' }}>
-  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-    <span style={{ fontSize: 16, fontWeight: 800, color: '#1a1a1a' }}>
-      {price > 0 ? `₹${price.toLocaleString('en-IN')}` : '—'}
-    </span>
-  </div>
-  <div style={{ fontSize: 18, color: '#1a1a1a', fontWeight: 600,
-    fontFamily: '"Cormorant Garamond", Georgia, serif' }}>{p.name}
-  </div>
-  {p.net_weight && (
-    <div style={{ fontSize: 11, color: '#999', marginTop: 3 }}>⚖️ {p.net_weight}g · incl. 3% GST</div>
-  )}
-</div>
-</div>
-              )
-            })}
+  const toggleWishlist = async productId => {
+    setWishlistedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(productId)) next.delete(productId)
+      else next.add(productId)
+      return next
+    })
+
+    try {
+      await api.post('/wishlist/', { product: productId })
+      window.dispatchEvent(new Event('bb_wishlist_update'))
+    } catch {
+      try {
+        await api.delete('/wishlist/', { data: { product: productId } })
+        window.dispatchEvent(new Event('bb_wishlist_update'))
+      } catch {}
+    }
+  }
+
+  const selectMetal = (metal, grade = '') => {
+    let url = `/collection/coins?metal=${metal}`
+    if (grade) url += `&grade=${grade}`
+    if (weightFilter) url += `&weight=${encodeURIComponent(weightFilter)}`
+    navigate(url)
+  }
+
+  const liveRate = isGold
+    ? gradeFilter === '24k'
+      ? rates.gold_24k
+      : rates.gold_22k
+    : rates.silver_999
+
+  return (
+    <div className="coins-page">
+      <style>{`
+        .coins-page {
+          min-height: 100vh;
+          background:
+            radial-gradient(circle at 4% 3%, rgba(204,168,129,0.16), transparent 24%),
+            linear-gradient(180deg, #FDFDFC 0%, #F3F3F0 42%, #FDFDFC 100%);
+          color: #111817;
+          font-family: Inter, "Montserrat", system-ui, sans-serif;
+        }
+
+        .coins-shell {
+          width: 100%;
+          padding-left: clamp(26px, 3.4vw, 72px);
+          padding-right: clamp(26px, 3.4vw, 72px);
+        }
+
+        .coins-hero {
+          padding: 52px 0 30px;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(320px, 0.42fr);
+          gap: 28px;
+        }
+
+        .coins-title-panel {
+          min-height: 280px;
+          border-radius: 34px;
+          overflow: hidden;
+          background:
+            linear-gradient(90deg, rgba(231,237,236,0.98), rgba(253,253,252,0.78)),
+            url('${isGold ? '/banners/Gold coin2.png' : '/banners/Silver coin.png'}');
+          background-size: cover;
+          background-position: center right;
+          border: 1px solid #D1DFDE;
+          box-shadow: 0 24px 68px rgba(7,59,63,0.1);
+          padding: clamp(30px, 4vw, 56px);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+
+        .coins-kicker {
+          color: #0C4044;
+          font-size: 13px;
+          font-weight: 900;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+        }
+
+        .coins-title-panel h1 {
+          margin: 12px 0 12px;
+          color: #073B3F;
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: clamp(3.2rem, 5.8vw, 6rem);
+          line-height: 0.95;
+          font-weight: 500;
+          letter-spacing: 0;
+        }
+
+        .coins-title-panel p {
+          color: #7A8987;
+          font-size: 17px;
+          font-weight: 800;
+        }
+
+        .coins-rate-panel {
+          border-radius: 34px;
+          background: #073B3F;
+          color: #FDFDFC;
+          padding: 28px;
+          min-height: 280px;
+          box-shadow: 0 24px 68px rgba(7,59,63,0.16);
+          display: grid;
+          align-content: space-between;
+          overflow: hidden;
+          position: relative;
+        }
+
+        .coins-rate-panel img {
+          position: absolute;
+          right: -34px;
+          bottom: -42px;
+          width: 170px;
+          opacity: 0.2;
+        }
+
+        .coins-rate-panel strong {
+          display: block;
+          margin-top: 10px;
+          font-size: 38px;
+          font-family: Georgia, "Times New Roman", serif;
+          font-weight: 500;
+        }
+
+        .coins-rate-panel span {
+          color: rgba(253,253,252,0.72);
+          font-weight: 800;
+        }
+
+        .coins-toolbar {
+          margin-bottom: 30px;
+          border-radius: 26px;
+          border: 1px solid #D1DFDE;
+          background: rgba(253,253,252,0.92);
+          box-shadow: 0 16px 44px rgba(7,59,63,0.08);
+          padding: 18px;
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 18px;
+          align-items: center;
+        }
+
+        .coin-filter-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          align-items: center;
+        }
+
+        .coin-chip {
+          border: 1px solid #D1DFDE;
+          border-radius: 999px;
+          background: #F3F3F0;
+          color: #073B3F;
+          min-height: 40px;
+          padding: 0 17px;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 13px;
+          font-weight: 900;
+          cursor: pointer;
+        }
+
+        .coin-chip.active {
+          background: #0C4044;
+          color: #FDFDFC;
+          border-color: #0C4044;
+        }
+
+        .coin-chip.clear {
+          color: #C92035;
+          border-color: #C92035;
+          background: #FDFDFC;
+        }
+
+        .coin-sort {
+          height: 42px;
+          border-radius: 999px;
+          border: 1px solid #D1DFDE;
+          background: #FDFDFC;
+          color: #073B3F;
+          padding: 0 42px 0 16px;
+          font-weight: 900;
+          outline: none;
+        }
+
+        .coins-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(240px, 320px));
+          justify-content: center;
+          gap: clamp(18px, 1.8vw, 28px);
+          padding-bottom: 64px;
+        }
+
+        .coin-premium-card {
+          width: 100%;
+          max-width: 320px;
+          border-radius: 18px;
+          background: #FDFDFC;
+          border: 1px solid #D1DFDE;
+          overflow: hidden;
+          cursor: pointer;
+          box-shadow: 0 18px 48px rgba(7,59,63,0.09);
+          transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+        }
+
+        .coin-premium-card:hover {
+          transform: translateY(-10px);
+          box-shadow: 0 30px 76px rgba(7,59,63,0.16);
+          border-color: #BDCFCE;
+        }
+
+        .coin-premium-image {
+          position: relative;
+          aspect-ratio: 1 / 0.88;
+          min-height: 0;
+          background:
+            radial-gradient(circle at center, rgba(204,168,129,0.22), transparent 38%),
+            #F3E8DE;
+          overflow: hidden;
+        }
+
+        .coin-premium-card.silver .coin-premium-image {
+          background:
+            radial-gradient(circle at center, rgba(189,207,206,0.38), transparent 40%),
+            #E7EDEC;
+        }
+
+        .coin-premium-image img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 520ms ease;
+        }
+
+        .coin-premium-image .coin-placeholder {
+          object-fit: contain;
+          padding: 34px;
+        }
+
+        .coin-premium-card:hover .coin-premium-image img {
+          transform: scale(1.065);
+        }
+
+        .coin-badges {
+          position: absolute;
+          top: 12px;
+          left: 12px;
+          z-index: 2;
+          display: grid;
+          gap: 8px;
+        }
+
+        .coin-badges span {
+          width: max-content;
+          border-radius: 999px;
+          background: #0C4044;
+          color: #FDFDFC;
+          padding: 6px 10px;
+          font-size: 11px;
+          font-weight: 900;
+          box-shadow: 0 8px 20px rgba(7,59,63,0.16);
+        }
+
+        .coin-premium-card.gold .coin-badges span:first-child {
+          background: #BB8958;
+        }
+
+        .coin-wish {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          border: 1px solid rgba(7,59,63,0.12);
+          background: rgba(253,253,252,0.92);
+          color: #073B3F;
+          display: grid;
+          place-items: center;
+          cursor: pointer;
+          z-index: 2;
+        }
+
+        .coin-wish.active {
+          background: #C92035;
+          color: #FDFDFC;
+        }
+
+        .coin-view {
+          position: absolute;
+          left: 14px;
+          right: 14px;
+          bottom: 14px;
+          min-height: 40px;
+          border: 0;
+          border-radius: 999px;
+          background: rgba(7,59,63,0.92);
+          color: #FDFDFC;
+          font-weight: 900;
+          letter-spacing: 0.04em;
+          cursor: pointer;
+          opacity: 0;
+          transform: translateY(12px);
+          transition: opacity 180ms ease, transform 180ms ease;
+        }
+
+        .coin-premium-card:hover .coin-view {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .coin-premium-info {
+          padding: 14px 14px 16px;
+        }
+
+        .coin-meta {
+          display: flex;
+          justify-content: space-between;
+          gap: 10px;
+          color: #7A8987;
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+
+        .coin-premium-info h3 {
+          min-height: 40px;
+          margin: 8px 0;
+          color: #111817;
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: 18px;
+          line-height: 1.1;
+          font-weight: 500;
+        }
+
+        .coin-price-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .coin-price-row strong {
+          color: #073B3F;
+          font-size: 17px;
+          font-weight: 950;
+        }
+
+        .coin-price-row del {
+          color: #7A8987;
+          font-size: 14px;
+          font-weight: 800;
+        }
+
+        .coin-rate-line {
+          margin-top: 9px;
+          color: #7A8987;
+          font-size: 12px;
+          font-weight: 800;
+        }
+
+        .coins-empty,
+        .coins-loading {
+          min-height: 360px;
+          border-radius: 30px;
+          background: #FDFDFC;
+          border: 1px solid #D1DFDE;
+          display: grid;
+          place-items: center;
+          text-align: center;
+          box-shadow: 0 18px 48px rgba(7,59,63,0.08);
+          margin-bottom: 80px;
+        }
+
+        .coin-loader {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          border: 4px solid #D1DFDE;
+          border-top-color: #073B3F;
+          animation: spinSlow 900ms linear infinite;
+          margin: 0 auto 16px;
+        }
+
+        @media (max-width: 1280px) {
+          .coins-grid {
+            grid-template-columns: repeat(auto-fill, minmax(230px, 300px));
+          }
+        }
+
+        @media (max-width: 920px) {
+          .coins-hero,
+          .coins-toolbar {
+            grid-template-columns: 1fr;
+          }
+
+          .coins-grid {
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+          }
+
+          .coin-premium-card {
+            max-width: none;
+          }
+        }
+
+        @media (max-width: 620px) {
+          .coins-shell {
+            padding-left: 14px;
+            padding-right: 14px;
+          }
+
+          .coins-title-panel,
+          .coins-rate-panel {
+            border-radius: 24px;
+          }
+
+          .coins-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .coin-premium-card {
+            max-width: none;
+          }
+        }
+      `}</style>
+
+      <CustomerNavbar />
+
+      <main className="coins-shell">
+        <section className="coins-hero">
+          <div className="coins-title-panel">
+            <div className="coins-kicker">Certified Coin Collection</div>
+            <h1>{isGold ? 'Gold Coins' : 'Silver Coins'}</h1>
+            <p>
+              {loading ? 'Curating coin products...' : `${sortedProducts.length} coin designs available`}
+              {weightFilter ? ` - ${weightFilter}` : ''}
+            </p>
           </div>
-        )}
-      </div>
 
-              {/* ── FOOTER ── */}
-        <CustomerFooter />
+          <aside className="coins-rate-panel">
+            <img src={isGold ? goldCoin : silverCoin} alt="" />
+            <div>
+              <span>Live backend rate</span>
+              <strong>{formatMoney(liveRate)}</strong>
+              <span>{isGold ? `${(gradeFilter || '22k').toUpperCase()} gold per gram` : 'Silver 999 per gram'}</span>
+            </div>
+            <span>Coin prices use saved product prices or live-rate calculation when weight is available.</span>
+          </aside>
+        </section>
+
+        <section className="coins-toolbar">
+          <div className="coin-filter-row">
+            <button className={`coin-chip ${!isGold ? 'active' : ''}`} type="button" onClick={() => selectMetal('silver')}>
+              Silver 999
+            </button>
+            <button className={`coin-chip ${isGold && gradeFilter !== '24k' ? 'active' : ''}`} type="button" onClick={() => selectMetal('gold', '22k')}>
+              Gold 22K
+            </button>
+            <button className={`coin-chip ${isGold && gradeFilter === '24k' ? 'active' : ''}`} type="button" onClick={() => selectMetal('gold', '24k')}>
+              Gold 24K
+            </button>
+            {weightFilter && (
+              <>
+                <button className="coin-chip active" type="button">{weightFilter}</button>
+                <button
+                  className="coin-chip clear"
+                  type="button"
+                  onClick={() => {
+                    let url = `/collection/coins?metal=${metalFilter}`
+                    if (gradeFilter) url += `&grade=${gradeFilter}`
+                    navigate(url)
+                  }}
+                >
+                  Clear weight
+                </button>
+              </>
+            )}
+          </div>
+
+          <select className="coin-sort" value={sortBy} onChange={event => setSortBy(event.target.value)}>
+            <option value="featured">Featured</option>
+            <option value="weight-low">Weight: Low to High</option>
+            <option value="weight-high">Weight: High to Low</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+          </select>
+        </section>
+
+        {loading ? (
+          <section className="coins-loading">
+            <div>
+              <div className="coin-loader" />
+              <strong>Loading coin catalogue...</strong>
+            </div>
+          </section>
+        ) : sortedProducts.length === 0 ? (
+          <section className="coins-empty">
+            <div>
+              <img src={isGold ? goldCoin : silverCoin} alt="" style={{ width: 92, height: 92, objectFit: 'contain', opacity: 0.42, marginBottom: 18 }} />
+              <h2 style={{ color: '#073B3F', fontFamily: 'Georgia, serif', fontSize: 38, fontWeight: 500 }}>No coins found</h2>
+              <p style={{ marginTop: 10, color: '#7A8987', fontWeight: 800 }}>
+                {weightFilter ? `${weightFilter} coins are not added yet.` : 'No coins are available yet.'}
+              </p>
+              <button className="coin-chip active" style={{ marginTop: 20 }} type="button" onClick={() => navigate('/collection/coins')}>
+                View All Coins
+              </button>
+            </div>
+          </section>
+        ) : (
+          <section className="coins-grid">
+            {sortedProducts.map(product => (
+              <CoinCard
+                key={product.id}
+                product={product}
+                rates={rates}
+                navigate={navigate}
+                wishlisted={wishlistedIds.has(product.id)}
+                onWishlist={toggleWishlist}
+              />
+            ))}
+          </section>
+        )}
+      </main>
+
+      <CustomerFooter />
     </div>
   )
 }
