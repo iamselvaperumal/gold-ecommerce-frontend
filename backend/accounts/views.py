@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
-from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder, JewelryProduct, JewelryProductImage, HomeBanner, CartItem, Wishlist, JewelryOrder
+from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder, JewelryProduct, JewelryProductImage, HomeBanner, CartItem, Wishlist, JewelryOrder, CoinRequest, CoinRequestItem, CoinStock 
 from django.db.models import Prefetch, Count, Q
 from django.db.models.functions import TruncHour, TruncDate, TruncWeek, TruncMonth
 from .serializers import *
@@ -1768,6 +1768,108 @@ class TodayLoginStatusView(APIView):
             'active': active_list,
             'inactive': inactive_list,
         })
+
+class CoinRequestView(APIView):
+    """
+    POST — Promotor creates a coin request to their assigned Sub Dealer.
+    GET  — Sub Dealer sees pending requests sent to them (or Promotor sees own requests).
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        if request.user.role != 'promotor':
+            return Response({'error': 'Only promotors can request coins'}, status=403)
+
+        try:
+            promotor = request.user.promotor_profile
+        except PromotorProfile.DoesNotExist:
+            return Response({'error': 'Promotor profile not found'}, status=404)
+
+        if not promotor.assigned_sub_dealer:
+            return Response({'error': 'No sub dealer assigned to you'}, status=400)
+
+        sub_dealer_user = promotor.assigned_sub_dealer.user
+
+        items = request.data.get('items', [])
+        if not items:
+            return Response({'error': 'At least one coin item required'}, status=400)
+
+        coin_request = CoinRequest.objects.create(
+            requested_by=request.user,
+            requested_to=sub_dealer_user,
+        )
+        for item in items:
+            CoinRequestItem.objects.create(
+                request=coin_request,
+                metal_type=item.get('metal_type'),
+                weight_label=item.get('weight_label'),
+                weight_grams=item.get('weight_grams'),
+                qty=item.get('qty'),
+            )
+
+        serializer = CoinRequestSerializer(coin_request)
+        return Response({'message': 'Request sent to Sub Dealer!', 'data': serializer.data}, status=201)
+
+    def get(self, request):
+        if request.user.role == 'sub_dealer':
+            # Sub dealer sees pending requests sent to them
+            reqs = CoinRequest.objects.filter(
+                requested_to=request.user, status='pending'
+            ).prefetch_related('items').order_by('-created_at')
+        elif request.user.role == 'promotor':
+            # Promotor sees their own request history
+            reqs = CoinRequest.objects.filter(
+                requested_by=request.user
+            ).prefetch_related('items').order_by('-created_at')
+        else:
+            return Response({'error': 'Permission denied'}, status=403)
+
+        serializer = CoinRequestSerializer(reqs, many=True)
+        return Response(serializer.data)
+
+
+class CoinRequestSendView(APIView):
+    """Sub Dealer clicks 'Send' on a pending request — moves coins into promotor's stock."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        if request.user.role != 'sub_dealer':
+            return Response({'error': 'Only sub dealers can send coins'}, status=403)
+
+        try:
+            coin_request = CoinRequest.objects.prefetch_related('items').get(
+                id=pk, requested_to=request.user, status='pending'
+            )
+        except CoinRequest.DoesNotExist:
+            return Response({'error': 'Request not found or already sent'}, status=404)
+
+        # Add each item's qty into the promotor's (requested_by) stock
+        for item in coin_request.items.all():
+            stock, created = CoinStock.objects.get_or_create(
+                user=coin_request.requested_by,
+                metal_type=item.metal_type,
+                weight_label=item.weight_label,
+                defaults={'weight_grams': item.weight_grams, 'qty': 0}
+            )
+            stock.qty += item.qty
+            stock.save()
+
+        coin_request.status = 'sent'
+        coin_request.sent_at = timezone.now()
+        coin_request.save()
+
+        return Response({'message': 'Coins sent successfully!'})
+
+
+class CoinStockView(APIView):
+    """Logged-in user (promotor) sees their own coin stock."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        stock = CoinStock.objects.filter(user=request.user, qty__gt=0).order_by('metal_type', 'weight_grams')
+        serializer = CoinStockSerializer(stock, many=True)
+        return Response(serializer.data)
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])

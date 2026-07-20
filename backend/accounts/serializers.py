@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder,JewelryProduct, JewelryProductImage, HomeBanner, CartItem, Wishlist, JewelryOrder 
+from .models import User, AdminProfile, DealerProfile, SubDealerProfile, PromotorProfile, CustomerProfile, Announcement, AnnouncementReply, ProfileUpdateRequest, MetalRate, MetalOrder,JewelryProduct, JewelryProductImage, HomeBanner, CartItem, Wishlist, JewelryOrder, CoinRequest, CoinRequestItem, CoinStock 
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -550,3 +550,42 @@ class JewelryOrderSerializer(serializers.ModelSerializer):
         except Exception:
             pass
         return None
+
+
+class CoinRequestItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CoinRequestItem
+        fields = ['id', 'metal_type', 'weight_label', 'weight_grams', 'qty']
+
+
+class CoinRequestSerializer(serializers.ModelSerializer):
+    items = CoinRequestItemSerializer(many=True)
+    requested_by_email = serializers.EmailField(source='requested_by.email', read_only=True)
+    requested_by_id_str = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CoinRequest
+        fields = ['id', 'requested_by', 'requested_by_email', 'requested_by_id_str',
+                  'requested_to', 'status', 'items', 'created_at', 'sent_at']
+        read_only_fields = ['requested_by', 'requested_to', 'status', 'created_at', 'sent_at']
+
+    def get_requested_by_id_str(self, obj):
+        try:
+            if obj.requested_by.role == 'promotor':
+                return obj.requested_by.promotor_profile.promotor_id
+        except Exception:
+            pass
+        return None
+
+    def create(self, validated_data):
+        items_data = validated_data.pop('items')
+        req = CoinRequest.objects.create(**validated_data)
+        for item in items_data:
+            CoinRequestItem.objects.create(request=req, **item)
+        return req
+
+
+class CoinStockSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CoinStock
+        fields = ['id', 'metal_type', 'weight_label', 'weight_grams', 'qty']

@@ -689,4 +689,44 @@ class JewelryOrder(models.Model):
 
     def __str__(self):
         return f"{self.order_id} - {self.product_name}"
+
+
+# ── COIN REQUEST SYSTEM (Promotor <-> SubDealer coin flow) ──
+class CoinRequest(models.Model):
+    STATUS_CHOICES = [('pending', 'Pending'), ('sent', 'Sent')]
+
+    requested_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='coin_requests_made')
+    requested_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='coin_requests_received')
+
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Request #{self.id} — {self.requested_by} to {self.requested_to} ({self.status})"
+
+
+class CoinRequestItem(models.Model):
+    request = models.ForeignKey(CoinRequest, on_delete=models.CASCADE, related_name='items')
+    metal_type = models.CharField(max_length=20)     # gold_22k / gold_24k / silver_999
+    weight_label = models.CharField(max_length=20)   # '100 mg', '1 gm' etc
+    weight_grams = models.DecimalField(max_digits=10, decimal_places=4)
+    qty = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f"{self.metal_type} {self.weight_label} x {self.qty}"
+
+
+class CoinStock(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='coin_stock')
+    metal_type = models.CharField(max_length=20)
+    weight_label = models.CharField(max_length=20)
+    weight_grams = models.DecimalField(max_digits=10, decimal_places=4)
+    qty = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('user', 'metal_type', 'weight_label')
+
+    def __str__(self):
+        return f"{self.user} — {self.metal_type} {self.weight_label}: {self.qty}"
         
