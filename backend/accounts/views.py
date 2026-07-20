@@ -1861,6 +1861,33 @@ class CoinRequestApproveView(APIView):
         return Response({'message': 'Request approved successfully!'})
 
 
+class CoinRequestApproveAllView(APIView):
+    """Sub Dealer approves ALL pending requests sent to them in one click."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        if request.user.role != 'sub_dealer':
+            return Response({'error': 'Only sub dealers can approve requests'}, status=403)
+
+        pending = CoinRequest.objects.filter(requested_to=request.user, status='pending').prefetch_related('items')
+        count = 0
+        for coin_request in pending:
+            for item in coin_request.items.all():
+                stock, created = CoinStock.objects.get_or_create(
+                    user=coin_request.requested_by,
+                    metal_type=item.metal_type,
+                    weight_label=item.weight_label,
+                    defaults={'weight_grams': item.weight_grams, 'qty': 0}
+                )
+                stock.qty += item.qty
+                stock.save()
+            coin_request.status = 'sent'
+            coin_request.sent_at = timezone.now()
+            coin_request.save()
+            count += 1
+
+        return Response({'message': f'{count} requests approved successfully!'})
+
 class CoinStockView(APIView):
     """Logged-in user (promotor) sees their own coin stock."""
     permission_classes = [IsAuthenticated]
