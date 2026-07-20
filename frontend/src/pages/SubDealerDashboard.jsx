@@ -636,9 +636,13 @@ export default function SubDealerDashboard() {
   const [showRequestCoin, setShowRequestCoin] = useState(false)
   const [coinRequests, setCoinRequests] = useState([])
   const [coinReqLoading, setCoinReqLoading] = useState(false)
-  const [approvingReqId, setApprovingReqId] = useState(null)
+ const [approvingReqId, setApprovingReqId] = useState(null)
   const [approvingAll, setApprovingAll] = useState(false)
   const [coinReqMsg, setCoinReqMsg] = useState('')
+  const [coinReqMsgType, setCoinReqMsgType] = useState('success')
+  const [rejectingReqId, setRejectingReqId] = useState(null)
+  const [rejectReason, setRejectReason] = useState('')
+  const [rejectSubmitting, setRejectSubmitting] = useState(false)
 
   const [replyAnn, setReplyAnn] = useState(null)
   const [replyText, setReplyText] = useState('')
@@ -1039,12 +1043,51 @@ const approveCoinRequest = async (reqId) => {
   setCoinReqMsg('')
   try {
     await api.post(`/coin-requests/${reqId}/approve/`)
-    setCoinReqMsg('success:Request approved successfully.')
+    setCoinReqMsgType('success')
+    setCoinReqMsg('Request approved successfully.')
     fetchCoinRequests()
   } catch (err) {
-    setCoinReqMsg('error:Failed to approve request. Please try again.')
+    setCoinReqMsgType('error')
+    setCoinReqMsg('Failed to approve request. Please try again.')
   }
   setApprovingReqId(null)
+}
+
+const approveAllCoinRequests = async () => {
+  setApprovingAll(true)
+  setCoinReqMsg('')
+  try {
+    await api.post('/coin-requests/approve-all/')
+    setCoinReqMsgType('success')
+    setCoinReqMsg('All requests approved successfully.')
+    fetchCoinRequests()
+  } catch (err) {
+    setCoinReqMsgType('error')
+    setCoinReqMsg('Failed to approve requests. Please try again.')
+  }
+  setApprovingAll(false)
+}
+
+const rejectCoinRequest = async (reqId) => {
+  if (!rejectReason.trim()) {
+    setCoinReqMsgType('error')
+    setCoinReqMsg('Please enter a reason for rejection.')
+    return
+  }
+  setRejectSubmitting(true)
+  setCoinReqMsg('')
+  try {
+    await api.post(`/coin-requests/${reqId}/reject/`, { message: rejectReason.trim() })
+    setCoinReqMsgType('success')
+    setCoinReqMsg('Request rejected successfully.')
+    setRejectingReqId(null)
+    setRejectReason('')
+    fetchCoinRequests()
+  } catch (err) {
+    setCoinReqMsgType('error')
+    setCoinReqMsg('Failed to reject request. Please try again.')
+  }
+  setRejectSubmitting(false)
 }
 
   const fetchAnnouncements = async () => {
@@ -1692,61 +1735,150 @@ const handleSubmit = async e => {
         )}
 
 
-        {/* ── REQUEST COIN POPUP ── */}
+        {/* ── COIN REQUESTS POPUP ── */}
         {showRequestCoin && (
-          <div onClick={() => setShowRequestCoin(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(10px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div onClick={() => { setShowRequestCoin(false); setRejectingReqId(null); setRejectReason('') }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(10px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '24px', width: '95%', maxWidth: '620px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.7)' }}>
 
               <div style={{ flexShrink: 0, padding: '22px 26px', borderBottom: '1px solid rgba(251,191,36,0.15)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ color: '#fbbf24', fontWeight: 800, fontSize: '15px' }}>🪙 Coin Requests</div>
-                  <div style={{ color: subtext, fontSize: '11px', marginTop: '2px' }}>Promotor kitta irundhu vantha pending requests</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="9"/>
+                      <path d="M9 9h3.5a2 2 0 010 4H10M9 15h4M12 7v2M12 15v2"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div style={{ color: '#fbbf24', fontWeight: 800, fontSize: '15px' }}>Coin Requests</div>
+                    <div style={{ color: subtext, fontSize: '11px', marginTop: '2px' }}>Pending requests received from promotors</div>
+                  </div>
                 </div>
-                <button onClick={() => setShowRequestCoin(false)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px' }}>✕ Close</button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {!coinReqLoading && coinRequests.filter(r => r.status === 'pending').length > 0 && (
+                    <button
+                      disabled={approvingAll}
+                      onClick={approveAllCoinRequests}
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: approvingAll ? 'rgba(74,222,128,0.2)' : 'linear-gradient(90deg,#4ade80,#22d3ee)', border: 'none', borderRadius: '10px', color: '#003b40', fontWeight: 800, fontSize: '11px', cursor: approvingAll ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#003b40" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 6L9 17l-5-5"/>
+                      </svg>
+                      {approvingAll ? 'Approving...' : 'Approve All'}
+                    </button>
+                  )}
+                  <button onClick={() => { setShowRequestCoin(false); setRejectingReqId(null); setRejectReason('') }} style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               {coinReqMsg && (
-                <div style={{ margin: '14px 26px 0', background: coinReqMsg.includes('✅') ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${coinReqMsg.includes('✅') ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.3)'}`, color: coinReqMsg.includes('✅') ? '#4ade80' : '#f87171', borderRadius: '10px', padding: '10px 14px', fontSize: '13px' }}>
+                <div style={{
+                  margin: '14px 26px 0',
+                  background: coinReqMsgType === 'success' ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)',
+                  border: `1px solid ${coinReqMsgType === 'success' ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                  color: coinReqMsgType === 'success' ? '#4ade80' : '#f87171',
+                  borderRadius: '10px', padding: '10px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px'
+                }}>
+                  {coinReqMsgType === 'success' ? (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/>
+                    </svg>
+                  ) : (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                  )}
                   {coinReqMsg}
                 </div>
               )}
 
-              <div style={{ flex: 1, overflowY: 'auto', padding: '20px 26px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '16px 26px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {coinReqLoading ? (
                   <div style={{ textAlign: 'center', color: subtext, padding: '40px 0' }}>Loading...</div>
                 ) : coinRequests.filter(r => r.status === 'pending').length === 0 ? (
-                  <div style={{ textAlign: 'center', color: subtext, padding: '40px 0' }}>No pending coin requests</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', color: subtext, padding: '40px 0' }}>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={subtext} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="9"/>
+                      <path d="M9 12l2 2 4-4"/>
+                    </svg>
+                    No pending coin requests
+                  </div>
                 ) : coinRequests.filter(r => r.status === 'pending').map(req => (
                   <div key={req.id} style={{ background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.25)', borderRadius: '14px', padding: '16px 18px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
                       <div>
                         <div style={{ color: '#fbbf24', fontWeight: 700, fontSize: '13px', fontFamily: 'monospace' }}>{req.requested_by_id_str || req.requested_by_email}</div>
                         <div style={{ color: subtext, fontSize: '11px', marginTop: '2px' }}>{new Date(req.created_at).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })}</div>
                       </div>
-                      <button
-                        disabled={approvingReqId === req.id}
-                        onClick={() => approveCoinRequest(req.id)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 20px', background: approvingReqId === req.id ? 'rgba(74,222,128,0.2)' : 'linear-gradient(90deg,#4ade80,#22d3ee)', border: 'none', borderRadius: '10px', color: '#003b40', fontWeight: 800, fontSize: '12px', cursor: approvingReqId === req.id ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}>
-                        {approvingReqId === req.id ? (
-                          'Approving...'
-                        ) : (
-                          <>
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#003b40" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M20 6L9 17l-5-5"/>
-                            </svg>
-                            Approve
-                          </>
-                        )}
-                      </button>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          disabled={approvingReqId === req.id}
+                          onClick={() => approveCoinRequest(req.id)}
+                          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 18px', background: approvingReqId === req.id ? 'rgba(74,222,128,0.2)' : 'linear-gradient(90deg,#4ade80,#22d3ee)', border: 'none', borderRadius: '10px', color: '#003b40', fontWeight: 800, fontSize: '12px', cursor: approvingReqId === req.id ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}>
+                          {approvingReqId === req.id ? (
+                            'Approving...'
+                          ) : (
+                            <>
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#003b40" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M20 6L9 17l-5-5"/>
+                              </svg>
+                              Approve
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => { setRejectingReqId(rejectingReqId === req.id ? null : req.id); setRejectReason('') }}
+                          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 18px', background: rejectingReqId === req.id ? 'rgba(239,68,68,0.2)' : 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.35)', borderRadius: '10px', color: '#f87171', fontWeight: 800, fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
+                          Reject
+                        </button>
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: rejectingReqId === req.id ? '12px' : '0' }}>
                       {req.items.map(item => (
-                        <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: inpBg, borderRadius: '8px', fontSize: '12px' }}>
-                          <span style={{ color: text }}>{COIN_METAL_LABELS[item.metal_type]} — {item.weight_label}</span>
+                        <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: inpBg, borderRadius: '8px', fontSize: '12px' }}>
+                          <span style={{ color: text, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="8"/>
+                            </svg>
+                            {COIN_METAL_LABELS_TEXT[item.metal_type]} — {item.weight_label}
+                          </span>
                           <span style={{ color: '#fbbf24', fontWeight: 700 }}>× {item.qty}</span>
                         </div>
                       ))}
                     </div>
+
+                    {rejectingReqId === req.id && (
+                      <div style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '10px', padding: '12px' }}>
+                        <label style={{ display: 'block', color: '#f87171', fontSize: '11px', fontWeight: 700, marginBottom: '6px' }}>Reason for rejection</label>
+                        <textarea
+                          value={rejectReason}
+                          onChange={e => setRejectReason(e.target.value)}
+                          rows={2}
+                          placeholder="Explain why this request is being rejected..."
+                          style={{ width: '100%', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '8px', padding: '10px 12px', color: text, fontSize: '13px', outline: 'none', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box', marginBottom: '10px' }}
+                        />
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            disabled={rejectSubmitting}
+                            onClick={() => rejectCoinRequest(req.id)}
+                            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '9px', background: rejectSubmitting ? 'rgba(239,68,68,0.2)' : 'linear-gradient(90deg,#ef4444,#f87171)', border: 'none', borderRadius: '8px', color: '#3b0000', fontWeight: 800, fontSize: '12px', cursor: rejectSubmitting ? 'not-allowed' : 'pointer' }}>
+                            {rejectSubmitting ? 'Rejecting...' : 'Confirm Reject'}
+                          </button>
+                          <button
+                            onClick={() => { setRejectingReqId(null); setRejectReason('') }}
+                            style={{ padding: '9px 16px', background: inpBg, border: `1px solid ${inpBorder}`, borderRadius: '8px', color: subtext, fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

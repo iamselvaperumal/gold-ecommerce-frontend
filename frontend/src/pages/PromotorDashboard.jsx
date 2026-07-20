@@ -371,8 +371,13 @@ const [selCoinWeight, setSelCoinWeight] = useState('')
 const [selCoinQty, setSelCoinQty] = useState('')
 
 const [showStoredCoin, setShowStoredCoin] = useState(false)
-const [coinStock, setCoinStock] = useState([])
-const [coinStockLoading, setCoinStockLoading] = useState(false)
+  const [coinStock, setCoinStock] = useState([])
+  const [coinStockLoading, setCoinStockLoading] = useState(false)
+
+  // ── MY COIN REQUESTS (status tracking) ──
+  const [showMyRequests, setShowMyRequests] = useState(false)
+  const [myCoinRequests, setMyCoinRequests] = useState([])
+  const [myRequestsLoading, setMyRequestsLoading] = useState(false)
 
 
 const [replyAnn,        setReplyAnn]        = useState(null)
@@ -754,6 +759,15 @@ const fetchCoinStock = async () => {
   setCoinStockLoading(false)
 }
 
+const fetchMyCoinRequests = async () => {
+  setMyRequestsLoading(true)
+  try {
+    const res = await api.get('/coin-requests/')
+    setMyCoinRequests(res.data)
+  } catch { setMyCoinRequests([]) }
+  setMyRequestsLoading(false)
+}
+
   const fetchAnnouncements = async () => {
   try {
     const res = await api.get('/announcements/')
@@ -935,6 +949,25 @@ const handleSubmit = async e => {
           >
             <span style={{ fontSize: '15px' }}>📦</span>
             <span style={{ fontSize: '12px', fontWeight: 700, color: '#4ade80' }}>Stored Coin</span>
+          </div>
+
+          {/* 🧾 My Coin Requests Button */}
+          <div
+            onClick={() => { setShowMyRequests(true); fetchMyCoinRequests() }}
+            style={{ position: 'relative', cursor: 'pointer', padding: '6px 14px', borderRadius: '10px', border: '1px solid rgba(56,189,248,0.4)', background: 'rgba(56,189,248,0.1)', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.25s ease' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(56,189,248,0.25)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(56,189,248,0.1)'; e.currentTarget.style.transform = 'translateY(0)' }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 12h6M9 16h6M9 8h6"/>
+              <rect x="4" y="4" width="16" height="16" rx="2"/>
+            </svg>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#38bdf8' }}>My Requests</span>
+            {myCoinRequests.filter(r => r.status === 'pending').length > 0 && (
+              <div style={{ position: 'absolute', top: '-7px', right: '-7px', background: 'linear-gradient(135deg,#38bdf8,#22d3ee)', color: '#000', borderRadius: '50%', minWidth: '18px', height: '18px', fontSize: '9px', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px', boxShadow: '0 2px 8px rgba(56,189,248,0.5)', border: '1.5px solid #020617' }}>
+                {myCoinRequests.filter(r => r.status === 'pending').length}
+              </div>
+            )}
           </div>
 
           {/* 📢 Announcement Bell */}
@@ -1536,6 +1569,85 @@ const handleSubmit = async e => {
               <div style={{ color: text, fontWeight: 900, fontSize: '20px', fontFamily: 'monospace' }}>{s.qty}</div>
             </div>
           ))}
+        </div>
+      </div>
+    </div>
+  )}
+
+{/* ── MY COIN REQUESTS (STATUS TRACKING) POPUP ── */}
+  {showMyRequests && (
+    <div onClick={() => setShowMyRequests(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(10px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: '1px solid rgba(56,189,248,0.3)', borderRadius: '24px', width: '95%', maxWidth: '600px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.7)' }}>
+
+        <div style={{ flexShrink: 0, padding: '22px 26px', borderBottom: '1px solid rgba(56,189,248,0.15)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(56,189,248,0.15)', border: '1px solid rgba(56,189,248,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 12h6M9 16h6M9 8h6"/>
+                <rect x="4" y="4" width="16" height="16" rx="2"/>
+              </svg>
+            </div>
+            <div>
+              <div style={{ color: '#38bdf8', fontWeight: 800, fontSize: '15px' }}>My Coin Requests</div>
+              <div style={{ color: subtext, fontSize: '11px', marginTop: '2px' }}>Status of coin requests you sent to your Sub Dealer</div>
+            </div>
+          </div>
+          <button onClick={() => setShowMyRequests(false)} style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 26px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {myRequestsLoading ? (
+            <div style={{ textAlign: 'center', color: subtext, padding: '40px 0' }}>Loading...</div>
+          ) : myCoinRequests.length === 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', color: subtext, padding: '40px 0' }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={subtext} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 12h6M9 16h6M9 8h6"/><rect x="4" y="4" width="16" height="16" rx="2"/>
+              </svg>
+              No coin requests yet
+            </div>
+          ) : myCoinRequests.map(req => {
+            const statusCfg = {
+              pending:  { color: '#fbbf24', bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.3)', label: 'Pending', icon: <><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></> },
+              sent:     { color: '#4ade80', bg: 'rgba(74,222,128,0.08)', border: 'rgba(74,222,128,0.3)', label: 'Approved', icon: <><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></> },
+              rejected: { color: '#f87171', bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.3)', label: 'Rejected', icon: <><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></> },
+            }
+            const cfg = statusCfg[req.status] || statusCfg.pending
+            return (
+              <div key={req.id} style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, borderRadius: '14px', padding: '16px 18px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <div style={{ color: subtext, fontSize: '11px' }}>
+                    {new Date(req.created_at).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 12px', borderRadius: '20px', background: `${cfg.color}22`, border: `1px solid ${cfg.color}55` }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={cfg.color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      {cfg.icon}
+                    </svg>
+                    <span style={{ color: cfg.color, fontSize: '11px', fontWeight: 800 }}>{cfg.label}</span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {req.items.map(item => (
+                    <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: inpBg, borderRadius: '8px', fontSize: '12px' }}>
+                      <span style={{ color: text }}>{COIN_METAL_LABELS[item.metal_type]} — {item.weight_label}</span>
+                      <span style={{ color: cfg.color, fontWeight: 700 }}>× {item.qty}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {req.status === 'rejected' && req.reject_reason && (
+                  <div style={{ marginTop: '10px', padding: '10px 12px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '8px' }}>
+                    <div style={{ color: '#f87171', fontSize: '10px', fontWeight: 700, marginBottom: '4px' }}>REASON FOR REJECTION</div>
+                    <div style={{ color: text, fontSize: '12px', lineHeight: 1.5 }}>{req.reject_reason}</div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>
