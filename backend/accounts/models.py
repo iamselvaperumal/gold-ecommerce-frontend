@@ -693,12 +693,13 @@ class JewelryOrder(models.Model):
 
 # ── COIN REQUEST SYSTEM (Promotor <-> SubDealer coin flow) ──
 class CoinRequest(models.Model):
-    STATUS_CHOICES = [('pending', 'Pending'), ('sent', 'Sent')]
+    STATUS_CHOICES = [('pending', 'Pending'), ('sent', 'Approved'), ('rejected', 'Rejected')]
 
     requested_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='coin_requests_made')
     requested_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='coin_requests_received')
 
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    reject_reason = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     sent_at = models.DateTimeField(null=True, blank=True)
 

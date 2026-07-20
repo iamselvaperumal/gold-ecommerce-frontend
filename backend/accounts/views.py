@@ -1861,6 +1861,33 @@ class CoinRequestApproveView(APIView):
         return Response({'message': 'Request approved successfully!'})
 
 
+class CoinRequestRejectView(APIView):
+    """Sub Dealer rejects a pending request, with a reason message."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        if request.user.role != 'sub_dealer':
+            return Response({'error': 'Only sub dealers can reject coin requests'}, status=403)
+
+        message = request.data.get('message', '').strip()
+        if not message:
+            return Response({'error': 'Reject reason is required'}, status=400)
+
+        try:
+            coin_request = CoinRequest.objects.get(
+                id=pk, requested_to=request.user, status='pending'
+            )
+        except CoinRequest.DoesNotExist:
+            return Response({'error': 'Request not found or already resolved'}, status=404)
+
+        coin_request.status = 'rejected'
+        coin_request.reject_reason = message
+        coin_request.sent_at = timezone.now()
+        coin_request.save()
+
+        return Response({'message': 'Request rejected successfully!'})
+
+
 class CoinRequestApproveAllView(APIView):
     """Sub Dealer approves ALL pending requests sent to them in one click."""
     permission_classes = [IsAuthenticated]

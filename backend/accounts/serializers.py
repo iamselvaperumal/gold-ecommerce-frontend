@@ -566,8 +566,8 @@ class CoinRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoinRequest
         fields = ['id', 'requested_by', 'requested_by_email', 'requested_by_id_str',
-                  'requested_to', 'status', 'items', 'created_at', 'sent_at']
-        read_only_fields = ['requested_by', 'requested_to', 'status', 'created_at', 'sent_at']
+                  'requested_to', 'status', 'reject_reason', 'items', 'created_at', 'sent_at']
+        read_only_fields = ['requested_by', 'requested_to', 'status', 'reject_reason', 'created_at', 'sent_at']
 
     def get_requested_by_id_str(self, obj):
         try:
