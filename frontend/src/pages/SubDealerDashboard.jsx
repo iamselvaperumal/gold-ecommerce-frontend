@@ -1028,6 +1028,7 @@ const fetchMetalPrices = async () => {
 
 // ── COIN REQUEST helpers ──
 const COIN_METAL_LABELS = { gold_22k: '🏅 Gold 22K', gold_24k: '🥇 Gold 24K', silver_999: '🥈 Silver 999' }
+const COIN_METAL_LABELS_TEXT = { gold_22k: 'Gold 22K', gold_24k: 'Gold 24K', silver_999: 'Silver 999' }
 
 const fetchCoinRequests = async () => {
   setCoinReqLoading(true)

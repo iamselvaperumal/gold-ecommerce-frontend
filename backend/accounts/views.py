@@ -1771,24 +1771,52 @@ class TodayLoginStatusView(APIView):
 
 class CoinRequestView(APIView):
     """
-    POST — Promotor creates a coin request to their assigned Sub Dealer.
-    GET  — Sub Dealer sees pending requests sent to them (or Promotor sees own requests).
+    POST — Promotor/SubDealer/Dealer/Admin creates a coin request to their assigned parent.
+           (Super Admin uses SuperAdminAddCoinsView instead — no request needed.)
+    GET   — Returns requests: 'received' (pending, sent to me) or 'sent' (my own requests).
+            Defaults: sub_dealer/dealer/admin/super_admin see received-pending,
+                      everyone else (promotor) sees their own sent history.
     """
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        if request.user.role != 'promotor':
-            return Response({'error': 'Only promotors can request coins'}, status=403)
+        role = request.user.role
+        target_user = None
 
-        try:
-            promotor = request.user.promotor_profile
-        except PromotorProfile.DoesNotExist:
-            return Response({'error': 'Promotor profile not found'}, status=404)
+        if role == 'promotor':
+            try:
+                profile = request.user.promotor_profile
+            except PromotorProfile.DoesNotExist:
+                return Response({'error': 'Promotor profile not found'}, status=404)
+            if not profile.assigned_sub_dealer:
+                return Response({'error': 'No sub dealer assigned to you'}, status=400)
+            target_user = profile.assigned_sub_dealer.user
 
-        if not promotor.assigned_sub_dealer:
-            return Response({'error': 'No sub dealer assigned to you'}, status=400)
+        elif role == 'sub_dealer':
+            try:
+                profile = request.user.sub_dealer_profile
+            except SubDealerProfile.DoesNotExist:
+                return Response({'error': 'Sub dealer profile not found'}, status=404)
+            if not profile.assigned_dealer:
+                return Response({'error': 'No dealer assigned to you'}, status=400)
+            target_user = profile.assigned_dealer.user
 
-        sub_dealer_user = promotor.assigned_sub_dealer.user
+        elif role == 'dealer':
+            try:
+                profile = request.user.dealer_profile
+            except DealerProfile.DoesNotExist:
+                return Response({'error': 'Dealer profile not found'}, status=404)
+            if not profile.assigned_admin:
+                return Response({'error': 'No admin assigned to you'}, status=400)
+            target_user = profile.assigned_admin.user
+
+        elif role == 'admin':
+            target_user = User.objects.filter(role='super_admin').first()
+            if not target_user:
+                return Response({'error': 'Super admin account not found'}, status=404)
+
+        else:
+            return Response({'error': 'Your role cannot request coins'}, status=403)
 
         items = request.data.get('items', [])
         if not items:
@@ -1796,7 +1824,7 @@ class CoinRequestView(APIView):
 
         coin_request = CoinRequest.objects.create(
             requested_by=request.user,
-            requested_to=sub_dealer_user,
+            requested_to=target_user,
         )
         for item in items:
             CoinRequestItem.objects.create(
@@ -1808,40 +1836,38 @@ class CoinRequestView(APIView):
             )
 
         serializer = CoinRequestSerializer(coin_request)
-        return Response({'message': 'Request sent to Sub Dealer!', 'data': serializer.data}, status=201)
+        return Response({'message': 'Request sent successfully!', 'data': serializer.data}, status=201)
 
     def get(self, request):
-        if request.user.role == 'sub_dealer':
-            # Sub dealer sees pending requests sent to them
-            reqs = CoinRequest.objects.filter(
-                requested_to=request.user, status='pending'
-            ).prefetch_related('items').order_by('-created_at')
-        elif request.user.role == 'promotor':
-            # Promotor sees their own request history
-            reqs = CoinRequest.objects.filter(
-                requested_by=request.user
-            ).prefetch_related('items').order_by('-created_at')
-        else:
-            return Response({'error': 'Permission denied'}, status=403)
+        role = request.user.role
+        box = request.query_params.get('box')  # optional override: 'sent' or 'received'
+        receiver_roles = ['sub_dealer', 'dealer', 'admin', 'super_admin']
 
+        if box == 'sent':
+            reqs = CoinRequest.objects.filter(requested_by=request.user)
+        elif box == 'received':
+            reqs = CoinRequest.objects.filter(requested_to=request.user, status='pending')
+        elif role in receiver_roles:
+            reqs = CoinRequest.objects.filter(requested_to=request.user, status='pending')
+        else:
+            reqs = CoinRequest.objects.filter(requested_by=request.user)
+
+        reqs = reqs.prefetch_related('items').order_by('-created_at')
         serializer = CoinRequestSerializer(reqs, many=True)
         return Response(serializer.data)
 
 
 class CoinRequestApproveView(APIView):
-    """Sub Dealer clicks 'Approve' on a pending request — moves coins into promotor's stock."""
+    """Any role (Sub Dealer/Dealer/Admin/Super Admin) approves a pending request sent to them — moves coins into requester's stock."""
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
-        if request.user.role != 'sub_dealer':
-            return Response({'error': 'Only sub dealers can approve coin requests'}, status=403)
-
         try:
             coin_request = CoinRequest.objects.prefetch_related('items').get(
                 id=pk, requested_to=request.user, status='pending'
             )
         except CoinRequest.DoesNotExist:
-            return Response({'error': 'Request not found or already approved'}, status=404)
+            return Response({'error': 'Request not found or already resolved'}, status=404)
 
         # Add each item's qty into the promotor's (requested_by) stock
         for item in coin_request.items.all():
@@ -1862,13 +1888,10 @@ class CoinRequestApproveView(APIView):
 
 
 class CoinRequestRejectView(APIView):
-    """Sub Dealer rejects a pending request, with a reason message."""
+    """Any role rejects a pending request sent to them, with a reason message."""
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
-        if request.user.role != 'sub_dealer':
-            return Response({'error': 'Only sub dealers can reject coin requests'}, status=403)
-
         message = request.data.get('message', '').strip()
         if not message:
             return Response({'error': 'Reject reason is required'}, status=400)
@@ -1889,13 +1912,10 @@ class CoinRequestRejectView(APIView):
 
 
 class CoinRequestApproveAllView(APIView):
-    """Sub Dealer approves ALL pending requests sent to them in one click."""
+    """Any role approves ALL pending requests sent to them in one click."""
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        if request.user.role != 'sub_dealer':
-            return Response({'error': 'Only sub dealers can approve requests'}, status=403)
-
         pending = CoinRequest.objects.filter(requested_to=request.user, status='pending').prefetch_related('items')
         count = 0
         for coin_request in pending:
@@ -1915,8 +1935,33 @@ class CoinRequestApproveAllView(APIView):
 
         return Response({'message': f'{count} requests approved successfully!'})
 
+class SuperAdminAddCoinsView(APIView):
+    """Super Admin adds coins directly into their own stock — no approval flow needed."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        if request.user.role != 'super_admin':
+            return Response({'error': 'Only super admin can add coins directly'}, status=403)
+
+        items = request.data.get('items', [])
+        if not items:
+            return Response({'error': 'At least one coin item required'}, status=400)
+
+        for item in items:
+            stock, created = CoinStock.objects.get_or_create(
+                user=request.user,
+                metal_type=item.get('metal_type'),
+                weight_label=item.get('weight_label'),
+                defaults={'weight_grams': item.get('weight_grams'), 'qty': 0}
+            )
+            stock.qty += int(item.get('qty', 0))
+            stock.save()
+
+        return Response({'message': 'Coins added to your stock successfully!'})
+
+
 class CoinStockView(APIView):
-    """Logged-in user (promotor) sees their own coin stock."""
+    """Logged-in user sees their own coin stock."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
