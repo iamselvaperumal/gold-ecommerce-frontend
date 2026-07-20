@@ -631,6 +631,15 @@ export default function SubDealerDashboard() {
   const [metalLoading, setMetalLoading] = useState(false)
   const [usdToInr, setUsdToInr] = useState(null)
   const [dbRateDate, setDbRateDate] = useState(null)
+
+  // ── COIN REQUEST ──
+  const [showRequestCoin, setShowRequestCoin] = useState(false)
+  const [coinRequests, setCoinRequests] = useState([])
+  const [coinReqLoading, setCoinReqLoading] = useState(false)
+  const [approvingReqId, setApprovingReqId] = useState(null)
+  const [approvingAll, setApprovingAll] = useState(false)
+  const [coinReqMsg, setCoinReqMsg] = useState('')
+
   const [replyAnn, setReplyAnn] = useState(null)
   const [replyText, setReplyText] = useState('')
   const [replyLoading, setReplyLoading] = useState(false)
@@ -1013,6 +1022,31 @@ const fetchMetalPrices = async () => {
   setMetalLoading(false)
 }
 
+// ── COIN REQUEST helpers ──
+const COIN_METAL_LABELS = { gold_22k: '🏅 Gold 22K', gold_24k: '🥇 Gold 24K', silver_999: '🥈 Silver 999' }
+
+const fetchCoinRequests = async () => {
+  setCoinReqLoading(true)
+  try {
+    const res = await api.get('/coin-requests/')
+    setCoinRequests(res.data)
+  } catch { setCoinRequests([]) }
+  setCoinReqLoading(false)
+}
+
+const approveCoinRequest = async (reqId) => {
+  setApprovingReqId(reqId)
+  setCoinReqMsg('')
+  try {
+    await api.post(`/coin-requests/${reqId}/approve/`)
+    setCoinReqMsg('success:Request approved successfully.')
+    fetchCoinRequests()
+  } catch (err) {
+    setCoinReqMsg('error:Failed to approve request. Please try again.')
+  }
+  setApprovingReqId(null)
+}
+
   const fetchAnnouncements = async () => {
     try {
       const res = await api.get('/announcements/')
@@ -1167,6 +1201,22 @@ const handleSubmit = async e => {
             onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
             title="View Profile"
           >💎</div>
+
+          {/* 🪙 Request Coin Button */}
+          <div
+            onClick={() => { setShowRequestCoin(true); fetchCoinRequests(); setCoinReqMsg('') }}
+            style={{ position: 'relative', cursor: 'pointer', padding: '6px 14px', borderRadius: '10px', border: '1px solid rgba(251,191,36,0.4)', background: 'rgba(251,191,36,0.1)', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.25s ease' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(251,191,36,0.25)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(251,191,36,0.1)'; e.currentTarget.style.transform = 'translateY(0)' }}
+          >
+            <span style={{ fontSize: '15px' }}>🪙</span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#fbbf24' }}>Request Coin</span>
+            {coinRequests.filter(r => r.status === 'pending').length > 0 && (
+              <div style={{ position: 'absolute', top: '-7px', right: '-7px', background: 'linear-gradient(135deg,#fbbf24,#f59e0b)', color: '#000', borderRadius: '50%', minWidth: '18px', height: '18px', fontSize: '9px', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px', boxShadow: '0 2px 8px rgba(251,191,36,0.5)', border: '1.5px solid #020617' }}>
+                {coinRequests.filter(r => r.status === 'pending').length}
+              </div>
+            )}
+          </div>
 
           <div
             onClick={() => { setShowAnnouncements(true); localStorage.setItem('subDealerAnnouncementSeen', Date.now().toString()); setUnreadCount(0) }}
@@ -1641,6 +1691,68 @@ const handleSubmit = async e => {
           </div>
         )}
 
+
+        {/* ── REQUEST COIN POPUP ── */}
+        {showRequestCoin && (
+          <div onClick={() => setShowRequestCoin(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(10px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: dark ? 'linear-gradient(145deg,#0a1628,#060e1c)' : '#f8fafc', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '24px', width: '95%', maxWidth: '620px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.7)' }}>
+
+              <div style={{ flexShrink: 0, padding: '22px 26px', borderBottom: '1px solid rgba(251,191,36,0.15)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ color: '#fbbf24', fontWeight: 800, fontSize: '15px' }}>🪙 Coin Requests</div>
+                  <div style={{ color: subtext, fontSize: '11px', marginTop: '2px' }}>Promotor kitta irundhu vantha pending requests</div>
+                </div>
+                <button onClick={() => setShowRequestCoin(false)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '12px' }}>✕ Close</button>
+              </div>
+
+              {coinReqMsg && (
+                <div style={{ margin: '14px 26px 0', background: coinReqMsg.includes('✅') ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${coinReqMsg.includes('✅') ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.3)'}`, color: coinReqMsg.includes('✅') ? '#4ade80' : '#f87171', borderRadius: '10px', padding: '10px 14px', fontSize: '13px' }}>
+                  {coinReqMsg}
+                </div>
+              )}
+
+              <div style={{ flex: 1, overflowY: 'auto', padding: '20px 26px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {coinReqLoading ? (
+                  <div style={{ textAlign: 'center', color: subtext, padding: '40px 0' }}>Loading...</div>
+                ) : coinRequests.filter(r => r.status === 'pending').length === 0 ? (
+                  <div style={{ textAlign: 'center', color: subtext, padding: '40px 0' }}>No pending coin requests</div>
+                ) : coinRequests.filter(r => r.status === 'pending').map(req => (
+                  <div key={req.id} style={{ background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.25)', borderRadius: '14px', padding: '16px 18px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <div>
+                        <div style={{ color: '#fbbf24', fontWeight: 700, fontSize: '13px', fontFamily: 'monospace' }}>{req.requested_by_id_str || req.requested_by_email}</div>
+                        <div style={{ color: subtext, fontSize: '11px', marginTop: '2px' }}>{new Date(req.created_at).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })}</div>
+                      </div>
+                      <button
+                        disabled={approvingReqId === req.id}
+                        onClick={() => approveCoinRequest(req.id)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 20px', background: approvingReqId === req.id ? 'rgba(74,222,128,0.2)' : 'linear-gradient(90deg,#4ade80,#22d3ee)', border: 'none', borderRadius: '10px', color: '#003b40', fontWeight: 800, fontSize: '12px', cursor: approvingReqId === req.id ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}>
+                        {approvingReqId === req.id ? (
+                          'Approving...'
+                        ) : (
+                          <>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#003b40" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M20 6L9 17l-5-5"/>
+                            </svg>
+                            Approve
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {req.items.map(item => (
+                        <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: inpBg, borderRadius: '8px', fontSize: '12px' }}>
+                          <span style={{ color: text }}>{COIN_METAL_LABELS[item.metal_type]} — {item.weight_label}</span>
+                          <span style={{ color: '#fbbf24', fontWeight: 700 }}>× {item.qty}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* PROMOTOR HIERARCHY MODAL */}
         {showHierarchy && (

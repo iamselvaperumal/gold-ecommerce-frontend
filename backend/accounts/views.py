@@ -1828,20 +1828,20 @@ class CoinRequestView(APIView):
         return Response(serializer.data)
 
 
-class CoinRequestSendView(APIView):
-    """Sub Dealer clicks 'Send' on a pending request — moves coins into promotor's stock."""
+class CoinRequestApproveView(APIView):
+    """Sub Dealer clicks 'Approve' on a pending request — moves coins into promotor's stock."""
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
         if request.user.role != 'sub_dealer':
-            return Response({'error': 'Only sub dealers can send coins'}, status=403)
+            return Response({'error': 'Only sub dealers can approve coin requests'}, status=403)
 
         try:
             coin_request = CoinRequest.objects.prefetch_related('items').get(
                 id=pk, requested_to=request.user, status='pending'
             )
         except CoinRequest.DoesNotExist:
-            return Response({'error': 'Request not found or already sent'}, status=404)
+            return Response({'error': 'Request not found or already approved'}, status=404)
 
         # Add each item's qty into the promotor's (requested_by) stock
         for item in coin_request.items.all():
@@ -1858,7 +1858,7 @@ class CoinRequestSendView(APIView):
         coin_request.sent_at = timezone.now()
         coin_request.save()
 
-        return Response({'message': 'Coins sent successfully!'})
+        return Response({'message': 'Request approved successfully!'})
 
 
 class CoinStockView(APIView):
