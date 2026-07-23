@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import api from '../api'
 
-const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
+const API_BASE = 'https://bitbyte-backend-oums.onrender.com'
 
 // ══════════════════════════════════════════════════════════════════
 // ICONS — same set as the hierarchy grid page, so the whole app feels

@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import CustomerNavbar from '../collection/CustomerNavbar'
 import CustomerFooter from '../collection/CustomerFooter'
 
-const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
+const API_BASE = 'https://bitbyte-backend-oums.onrender.com'
 const GOLD = '#BB8958'
 const DARK = '#111817'
 const CREAM = '#FDFDFC'

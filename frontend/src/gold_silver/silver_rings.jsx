@@ -59,7 +59,7 @@ const silverGlow  = 'rgba(192,192,192,0.28)'
 
 
 
-const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
+const API_BASE = 'https://bitbyte-backend-oums.onrender.com'
 
 const getImageUrl = (img) => {
   if (!img) return '/img/silver/silver-ring-1.png'

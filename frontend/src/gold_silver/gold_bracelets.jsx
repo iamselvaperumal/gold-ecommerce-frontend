@@ -44,7 +44,7 @@ const inpBorder = '#d1d5db'
 
   const goldColor = metalType === '22k' ? '#fbbf24' : '#ffd700'
 
-  const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
+  const API_BASE = 'https://bitbyte-backend-oums.onrender.com'
 
   const getImageUrl = (img) => {
     if (!img) return '/img/gold/gold_bracelet.jpg'

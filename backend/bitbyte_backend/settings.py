@@ -74,11 +74,13 @@ WSGI_APPLICATION = 'bitbyte_backend.wsgi.application'
 #     }
 # }
 
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"),
+        default=DATABASE_URL or f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600,
-        conn_health_checks=True,
+        conn_health_checks=bool(DATABASE_URL),
     )
 }
 

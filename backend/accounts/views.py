@@ -17,6 +17,7 @@ from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.db import DatabaseError
 from django.db.models import Q 
 
 # ── NEW: Monthly target status logic ──
@@ -72,22 +73,35 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        email = request.data.get('email')
+        email = (request.data.get('email') or '').strip().lower()
         password = request.data.get('password')
+        if not email or not password:
+            return Response({'error': 'Email and password are required'}, status=400)
 
         # Step 1: Email exist ஆ இல்லையா check pannu
-        user_obj = User.objects.filter(email=email).first()
+        try:
+            user_obj = User.objects.filter(email__iexact=email).first()
+        except DatabaseError:
+            return Response(
+                {'error': 'Database is not ready. Please run migrations and check DATABASE_URL.'},
+                status=503,
+            )
         if not user_obj:
             return Response({'error': 'No account found with this email'}, status=400)
+        if not user_obj.is_active:
+            return Response({'error': 'This account is inactive'}, status=403)
 
         # Step 2: Email correct — password check pannu
-        user = authenticate(request, username=email, password=password)
+        user = authenticate(request, username=user_obj.email, password=password)
         if not user:
             return Response({'error': 'Incorrect password'}, status=400)
 
         # Step 3: last_login update pannu (Active/Inactive pie chart-ku idhu than base)
-        user.last_login = timezone.now()
-        user.save(update_fields=['last_login'])
+        try:
+            user.last_login = timezone.now()
+            user.save(update_fields=['last_login'])
+        except DatabaseError:
+            return Response({'error': 'Unable to update login status'}, status=503)
 
         # Step 4: Success
         refresh = RefreshToken.for_user(user)
@@ -698,7 +712,10 @@ class ProfileUpdateApproveView(APIView):
 
 
 class MetalRateView(APIView):
-    permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def get(self, request):
         """Return today's rate; if not entered yet, return latest available."""

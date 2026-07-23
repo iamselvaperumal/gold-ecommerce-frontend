@@ -4,7 +4,7 @@ import api from '../api'
 import CustomerNavbar from './CustomerNavbar'
 import CustomerFooter from '../collection/CustomerFooter'
 
-const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
+const API_BASE = 'https://bitbyte-backend-oums.onrender.com'
 
 const METAL_LABELS = {
   gold: 'Gold',

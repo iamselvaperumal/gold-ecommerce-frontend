@@ -560,7 +560,13 @@ useEffect(() => {
         setTreeData(res.data.data || [])
         setAncestors(res.data.ancestors || [])
       } catch (err) {
-        setError(err.response?.data?.error || 'Failed to load report')
+        const status = err.response?.status
+        const renderWakeError = status === 503 || err.response?.headers?.['x-render-routing'] === 'hibernate-wake-error'
+        setError(
+          renderWakeError
+            ? 'Backend is waking up or temporarily unavailable. Please retry in a few seconds.'
+            : err.response?.data?.error || 'Failed to load report'
+        )
       }
       setLoading(false)
     }
@@ -761,8 +767,15 @@ const goToInactiveLogin = () => navigate('/login-inactive', { state: { ids: scop
 
   if (error) {
     return (
-      <div style={{ minHeight: '100vh', background: bg, color: '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, system-ui, sans-serif' }}>
-        {error}
+      <div style={{ minHeight: '100vh', background: '#FDFDFC', color: '#111817', display: 'grid', placeItems: 'center', fontFamily: 'Manrope, Inter, system-ui, sans-serif', padding: 24 }}>
+        <div style={{ width: 'min(520px, 100%)', border: '1px solid rgba(189,207,206,0.82)', borderRadius: 22, background: 'linear-gradient(145deg,#FDFDFC,#F3F3F0)', boxShadow: '0 24px 60px rgba(7,59,63,0.1)', padding: 28, textAlign: 'center' }}>
+          <div style={{ color: '#C92035', fontWeight: 900, fontSize: 13, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12 }}>Report unavailable</div>
+          <div style={{ color: '#073B3F', fontFamily: 'Georgia, serif', fontSize: 30, fontWeight: 800, lineHeight: 1.1, marginBottom: 12 }}>Sales Report</div>
+          <p style={{ margin: '0 auto 22px', color: '#7A8987', lineHeight: 1.6, maxWidth: 390 }}>{error}</p>
+          <button type="button" onClick={() => window.location.reload()} style={{ border: '1px solid #073B3F', background: 'linear-gradient(135deg,#0C4044,#073B3F)', color: '#FDFDFC', borderRadius: 999, padding: '13px 24px', fontWeight: 900, cursor: 'pointer' }}>
+            Retry Report
+          </button>
+        </div>
       </div>
     )
   }

@@ -61,7 +61,7 @@ const optionBg  = '#ffffff'
   const goldColor = metalType === 'gold_24k' ? '#ffd700' : '#fbbf24'
   const goldGlow  = metalType === 'gold_24k' ? 'rgba(255,215,0,0.28)' : 'rgba(251,191,36,0.28)'
 
-const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
+const API_BASE = 'https://bitbyte-backend-oums.onrender.com'
 
 const getImageUrl = (img) => {
   if (!img) return '/img/gold/gold-bangles-1.png'

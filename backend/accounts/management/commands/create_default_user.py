@@ -1,23 +1,29 @@
-from django.core.management.base import BaseCommand
+import os
+
 from django.contrib.auth import get_user_model
+from django.core.management.base import BaseCommand
+
 
 User = get_user_model()
 
+
 class Command(BaseCommand):
-    help = 'Create default superadmin'
+    help = 'Create or update the default superadmin account.'
 
     def handle(self, *args, **kwargs):
-        email = 'infisq.senthil@gmail.com'
-        password = 'Senthil@2003'
+        email = os.environ.get(
+            'DEFAULT_SUPERADMIN_EMAIL',
+            'infisq.senthil@gmail.com',
+        ).strip().lower()
+        password = os.environ.get('DEFAULT_SUPERADMIN_PASSWORD', 'Senthil@2003')
 
-        # Delete and recreate fresh
-        User.objects.filter(email=email).delete()
-        user = User.objects.create_superuser(
-            email=email,
-            password=password
-        )
+        user, created = User.objects.get_or_create(email=email)
+        user.set_password(password)
         user.role = 'super_admin'
+        user.is_active = True
         user.is_staff = True
         user.is_superuser = True
         user.save()
-        self.stdout.write('✅ Superadmin recreated fresh!')
+
+        action = 'created' if created else 'updated'
+        self.stdout.write(self.style.SUCCESS(f'Default superadmin {action}: {email}'))

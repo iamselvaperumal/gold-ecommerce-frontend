@@ -47,7 +47,7 @@ const inpBorder = '#d1d5db'
 const silverColor = '#c0c0c0'
 const silverGlow  = 'rgba(192,192,192,0.28)'
 
-const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
+const API_BASE = 'https://bitbyte-backend-oums.onrender.com'
 const getImageUrl = (img) => {
   if (!img) return '/img/silver/silver-chain-1.png'
   if (img.startsWith('http://') || img.startsWith('https://')) return img

@@ -6,7 +6,7 @@ import { addToCart } from '../collection/card_section'
 import CustomerNavbar from '../collection/CustomerNavbar'
 import CustomerFooter from '../collection/CustomerFooter'
 
-const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
+const API_BASE = 'https://bitbyte-backend-oums.onrender.com'
 
 const getImageUrl = img => {
   if (!img) return null

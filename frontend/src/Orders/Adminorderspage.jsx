@@ -11,7 +11,7 @@ const STATUS_COLORS = {
   cancelled:  { bg: 'rgba(239,68,68,0.1)',   border: 'rgba(239,68,68,0.4)',   color: '#dc2626' },
 }
 
-const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
+const API_BASE = 'https://bitbyte-backend-oums.onrender.com'
 
 export default function AdminOrdersPage() {
   const navigate = useNavigate()

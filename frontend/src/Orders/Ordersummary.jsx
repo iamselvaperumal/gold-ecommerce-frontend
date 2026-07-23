@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import CustomerNavbar from '../collection/CustomerNavbar'
 import CustomerFooter from '../collection/CustomerFooter'
 
-const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
+const API_BASE = 'https://bitbyte-backend-oums.onrender.com'
 
 const STATUS_META = {
   pending: { label: 'Pending', tone: '#BB8958', bg: 'rgba(187,137,88,0.12)', border: 'rgba(187,137,88,0.32)', step: 1 },

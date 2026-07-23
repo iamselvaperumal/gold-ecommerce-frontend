@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import CustomerNavbar from './collection/CustomerNavbar'
+import StaffRoleChrome from './components/StaffRoleChrome'
 
 const LandingPage = lazy(() => import('./pages/LandingPage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
@@ -102,6 +103,10 @@ function WithCustomerNavbar({ children }) {
   )
 }
 
+function WithStaffChrome({ role, children }) {
+  return <StaffRoleChrome role={role}>{children}</StaffRoleChrome>
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -110,16 +115,16 @@ export default function App() {
           <Route path="/" element={<WithCustomerNavbar><LandingPage /></WithCustomerNavbar>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/super-admin" element={<ProtectedRoute role="super_admin"><SuperAdminDashboard /></ProtectedRoute>} />
-          <Route path="/superadmin-hierarchy" element={<SuperadminHierarchy />} />
-          <Route path="/superadmin-hierarchy-grid" element={<SuperadminHierarchyGrid />} />
-          <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/admin-hierarchy" element={<AdminHierarchy />} />
-          <Route path="/dealer" element={<ProtectedRoute role="dealer"><DealerDashboard /></ProtectedRoute>} />
-          <Route path="/dealer-hierarchy" element={<DealerHierarchy />} />
-          <Route path="/sub-dealer" element={<ProtectedRoute role="sub_dealer"><SubDealerDashboard /></ProtectedRoute>} />
-          <Route path="/subdealer-hierarchy" element={<SubdealerHierarchy />} />
-          <Route path="/promotor" element={<ProtectedRoute role="promotor"><PromotorDashboard /></ProtectedRoute>} />
-          <Route path="/promotor-hierarchy" element={<PromotorHierarchy />} />
+          <Route path="/superadmin-hierarchy" element={<WithStaffChrome role="super_admin"><SuperadminHierarchy /></WithStaffChrome>} />
+          <Route path="/superadmin-hierarchy-grid" element={<WithStaffChrome role="super_admin"><SuperadminHierarchyGrid /></WithStaffChrome>} />
+          <Route path="/admin" element={<ProtectedRoute role="admin"><WithStaffChrome role="admin"><AdminDashboard /></WithStaffChrome></ProtectedRoute>} />
+          <Route path="/admin-hierarchy" element={<WithStaffChrome role="admin"><AdminHierarchy /></WithStaffChrome>} />
+          <Route path="/dealer" element={<ProtectedRoute role="dealer"><WithStaffChrome role="dealer"><DealerDashboard /></WithStaffChrome></ProtectedRoute>} />
+          <Route path="/dealer-hierarchy" element={<WithStaffChrome role="dealer"><DealerHierarchy /></WithStaffChrome>} />
+          <Route path="/sub-dealer" element={<ProtectedRoute role="sub_dealer"><WithStaffChrome role="sub_dealer"><SubDealerDashboard /></WithStaffChrome></ProtectedRoute>} />
+          <Route path="/subdealer-hierarchy" element={<WithStaffChrome role="sub_dealer"><SubdealerHierarchy /></WithStaffChrome>} />
+          <Route path="/promotor" element={<ProtectedRoute role="promotor"><WithStaffChrome role="promotor"><PromotorDashboard /></WithStaffChrome></ProtectedRoute>} />
+          <Route path="/promotor-hierarchy" element={<WithStaffChrome role="promotor"><PromotorHierarchy /></WithStaffChrome>} />
           <Route path="/customer" element={<ProtectedRoute role="customer"><CustomerDashboard /></ProtectedRoute>} />
           <Route path="/profile" element={<Profile />} />
 
@@ -175,9 +180,9 @@ export default function App() {
 
           <Route path="/cart" element={<CardSection />} />
           <Route path="/product-display" element={<ProductDisplay />} />
-          <Route path="/add-product" element={<ProtectedRoute role="super_admin"><AddProduct /></ProtectedRoute>} />
-          <Route path="/add-banners" element={<ProtectedRoute role="super_admin"><AddBanners /></ProtectedRoute>} />
-          <Route path="/home-banner" element={<ProtectedRoute role="super_admin"><HomeBanner /></ProtectedRoute>} />
+          <Route path="/add-product" element={<ProtectedRoute role="super_admin"><WithStaffChrome role="super_admin"><AddProduct /></WithStaffChrome></ProtectedRoute>} />
+          <Route path="/add-banners" element={<ProtectedRoute role="super_admin"><WithStaffChrome role="super_admin"><AddBanners /></WithStaffChrome></ProtectedRoute>} />
+          <Route path="/home-banner" element={<ProtectedRoute role="super_admin"><WithStaffChrome role="super_admin"><HomeBanner /></WithStaffChrome></ProtectedRoute>} />
           <Route path="/collection/all" element={<AllCollection />} />
           <Route path="/collection/coins" element={<CoinsCollection />} />
           <Route path="/gold-coins" element={<Navigate to={coinsPath('gold')} replace />} />
@@ -186,11 +191,11 @@ export default function App() {
           <Route path="/order-confirm" element={<OrderConfirm />} />
           <Route path="/bj-live" element={<BBLive />} />
           <Route path="/order-summary" element={<ProtectedRoute role="customer"><OrderSummary /></ProtectedRoute>} />
-          <Route path="/admin-orders" element={<ProtectedRoute role="super_admin"><AdminOrdersPage /></ProtectedRoute>} />
-          <Route path="/sales-report" element={<ProtectedRoute><Report /></ProtectedRoute>} />
-          <Route path="/hierarchy-sales-count" element={<SuperAdminHierarchySalesCount />} />
-          <Route path="/login-active" element={<LoginActive />} />
-          <Route path="/login-inactive" element={<LoginInactive />} />
+          <Route path="/admin-orders" element={<ProtectedRoute role="super_admin"><WithStaffChrome role="super_admin"><AdminOrdersPage /></WithStaffChrome></ProtectedRoute>} />
+          <Route path="/sales-report" element={<ProtectedRoute><WithStaffChrome role={localStorage.getItem('role') || 'super_admin'}><Report /></WithStaffChrome></ProtectedRoute>} />
+          <Route path="/hierarchy-sales-count" element={<WithStaffChrome role="super_admin"><SuperAdminHierarchySalesCount /></WithStaffChrome>} />
+          <Route path="/login-active" element={<WithStaffChrome role="super_admin"><LoginActive /></WithStaffChrome>} />
+          <Route path="/login-inactive" element={<WithStaffChrome role="super_admin"><LoginInactive /></WithStaffChrome>} />
         </Routes>
       </Suspense>
     </BrowserRouter>

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import api from '../api'
 import logo from '../assets/logo.png'
 
-const API_BASE = 'https://bitbyte-backend-f66f.onrender.com'
+const API_BASE = 'https://bitbyte-backend-oums.onrender.com'
 
 const LEGACY_CATEGORIES = [
   { key: 'rings',      label: 'Rings',      emoji: '💍' },

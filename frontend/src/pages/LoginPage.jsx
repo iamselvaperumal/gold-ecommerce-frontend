@@ -115,7 +115,10 @@ localStorage.removeItem('refresh')
 localStorage.removeItem('role')
 localStorage.removeItem('email')
 
-  const attemptLogin = () => api.post('/login/', { email, password })
+  const attemptLogin = () => api.post('/login/', {
+    email: email.trim().toLowerCase(),
+    password,
+  })
 
   const doNavigate = (role) => {
     if (role === 'super_admin') navigate('/super-admin', { replace: true })
